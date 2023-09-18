@@ -1,5 +1,7 @@
 import { pb } from "@/client";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import parseHtml, { Element, domToReact } from 'html-react-parser';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +27,8 @@ interface RegistrationField {
 }
 
 // TODO: make payments required!
+
+const currentFormatter = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' });
 
 function TopicInterestFormRenderer({ name, field }: { name: string, field: RegistrationField }) {
     const form = useForm();
@@ -63,6 +67,59 @@ function TopicInterestFormRenderer({ name, field }: { name: string, field: Regis
                     </div>
                 ))}
             </div>
+        </div>
+    )
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function BundleFormRenderer({ name }: { name: string, field: RegistrationField }) {
+    const [selectedBundle, setSelectedBundle] = useState('');
+    const form = useForm();
+    const { data } = useQuery(['bundles'], () => {
+        return pb.collection('bundles').getFullList();
+    });
+
+    useEffect(() => {
+        form.set(name, selectedBundle)
+    }, [name, selectedBundle, form]);
+
+    return (
+        <div className="flex flex-row space-x-2">
+            {data?.map(bundle => (
+                <Card key={`bundle_${bundle.id}`} className="flex flex-col w-1/3">
+                    <CardHeader>
+                        <CardTitle>{bundle.title}</CardTitle>
+                        <CardDescription>{parseHtml(bundle.description)}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-gray-500 text-sm">This includes:</p>
+                        <div className="text-sm">
+                            {parseHtml(bundle.includes, {
+                                replace(domNode) {
+                                    if (domNode instanceof Element && domNode.attribs && domNode.tagName === "ul") {
+                                        return <ul className="list-disc pl-4">
+                                            {domToReact(domNode.children)}
+                                        </ul>
+                                    }
+                                },
+                            })}
+                        </div>
+                    </CardContent>
+                    <CardFooter className="mt-auto flex flex-col">
+                        <div className="w-full pb-4">
+                            <p className="text-sm text-gray-400">Price</p>
+                            <p className="text-lg font-semibold">{currentFormatter.format(bundle.price)}</p>
+                        </div>
+
+                        <Button
+                            variant={bundle.id === selectedBundle ? 'secondary' : 'default'}
+                            onClick={() => setSelectedBundle(bundle.id)}
+                            className="w-full">
+                            {bundle.id === selectedBundle ? 'Selected' : 'Select'}
+                        </Button>
+                    </CardFooter>
+                </Card>
+            ))}
         </div>
     )
 }
@@ -226,7 +283,8 @@ export default function Home() {
                         <FormRenderer
                             field={field}
                             customComponents={{
-                                "topic_interests": TopicInterestFormRenderer
+                                "topic_interests": TopicInterestFormRenderer,
+                                "selected_bundle": BundleFormRenderer
                             }} />
                     </div>
                 ))}
