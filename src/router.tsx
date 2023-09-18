@@ -7,7 +7,7 @@ import AdminLayout from "./components/layouts/admin";
 // Pages
 import Home from "./pages/Home";
 import AdminLogin from "./pages/admin/Login";
-import AdminDashboard from "./pages/admin/Dashboard";
+import AdminRegistrationEntries from "./pages/admin/Dashboard";
 
 export const router = createBrowserRouter([
     {
@@ -26,7 +26,7 @@ export const router = createBrowserRouter([
         children: [
             {
                 index: true,
-                element: <AdminDashboard />
+                element: <AdminRegistrationEntries />
             }
         ]
     }
