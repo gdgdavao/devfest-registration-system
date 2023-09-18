@@ -4,17 +4,13 @@ module.exports = {
     /**
     *
     * @param {models.Collection | undefined} collection
-    * @param {{parent?: string, parentKey?: string, excluded: string[], registrationType: string} | undefined} _options
+    * @param {{parent?: string, parentKey?: string, registrationType: string} | undefined} _options
     */
     extractCollectionSchema(collection, _options) {
         const fieldsFromSchema = collection.schema.fields();
         const fields = [];
 
         for (const field of fieldsFromSchema) {
-            if (Array.isArray(_options.excluded) && _options.excluded.indexOf(field.name) !== -1) {
-                continue;
-            }
-
             let options = JSON.parse(JSON.stringify(field.options));
             let title = field.name;
             let description = "";
@@ -41,6 +37,10 @@ module.exports = {
                     }
                 }
             } catch (e) {}
+
+            if (options.hidden) {
+                continue;
+            }
 
             if (field.type === "relation") {
                 // Avoid loop!

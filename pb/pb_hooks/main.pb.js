@@ -8,7 +8,7 @@ routerAdd("GET", "/api/registration_fields", (c) => {
     }
 
     const collection = $app.dao().findCollectionByNameOrId("registrations");
-    const fields = utils.extractCollectionSchema(collection, { excluded: ["is_approved"], registrationType });
+    const fields = utils.extractCollectionSchema(collection, { registrationType });
 
     return c.json(200, fields);
 });
@@ -48,7 +48,16 @@ routerAdd("GET", "/api/slot_counter", (c) => {
 });
 
 onRecordAfterCreateRequest((e) => {
+    const registrant = e.record.id;
+
     try {
+        const statusCollection = $app.dao().findCollectionByNameOrId('registration_statuses');
+        const statusRecord = new Record(statusCollection, { registrant, status: 'pending' });
+
+        $app.dao().saveRecord(statusRecord);
+        e.record.set('status', statusRecord.id);
+        $app.dao().saveRecord(e.record);
+
         let profileKey = 'student_profile';
         let profileDataKey = 'student_profile_data';
         let profileCollectionKey = 'student_profiles';
@@ -66,7 +75,7 @@ onRecordAfterCreateRequest((e) => {
         // TODO: use the "Create new record with validatoins"
         // https://pocketbase.io/docs/js-records/#create-new-record-with-data-validations
         const profileRecord = new Record(profileCollection, rawProfile);
-        profileRecord.set(registrantKey, e.record.id);
+        profileRecord.set(registrantKey, registrant);
         $app.dao().saveRecord(profileRecord);
 
         e.record.set(profileKey, profileRecord.id);
