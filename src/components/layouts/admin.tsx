@@ -87,9 +87,9 @@ function Sidebar({ className }: { className?: string }) {
 export default function AdminLayout() {
     return (
         <AuthOnly>
-            <div className="grid lg:grid-cols-5 h-full">
+            <div className="grid lg:grid-cols-5 xl:grid-cols-8 h-full">
                 <Sidebar className="hidden lg:block h-screen" />
-                <div className="col-span-3 lg:col-span-4 lg:border-l px-4">
+                <div className="col-span-3 lg:col-span-4 xl:col-span-7 lg:border-l px-4">
                     <Outlet />
                 </div>
             </div>
