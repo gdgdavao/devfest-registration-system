@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { FC, createContext, useContext, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FC, createContext, useContext, useEffect, useRef, useState } from "react";
 
 interface FormContextData {
     set: (key: string, value: string) => void,
@@ -66,19 +66,17 @@ function TopicInterestFormRenderer({ name, field }: { name: string, field: Regis
     )
 }
 
-function FormRenderer({ parentField, field, customComponents }: {
-    parentField?: string,
+function FormRenderer({ field, customComponents }: {
     field: RegistrationField,
     customComponents?: Record<string, FC<{ name: string, field: RegistrationField }>>
 }) {
-    const name = parentField ? `${parentField}.${field.name}` : field.name;
+    const name = field.name;
     const form = useForm();
+    const defaultChangeHandler = (ev: ChangeEvent<HTMLInputElement>) => { form.set(name, ev.currentTarget.value) };
 
     if (field.type === "select") {
         const values = field.options.values as string[];
-        return <Select onValueChange={(value) => {
-            form.set(name, value);
-        }} name={name}>
+        return <Select onValueChange={(value) => { form.set(name, value); }}>
             <SelectTrigger>
                 <SelectValue placeholder={values[0] ?? ''} />
             </SelectTrigger>
@@ -94,20 +92,48 @@ function FormRenderer({ parentField, field, customComponents }: {
 
     if (field.type === "relation") {
         if (field.options.fields) {
-            return <div className="flex flex-col">
-                {(field.options.fields as RegistrationField[]).map(sfield => (
-                    <div key={`registration_${field.name}_${sfield.name}`} className="py-4">
-                        <Label htmlFor={sfield.name}>{sfield.title}</Label>
-                        <FormRenderer
-                            field={sfield}
-                            parentField={name}
-                            customComponents={customComponents} />
-                    </div>
-                ))}
-            </div>
+            return <FormContext.Provider value={{
+                set(key: string, value: string) {
+                    let payload: Record<string, unknown> = {};
+                    const rawPayload = form.get(name + '_data');
+                    if (rawPayload) {
+                        payload = JSON.parse(rawPayload);
+                        if (typeof payload !== "object") {
+                            payload = {};
+                        }
+                    }
+
+                    payload![key] = value;
+                    form.set(name + '_data', JSON.stringify(payload));
+                },
+                get(key: string) {
+                    let payload: Record<string, unknown> = {};
+                    const rawPayload = form.get(name + '_data');
+                    if (rawPayload) {
+                        payload = JSON.parse(rawPayload);
+                        if (typeof payload !== "object") {
+                            payload = {};
+                        }
+                    }
+                    return `${payload[key]}`;
+                }
+            }}>
+                <div className="flex flex-col">
+                    {(field.options.fields as RegistrationField[]).map(sfield => (
+                        <div key={`registration_${field.name}_${sfield.name}`} className="py-4">
+                            <Label htmlFor={sfield.name}>{sfield.title}</Label>
+                            <FormRenderer
+                                field={sfield}
+                                customComponents={customComponents} />
+                        </div>
+                    ))}
+                </div>
+            </FormContext.Provider>
         }
 
-        return <Input type="text" name={name} id={name} />
+        return <Input
+            onChange={defaultChangeHandler}
+            type="text" id={name} />
     }
 
     if (customComponents && customComponents[name]) {
@@ -116,35 +142,50 @@ function FormRenderer({ parentField, field, customComponents }: {
     }
 
     if (field.type === "email") {
-        return <Input type="email" name={name} id={name} />
+        return <Input
+            onChange={defaultChangeHandler}
+            type="email" id={name} />
     }
 
-    return <Input type="text" name={name} id={name} />
+    if (field.type === "bool") {
+        return <div className="flex items-center space-x-2">
+            <Checkbox
+                onCheckedChange={(checked) => { form.set(name, typeof checked === "string" ? checked : `${checked}`) }}
+                id={name} />
+            <label
+                htmlFor={name}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+                {(field.options.checkbox_label as string) ?? name}
+            </label>
+        </div>
+    }
+
+    return <Input
+        onChange={defaultChangeHandler}
+        type="text" id={name} />
 }
 
 export default function Home() {
     const [formData, setFormData] = useState(new FormData());
+    const [participantType, setParticipantType] = useState('student');
     const formElRef = useRef<HTMLFormElement>(null);
-    const { data } = useQuery(['field'], () => {
-        return pb.send<RegistrationField[]>('/api/registration_fields', {
-            method: 'GET'
-        });
+    const { data, refetch: refetchFields } = useQuery(['field'], () => {
+        return pb.send<RegistrationField[]>(
+            `/api/registration_fields?type=${participantType}`,
+            { method: 'GET' }
+        );
+    }, {
+        refetchOnWindowFocus: false
     });
 
-    const { mutate: submitForm } = useMutation((fd: FormData) => {
-        // TODO: create relation ids on demand
-        // const relationFields = data?.filter(f => f.type === "relation").map(f => `${f.name}.`) ?? [];
-        // const relationValues: Record<string, string> = {}
-
-        // // fd.forEach((v, k) => {
-        // //     if (relationFields.some(f => k.startsWith(f))) {
-        // //         relationValues[]
-        // //     }
-        // // });
-
-        const record = pb.collection('registrations').create(fd);
-        return record;
+    const { mutate: submitForm } = useMutation(async (fd: FormData) => {
+        return pb.collection('registrations').create(fd);
     });
+
+    useEffect(() => {
+        refetchFields();
+    }, [participantType, refetchFields]);
 
     return (
         // TODO: use Form component
@@ -163,6 +204,10 @@ export default function Home() {
             className="max-w-3xl px-3 mx-auto flex flex-col space-y-2">
             <FormContext.Provider value={{
                 set(key: string, value: string) {
+                    if (key === 'type') {
+                        setParticipantType(value);
+                    }
+
                     setFormData(formData => {
                         formData.set(key, value);
                         return formData;
