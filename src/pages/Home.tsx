@@ -74,6 +74,11 @@ function FormRenderer({ field, customComponents }: {
     const form = useForm();
     const defaultChangeHandler = (ev: ChangeEvent<HTMLInputElement>) => { form.set(name, ev.currentTarget.value) };
 
+    if (customComponents && customComponents[name]) {
+        const CustomFormRenderer = customComponents[name];
+        return <CustomFormRenderer name={name} field={field} />
+    }
+
     if (field.type === "select") {
         const values = field.options.values as string[];
         return <Select onValueChange={(value) => { form.set(name, value); }}>
@@ -134,11 +139,6 @@ function FormRenderer({ field, customComponents }: {
         return <Input
             onChange={defaultChangeHandler}
             type="text" id={name} />
-    }
-
-    if (customComponents && customComponents[name]) {
-        const CustomFormRenderer = customComponents[name];
-        return <CustomFormRenderer name={name} field={field} />
     }
 
     if (field.type === "email") {
