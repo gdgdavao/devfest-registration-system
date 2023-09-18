@@ -30,6 +30,9 @@
     "zod": "^3.22.2"
   },
   "devDependencies": {
+    "@iconify-json/material-symbols": "^1.1.58",
+    "@svgr/core": "^8.1.0",
+    "@svgr/plugin-jsx": "^8.1.0",
     "@types/node": "^20.6.2",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",

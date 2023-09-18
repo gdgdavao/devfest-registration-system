@@ -3,6 +3,12 @@ import AuthOnly from "../authonly";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 
+import IconAll from '~icons/material-symbols/format-list-bulleted';
+import IconPending from '~icons/material-symbols/pending-outline';
+import IconApprove from '~icons/material-symbols/check-circle-outline';
+import IconReject from '~icons/material-symbols/cancel-outline';
+import IconSummary from '~icons/material-symbols/browse-activity-outline-rounded';
+
 function Sidebar({ className }: { className?: string }) {
     return (
         <div className={cn("pb-12", className)}>
@@ -20,22 +26,27 @@ function Sidebar({ className }: { className?: string }) {
 
                     <div className="space-y-1">
                         <Button variant="ghost" className="w-full justify-start">
-                            All Entries
+                            <IconAll className="mr-2" />
+                             All Entries
                         </Button>
 
                         <Button variant="ghost" className="w-full justify-start">
+                            <IconPending className="mr-2" />
                             Pending
                         </Button>
 
                         <Button variant="ghost" className="w-full justify-start">
+                            <IconApprove className="mr-2" />
                             Approved
                         </Button>
 
                         <Button variant="ghost" className="w-full justify-start">
+                            <IconReject className="mr-2" />
                             Rejected
                         </Button>
 
                         <Button variant="ghost" className="w-full justify-start">
+                            <IconSummary className="mr-2" />
                             Summary
                         </Button>
                     </div>
@@ -48,18 +59,22 @@ function Sidebar({ className }: { className?: string }) {
 
                     <div className="space-y-1">
                         <Button variant="ghost" className="w-full justify-start">
+                            <IconAll className="mr-2" />
                             All Entries
                         </Button>
 
                         <Button variant="ghost" className="w-full justify-start">
+                            <IconPending className="mr-2" />
                             Pending
                         </Button>
 
                         <Button variant="ghost" className="w-full justify-start">
+                            <IconApprove className="mr-2" />
                             Paid
                         </Button>
 
                         <Button variant="ghost" className="w-full justify-start">
+                            <IconReject className="mr-2" />
                             Unpaid
                         </Button>
                     </div>

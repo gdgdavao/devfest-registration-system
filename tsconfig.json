@@ -22,7 +22,11 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+
+    "types": [
+      "unplugin-icons/types/react",
+    ]
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
