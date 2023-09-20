@@ -2,6 +2,19 @@
 
 module.exports = {
     /**
+     * @returns {void}
+     */
+    buildRegistrationFields() {
+        const registrationTypes = ["student", "professional"];
+        const collection = $app.dao().findCollectionByNameOrId("registrations");
+        
+        for (const registrationType of registrationTypes) {
+            const fields = this.extractCollectionSchema(collection, { registrationType });
+            $app.cache().set(`registration_fields_${registrationType}`, fields);
+        }
+    },
+
+    /**
     *
     * @param {models.Collection | undefined} collection
     * @param {{parent?: string, parentKey?: string, registrationType: string} | undefined} _options

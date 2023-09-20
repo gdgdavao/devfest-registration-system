@@ -1,4 +1,8 @@
 /// <reference path="../pb_data/types.d.ts" />
+onAfterBootstrap((e) => {
+    const utils = require(`${__hooks}/utils.js`);
+    utils.buildRegistrationFields();
+});
 
 routerAdd("GET", "/api/registration_fields", (c) => {
     const utils = require(`${__hooks}/utils.js`);
@@ -7,9 +11,11 @@ routerAdd("GET", "/api/registration_fields", (c) => {
         throw new BadRequestError("Type should be professional or student");
     }
 
-    const collection = $app.dao().findCollectionByNameOrId("registrations");
-    const fields = utils.extractCollectionSchema(collection, { registrationType });
+    if (!$app.cache().has(`registration_fields_${registrationType}`)) {
+        utils.buildRegistrationFields();
+    }
 
+    const fields = $app.cache().get(`registration_fields_${registrationType}`);
     return c.json(200, fields);
 });
 
@@ -84,3 +90,18 @@ onRecordAfterCreateRequest((e) => {
         console.error(e);
     }
 }, "registrations");
+
+onRecordAfterCreateRequest((e) => {
+    const utils = require(`${__hooks}/utils.js`);
+    utils.buildRegistrationFields();
+}, "form_details");
+
+onRecordAfterUpdateRequest((e) => {
+    const utils = require(`${__hooks}/utils.js`);
+    utils.buildRegistrationFields();
+}, "form_details");
+
+onRecordAfterDeleteRequest((e) => {
+    const utils = require(`${__hooks}/utils.js`);
+    utils.buildRegistrationFields();
+}, "form_details");
