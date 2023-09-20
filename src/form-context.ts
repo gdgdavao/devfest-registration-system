@@ -1,6 +1,5 @@
 import { createContext, useContext } from "react";
 
-
 export interface FormContextData {
     set: (key: string, value: string) => void,
     get: (key: string) => string | null,

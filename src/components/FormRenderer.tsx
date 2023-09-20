@@ -4,14 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Label } from "./ui/label"
 import { Checkbox } from "./ui/checkbox"
 import { FormContext, useFormContext } from "@/form-context"
-
-export interface RegistrationField {
-    name: string
-    type: string
-    title: string
-    description: string
-    options: Record<string, unknown>
-}
+import { RegistrationField } from "@/client"
 
 export type FormRendererProps = { name: string, field: RegistrationField };
 

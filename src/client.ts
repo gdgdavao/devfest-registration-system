@@ -1,7 +1,6 @@
 import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import PocketBase, { RecordListOptions } from 'pocketbase';
 import { BundlesResponse, Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions } from './pocketbase-types';
-import { RegistrationField } from './components/FormRenderer';
 
 export const queryClient = new QueryClient();
 export const pb = new PocketBase(import.meta.env.VITE_API_URL);
@@ -17,6 +16,14 @@ export type RegistrationsResponse = PBRegistrationsResponse<
         selected_bundle: BundlesResponse
     }
 >
+
+export interface RegistrationField {
+    name: string
+    type: string
+    title: string
+    description: string
+    options: Record<string, unknown>
+}
 
 export function useRegistrationMutation() {
     return useMutation((record: FormData | RegistrationsRecord) => {
