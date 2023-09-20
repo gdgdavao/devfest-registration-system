@@ -1,5 +1,5 @@
 import { useBundlesQuery, useDeleteRegistrationMutation, useRegistrationMutation, useRegistrationQuery, useRegistrationsQuery, useUpdateRegistrationStatusMutation } from "@/client"
-import { DataTable } from "@/components/data-table";
+import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
 
 import IconEdit from '~icons/material-symbols/edit-outline';
@@ -15,8 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ReactNode, useEffect } from "react";
 import { useRegistrationForm } from "@/registration";
 import { Label } from "@/components/ui/label";
-import FormRenderer, { FormRendererProps } from "@/components/formrenderer";
-import TopicInterestFormRenderer from "@/components/form-renderers/TopicInterestFormRenderer";
+import FormRenderer, { FormRendererProps } from "@/components/FormRenderer";
+import TopicInterestFormRenderer from "@/components/form_renderers/TopicInterestFormRenderer";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFormContext } from "@/form-context";
 

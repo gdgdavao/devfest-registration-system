@@ -1,5 +1,5 @@
 import { useFormContext } from "@/form-context";
-import { FormRendererProps } from "../formrenderer";
+import { FormRendererProps } from "../FormRenderer";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 

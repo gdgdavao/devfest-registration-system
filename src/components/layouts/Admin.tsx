@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import AuthOnly from "../authonly";
+import AuthOnly from "../AuthOnly";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 

@@ -1,8 +1,8 @@
 import { createBrowserRouter } from "react-router-dom";
-import GuestOnly from "./components/guestonly";
+import GuestOnly from "./components/GuestOnly";
 
 // Layouts
-import AdminLayout from "./components/layouts/admin";
+import AdminLayout from "./components/layouts/Admin";
 
 // Pages
 import Home from "./pages/Home";

@@ -7,8 +7,8 @@ import { useRegistrationForm } from "@/registration";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import FormRenderer, { FormRendererProps } from "@/components/formrenderer";
-import TopicInterestFormRenderer from "@/components/form-renderers/TopicInterestFormRenderer";
+import FormRenderer, { FormRendererProps } from "@/components/FormRenderer";
+import TopicInterestFormRenderer from "@/components/form_renderers/TopicInterestFormRenderer";
 
 // TODO: make payments required!
 
