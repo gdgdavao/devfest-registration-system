@@ -1,4 +1,4 @@
-import { useBundlesQuery, useDeleteRegistrationMutation, useRegistrationFieldsQuery, useRegistrationMutation, useRegistrationQuery, useRegistrationsQuery, useUpdateRegistrationStatusMutation } from "@/client"
+import { useBundlesQuery, useDeleteRegistrationMutation, useRegistrationMutation, useRegistrationQuery, useRegistrationsQuery, useUpdateRegistrationStatusMutation } from "@/client"
 import { DataTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
 
