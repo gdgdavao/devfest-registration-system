@@ -1,7 +1,6 @@
-import { pb } from "@/client"
+import { useBundlesQuery, useDeleteRegistrationMutation, useRegistrationFieldsQuery, useRegistrationMutation, useRegistrationQuery, useRegistrationsQuery, useUpdateRegistrationStatusMutation } from "@/client"
 import { DataTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
-import { useInfiniteQuery } from "@tanstack/react-query"
 
 import IconEdit from '~icons/material-symbols/edit-outline';
 import IconDelete from '~icons/material-symbols/delete-outline';
@@ -9,22 +8,233 @@ import IconScreen from '~icons/material-symbols/thumbs-up-down-outline';
 import IconPlus from '~icons/material-symbols/add';
 
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { RecordIdString, RegistrationStatusesStatusOptions } from "@/pocketbase-types";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ReactNode, useEffect } from "react";
+import { useRegistrationForm } from "@/registration";
+import { Label } from "@/components/ui/label";
+import FormRenderer, { FormRendererProps } from "@/components/formrenderer";
+import TopicInterestFormRenderer from "@/components/form-renderers/TopicInterestFormRenderer";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useFormContext } from "@/form-context";
+
+export function RegistrationRowActions({ id, onDelete }: { 
+    id: RecordIdString, 
+    onDelete: (id: RecordIdString) => Promise<void> 
+}) {
+    return <div className="flex flex-row space-x-2">
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger>
+                    <ScreenRegistrantDialog id={id}>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <IconScreen />
+                        </Button>
+                    </ScreenRegistrantDialog>
+                </TooltipTrigger>
+                <TooltipContent>
+                    Screen registrant
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                        <IconEdit />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    Edit
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                            <IconDelete className="text-red-500" />
+                                        </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete your
+                                    account and remove your data from our servers.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => onDelete(id)}>
+                                    Continue
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </TooltipTrigger>
+                <TooltipContent>
+                    Delete
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    </div>
+}
+
+function BundleFormRenderer({ name }: FormRendererProps) {
+    const { data } = useBundlesQuery();
+    const form = useFormContext();
+
+    return <Select
+        defaultValue={data?.[0].id} 
+        onValueChange={(value) => { form.set(name, value); }}>
+        <SelectTrigger>
+            <SelectValue placeholder={data?.[0].title ?? ''} />
+        </SelectTrigger>
+        <SelectContent>
+            {(data ?? []).map(bundle => (
+                <SelectItem
+                    key={`registration_${name}_select_${bundle.id}`}
+                    value={bundle.id}>{bundle.title}</SelectItem>
+            ))}
+        </SelectContent>
+    </Select>
+}
+
+function ScreenRegistrantDialog({ id, children }: { id: string, children: ReactNode }) {
+    const { mutate: markRegistrant } = useUpdateRegistrationStatusMutation();
+    const { data: registrant } = useRegistrationQuery(id);
+    // const { data: fields } = useRegistrationFieldsQuery(registrantData?.type);
+
+    return <Dialog>
+        <DialogTrigger asChild>{children}</DialogTrigger>
+        <DialogContent className="lg:max-w-screen-md overflow-y-scroll max-h-[calc(100vh-2rem)]">
+            <DialogHeader>
+                <DialogTitle>Screen registrant</DialogTitle>
+            </DialogHeader>
+            
+            <div className="flex flex-col divide-y-2">
+                <div className="flex space-x-2">
+                    <Button className="flex-1" onClick={() => {
+                        markRegistrant({
+                            id: registrant!.status, 
+                            status: RegistrationStatusesStatusOptions.approved 
+                        });
+                    }}>
+                        Approve
+                    </Button>
+
+                    <Button className="flex-1" onClick={() => {
+                        markRegistrant({
+                            id: registrant!.status, 
+                            status: RegistrationStatusesStatusOptions.rejected 
+                        });
+                    }}>
+                        Reject
+                    </Button>
+                </div>
+
+                <div className="flex flex-col py-8">
+                    <span className="text-slate-500">Name</span>
+                    <p className="text-2xl font-bold">{registrant?.last_name}, {registrant?.first_name}</p>
+                </div>
+
+                <div className="flex flex-col space-y-2 py-4">
+                    <span className="text-slate-500">Contact Details</span>
+
+                    <div className="flex flex-row pt-4">
+                        <div className="flex-1 flex flex-col">
+                            <span className="text-slate-500">E-mail Address</span>
+                            <p className="font-bold">{registrant?.email}</p>
+                        </div>
+
+                        <div className="flex-1 flex flex-col">
+                            <span className="text-slate-500">Contact Number</span>
+                            <p className="font-bold">{registrant?.contact_number}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-col space-y-2 py-4">
+                    <span className="text-slate-500">Bundle Details</span>
+
+                    <div className="flex flex-row pt-4">
+                        <div className="flex-1 flex flex-col">
+                            <span className="text-slate-500">Selected bundle</span>
+                            <p className="font-bold">{registrant?.expand?.selected_bundle.title}</p>
+                        </div>
+
+                        <div className="flex-1 flex flex-col">
+                            <span className="text-slate-500">Contact Number</span>
+                            <p className="font-bold">{registrant?.contact_number}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </DialogContent>
+    </Dialog>
+}
+
+function NewRegistrationDialog({ children }: { children: ReactNode }) {
+    const {
+        FormProvider,
+        formData,
+        registrationType,
+        fieldsQuery: { data, refetch: refetchFields }
+    } = useRegistrationForm();
+    const { mutate: submitForm } = useRegistrationMutation();
+
+    useEffect(() => {
+        refetchFields();
+    }, [registrationType, refetchFields]);
+
+    return <Dialog>
+        <DialogTrigger asChild>{children}</DialogTrigger>
+        <DialogContent className="lg:max-w-screen-md overflow-y-scroll max-h-[calc(100vh-2rem)]">
+            <DialogHeader>
+                <DialogTitle>Register new participant</DialogTitle>
+                
+                {/* TODO: use Form component */}
+                <form
+                    onSubmit={(ev) => {
+                        ev.preventDefault();
+                        const fdFromForm = new FormData(ev.currentTarget);
+
+                        formData.forEach((v, k) => {
+                            fdFromForm.set(k, v);
+                        });
+
+                        submitForm(fdFromForm);
+                    }}
+                    className="flex flex-col space-y-2">
+                    <FormProvider>
+                        {data?.map(field => (
+                            <div key={`registration_${field.name}`} className="py-4">
+                                <Label htmlFor={field.name}>{field.title}</Label>
+                                <FormRenderer
+                                    field={field}
+                                    customComponents={{
+                                        "topic_interests": TopicInterestFormRenderer,
+                                        "selected_bundle": BundleFormRenderer
+                                    }} />
+                            </div>
+                        ))}
+                    </FormProvider>
+
+                    <Button type="submit">Submit</Button>
+                </form>
+            </DialogHeader>
+        </DialogContent>
+    </Dialog>
+}
 
 export default function AdminRegistrationEntries() {
-    const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery(['registrations'], ({ pageParam = 1 }) => {
-        return pb.collection('registrations').getList(pageParam);
-    }, {
-        getNextPageParam(data) {
-            if (data.page + 1 > data.totalPages) return undefined;
-            return data.page + 1;
-        },
-        getPreviousPageParam(data) {
-            if (data.page + 1 < 0) return undefined;
-            return data.page - 1;
-        },
-
-    })
+    const { data, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useRegistrationsQuery();
+    const { mutateAsync: deleteRegistration } = useDeleteRegistrationMutation();
 
     return (
         <div className="max-w-5xl mx-auto pt-12 flex flex-col">
@@ -35,10 +245,12 @@ export default function AdminRegistrationEntries() {
                     className="w-1/2"
                     placeholder="Filter by emails..." />
 
-                <Button>
-                    <IconPlus className="mr-2" />
-                    Register new participant
-                </Button>
+                <NewRegistrationDialog>
+                    <Button>
+                        <IconPlus className="mr-2" />
+                        Register new participant
+                    </Button>
+                </NewRegistrationDialog>
             </div>
 
             <DataTable
@@ -66,42 +278,15 @@ export default function AdminRegistrationEntries() {
                     },
                     {
                         id: "actions",
-                        cell: () => {
-                          return (
-                            <div className="flex flex-row space-x-2">
-                                <Tooltip>
-                                    <TooltipTrigger>
-                                        <Button variant="ghost" className="h-8 w-8 p-0">
-                                            <IconScreen />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        Screen participant
-                                    </TooltipContent>
-                                </Tooltip>
-                                <Tooltip>
-                                    <TooltipTrigger>
-                                        <Button variant="ghost" className="h-8 w-8 p-0">
-                                            <IconEdit />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        Edit
-                                    </TooltipContent>
-                                </Tooltip>
-                                <Tooltip>
-                                    <TooltipTrigger>
-                                        <Button variant="ghost" className="h-8 w-8 p-0">
-                                            <IconDelete />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        Delete
-                                    </TooltipContent>
-                                </Tooltip>
-                            </div>
-                          )
-                        },
+                        cell: ({ row }) => (
+                            <RegistrationRowActions
+                                id={row.original.id}
+                                onDelete={async (id) => {
+                                    await deleteRegistration(id, {
+                                        async onSuccess() { await refetch(); }
+                                    });
+                                }} />
+                        ),
                     },
                 ]} />
 
