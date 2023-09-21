@@ -5,17 +5,27 @@ import FormFieldRenderer, { FormFieldRendererProps } from "./FormFieldRenderer";
 import { Button } from "./ui/button";
 import TopicInterestFormRenderer from "./form_renderers/TopicInterestFormRenderer";
 import DefaultBundleFormRenderer from "./form_renderers/DefaultBundleFormRenderer";
+import { useEffect } from "react";
 
-export default function RegistrationForm({ onSubmit, customComponents = {} }: {
+export default function RegistrationForm({ data: existingData, onSubmit, customComponents = {} }: {
+    data?: RegistrationRecord,
     onSubmit: (record: RegistrationRecord, onError: (err: unknown) => void) => void,
     customComponents?: Partial<Record<keyof RegistrationRecord, React.FC<FormFieldRendererProps>>>
 }) {
-    const { form, fieldsQuery: { data } } = useRegistrationForm();
+    const { form, resetFormToDefault, fieldsQuery: { data } } = useRegistrationForm();
     const onFormSubmit = (data: RegistrationRecord) => onSubmit(data, (err) => handleFormServerSideError(err, errors => {
         for (const fieldName in errors) {
             form.setError(fieldName as any, errors[fieldName]);
         }
     }));
+
+    useEffect(() => {
+        if (existingData) {
+            form.reset(existingData);
+        } else {
+            resetFormToDefault();
+        }
+    }, [existingData]);
 
     return (
         <Form {...form}>

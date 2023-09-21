@@ -37,9 +37,11 @@ export function RegistrationRowActions({ id, onDelete }: {
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <IconEdit />
-                    </Button>
+                    <EditRegistrationDialog id={id}>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <IconEdit />
+                        </Button>
+                    </EditRegistrationDialog>
                 </TooltipTrigger>
                 <TooltipContent>
                     Edit
@@ -51,9 +53,9 @@ export function RegistrationRowActions({ id, onDelete }: {
                 <TooltipTrigger>
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                                        <Button variant="ghost" className="h-8 w-8 p-0">
-                                            <IconDelete className="text-red-500" />
-                                        </Button>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <IconDelete className="text-red-500" />
+                            </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                             <AlertDialogHeader>
@@ -80,6 +82,7 @@ export function RegistrationRowActions({ id, onDelete }: {
     </div>
 }
 
+// TODO: better interface
 function ScreenRegistrantDialog({ id, children }: { id: string, children: ReactNode }) {
     const { mutate: markRegistrant } = useUpdateRegistrationStatusMutation();
     const { data: registrant } = useRegistrationQuery(id);
@@ -161,9 +164,29 @@ function NewRegistrationDialog({ children }: { children: ReactNode }) {
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="lg:max-w-screen-md overflow-y-scroll max-h-[calc(100vh-2rem)]">
             <DialogHeader>
-                <DialogTitle>Register new participant</DialogTitle>
+                <DialogTitle>Register new person</DialogTitle>
                 
                 <RegistrationForm 
+                    onSubmit={(record, onError) => {
+                        submitForm(record, { onError });
+                    }} />
+            </DialogHeader>
+        </DialogContent>
+    </Dialog>
+}
+
+function EditRegistrationDialog({ id, children }: { id: string, children: ReactNode }) {
+    const { mutate: submitForm } = useRegistrationMutation();
+    const { data } = useRegistrationQuery(id);
+
+    return <Dialog>
+        <DialogTrigger asChild>{children}</DialogTrigger>
+        <DialogContent className="lg:max-w-screen-md overflow-y-scroll max-h-[calc(100vh-2rem)]">
+            <DialogHeader>
+                <DialogTitle>Edit registrant</DialogTitle>
+                
+                <RegistrationForm
+                    data={data} 
                     onSubmit={(record, onError) => {
                         submitForm(record, { onError });
                     }} />

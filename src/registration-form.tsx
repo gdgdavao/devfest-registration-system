@@ -3,18 +3,18 @@ import { RegistrationsAgeRangeOptions, RegistrationsSexOptions, RegistrationsTyp
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
-export function useRegistrationForm() {
-    const form = useForm<RegistrationRecord>({
-        defaultValues: {
-            type: RegistrationsTypeOptions.student,
-            sex: RegistrationsSexOptions.male,
-            age_range: RegistrationsAgeRangeOptions["below 18"],
-            years_tech_exp: RegistrationsYearsTechExpOptions["No Experience"]
-        }
-    });
+const defaultValues = {
+    type: RegistrationsTypeOptions.student,
+    sex: RegistrationsSexOptions.male,
+    age_range: RegistrationsAgeRangeOptions["below 18"],
+    years_tech_exp: RegistrationsYearsTechExpOptions["No Experience"]
+};
 
+export function useRegistrationForm() {
+    const form = useForm<RegistrationRecord>({ defaultValues });
     const watchRegType = form.watch("type");
     const fieldsQuery = useRegistrationFieldsQuery(watchRegType);
+    const resetFormToDefault = () => form.reset(defaultValues);
 
     useEffect(() => {
         if (watchRegType === RegistrationsTypeOptions.student) {
@@ -28,6 +28,7 @@ export function useRegistrationForm() {
 
     return {
         form,
+        resetFormToDefault,
         fieldsQuery
     }
 }
