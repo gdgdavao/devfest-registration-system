@@ -1,21 +1,20 @@
-import { useFormContext } from "@/form-context";
-import { FormRendererProps } from "../FormRenderer";
-import { useEffect, useState } from "react";
+import { FormFieldRendererProps } from "../FormFieldRenderer";
+import { useEffect } from "react";
 import { Button } from "../ui/button";
 
-export default function TopicInterestFormRenderer({ name, field }: FormRendererProps) {
-    const form = useFormContext();
+export default function TopicInterestFormRenderer({ onChange, value = {}, field }: FormFieldRendererProps) {
     const topics = (field.options.topics as { key: string, name: string }[]);
     const values = field.options.values as string[];
-    const [selected, setSelected] = useState(
-        topics.map(t => ({ [t.key]: values[0] })).reduce((pv, cv) => {
-            return { ...pv, ...cv };
-        }, {})
-    );
+    const selected = value as Record<string, string>;
+    const setSelected = (cb: (s: Record<string, string>) => Record<string, string>) => onChange(cb(selected));
 
     useEffect(() => {
-        form.set(name, JSON.stringify(selected));
-    }, [name, selected, form]);
+        if (typeof selected === 'undefined' || Object.keys(selected).length === 0) {
+            onChange(topics.map(t => ({ [t.key]: values[0] })).reduce((pv, cv) => {
+                return { ...pv, ...cv };
+            }, {}))
+        }
+    }, [value]);
 
     return (
         <div>

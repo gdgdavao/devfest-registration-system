@@ -1,4 +1,4 @@
-import { useBundlesQuery, useDeleteRegistrationMutation, useRegistrationMutation, useRegistrationQuery, useRegistrationsQuery, useUpdateRegistrationStatusMutation } from "@/client"
+import { useDeleteRegistrationMutation, useRegistrationMutation, useRegistrationQuery, useRegistrationsQuery, useUpdateRegistrationStatusMutation } from "@/client";
 import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
 
@@ -12,13 +12,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { RecordIdString, RegistrationStatusesStatusOptions } from "@/pocketbase-types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ReactNode, useEffect } from "react";
-import { useRegistrationForm } from "@/registration";
-import { Label } from "@/components/ui/label";
-import FormRenderer, { FormRendererProps } from "@/components/FormRenderer";
-import TopicInterestFormRenderer from "@/components/form_renderers/TopicInterestFormRenderer";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useFormContext } from "@/form-context";
+import { ReactNode } from "react";
+import RegistrationForm from "@/components/RegistrationForm";
 
 export function RegistrationRowActions({ id, onDelete }: { 
     id: RecordIdString, 
@@ -83,26 +78,6 @@ export function RegistrationRowActions({ id, onDelete }: {
             </Tooltip>
         </TooltipProvider>
     </div>
-}
-
-function BundleFormRenderer({ name }: FormRendererProps) {
-    const { data } = useBundlesQuery();
-    const form = useFormContext();
-
-    return <Select
-        defaultValue={data?.[0].id} 
-        onValueChange={(value) => { form.set(name, value); }}>
-        <SelectTrigger>
-            <SelectValue placeholder={data?.[0].title ?? ''} />
-        </SelectTrigger>
-        <SelectContent>
-            {(data ?? []).map(bundle => (
-                <SelectItem
-                    key={`registration_${name}_select_${bundle.id}`}
-                    value={bundle.id}>{bundle.title}</SelectItem>
-            ))}
-        </SelectContent>
-    </Select>
 }
 
 function ScreenRegistrantDialog({ id, children }: { id: string, children: ReactNode }) {
@@ -180,17 +155,7 @@ function ScreenRegistrantDialog({ id, children }: { id: string, children: ReactN
 }
 
 function NewRegistrationDialog({ children }: { children: ReactNode }) {
-    const {
-        FormProvider,
-        formData,
-        registrationType,
-        fieldsQuery: { data, refetch: refetchFields }
-    } = useRegistrationForm();
     const { mutate: submitForm } = useRegistrationMutation();
-
-    useEffect(() => {
-        refetchFields();
-    }, [registrationType, refetchFields]);
 
     return <Dialog>
         <DialogTrigger asChild>{children}</DialogTrigger>
@@ -198,35 +163,10 @@ function NewRegistrationDialog({ children }: { children: ReactNode }) {
             <DialogHeader>
                 <DialogTitle>Register new participant</DialogTitle>
                 
-                {/* TODO: use Form component */}
-                <form
-                    onSubmit={(ev) => {
-                        ev.preventDefault();
-                        const fdFromForm = new FormData(ev.currentTarget);
-
-                        formData.forEach((v, k) => {
-                            fdFromForm.set(k, v);
-                        });
-
-                        submitForm(fdFromForm);
-                    }}
-                    className="flex flex-col space-y-2">
-                    <FormProvider>
-                        {data?.map(field => (
-                            <div key={`registration_${field.name}`} className="py-4">
-                                <Label htmlFor={field.name}>{field.title}</Label>
-                                <FormRenderer
-                                    field={field}
-                                    customComponents={{
-                                        "topic_interests": TopicInterestFormRenderer,
-                                        "selected_bundle": BundleFormRenderer
-                                    }} />
-                            </div>
-                        ))}
-                    </FormProvider>
-
-                    <Button type="submit">Submit</Button>
-                </form>
+                <RegistrationForm 
+                    onSubmit={(record, onError) => {
+                        submitForm(record, { onError });
+                    }} />
             </DialogHeader>
         </DialogContent>
     </Dialog>

@@ -1,9 +1,51 @@
 import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
-import PocketBase, { RecordListOptions } from 'pocketbase';
-import { BundlesResponse, Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions } from './pocketbase-types';
+import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
+import { BundlesResponse, Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord } from './pocketbase-types';
+import { ErrorOption } from 'react-hook-form';
 
 export const queryClient = new QueryClient();
 export const pb = new PocketBase(import.meta.env.VITE_API_URL);
+
+// Server-side error handling
+export function handleFormServerSideError(
+    err: unknown, 
+    onError: (errors: Record<string, ErrorOption>) => void
+) {
+    if (err instanceof ClientResponseError) {
+        const errors = getServerSideErrors(err);
+        onError(errors);
+    }
+}
+
+export function getServerSideErrors(err: ClientResponseError) {
+    if (err.data.code !== 400) {
+        return {};
+    }
+
+    let rawErrors = err.data.data;
+    if (Object.keys(rawErrors).length === 1 && rawErrors.value && typeof rawErrors.value === 'object') {
+        rawErrors = rawErrors.value;
+    }
+
+    const errors: Record<string, ErrorOption> = {};
+    for (const fieldName in rawErrors) {
+        const error = rawErrors[fieldName];
+        let errorType: ErrorOption['type'] = 'server';
+
+        switch (error.code) {
+        case 'validation_required':
+            errorType = 'required';
+            break;
+        }
+        
+        errors[fieldName] = {
+            type: errorType,
+            message: error.message
+        }
+    }
+
+    return errors;
+}
 
 // Registrations
 export type RegistrationsResponse = PBRegistrationsResponse<
@@ -17,6 +59,11 @@ export type RegistrationsResponse = PBRegistrationsResponse<
     }
 >
 
+export interface RegistrationRecord extends RegistrationsRecord {
+    student_profile_data?: StudentProfilesRecord
+    professional_profile_data?: ProfessionalProfilesRecord
+} 
+
 export interface RegistrationField {
     name: string
     type: string
@@ -26,8 +73,9 @@ export interface RegistrationField {
 }
 
 export function useRegistrationMutation() {
-    return useMutation((record: FormData | RegistrationsRecord) => {
-        return pb.collection(Collections.Registrations).create<RegistrationsResponse>(record);
+    return useMutation((record: RegistrationRecord) => {
+        return pb.collection(Collections.Registrations)
+            .create<RegistrationsResponse>(record);
     });
 }
 
@@ -38,8 +86,9 @@ export function useDeleteRegistrationMutation() {
 }
 
 export function useUpdateRegistrationMutation() {
-    return useMutation(({id, record}: {id: RecordIdString, record: RegistrationsRecord}) => {
-        return pb.collection(Collections.Registrations).update(id, record);
+    return useMutation(({id, record}: {id: RecordIdString, record: RegistrationRecord}) => {
+        return pb.collection(Collections.Registrations)
+            .update<RegistrationsResponse>(id, record);
     });
 }
 
@@ -62,7 +111,6 @@ export function useRegistrationsQuery(options?: RecordListOptions) {
                 if (data.page + 1 < 0) return undefined;
                 return data.page - 1;
             },
-    
         }
     );
 }
