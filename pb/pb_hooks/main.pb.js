@@ -53,8 +53,33 @@ routerAdd("GET", "/api/slot_counter", (c) => {
     ]);
 });
 
+onRecordBeforeCreateRequest((e) => {
+    const utils = require(`${__hooks}/utils.js`);
+    const { profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
+    const data = $apis.requestInfo(e.httpContext).data;
+
+    try {
+        // Validate
+        if (data[profileDataKey] && Object.keys(data[profileDataKey]).length !== 0) {
+            const profileCollection = $app.dao().findCollectionByNameOrId(profileCollectionKey);
+            const rawProfile = data[profileDataKey];
+            const profileRecord = new Record(profileCollection, rawProfile);
+            
+            // For validation
+            const form = new RecordUpsertForm($app, profileRecord);
+            form.validate();
+        }
+    } catch (e) {
+        console.log(e);
+        throw new BadRequestError("An error occurred while submitting the form.", e);
+    }
+}, "registrations");
+
 onRecordAfterCreateRequest((e) => {
+    const utils = require(`${__hooks}/utils.js`);
     const registrant = e.record.id;
+    const { profileKey, profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
+    const data = $apis.requestInfo(e.httpContext).data;
 
     try {
         const statusCollection = $app.dao().findCollectionByNameOrId('registration_statuses');
@@ -62,32 +87,90 @@ onRecordAfterCreateRequest((e) => {
 
         $app.dao().saveRecord(statusRecord);
         e.record.set('status', statusRecord.id);
-        $app.dao().saveRecord(e.record);
 
-        let profileKey = 'student_profile';
-        let profileDataKey = 'student_profile_data';
-        let profileCollectionKey = 'student_profiles';
-        let registrantKey = 'registrant';
-
-        if (e.record.getString('type') === 'professional') {
-            profileKey = 'professional_profile';
-            profileDataKey = 'professional_profile_data';
-            profileCollectionKey = 'professional_profiles';
+        if (data[profileDataKey] && Object.keys(data[profileDataKey]).length !== 0) {
+            const profileId = utils.decodeAndSaveProfile(registrant, profileCollectionKey, data[profileDataKey]);
+            e.record.set(profileKey, profileId);
         }
 
-        const profileCollection = $app.dao().findCollectionByNameOrId(profileCollectionKey);
-        const rawProfile = JSON.parse(e.httpContext.formValue(profileDataKey));
-
-        // TODO: use the "Create new record with validatoins"
-        // https://pocketbase.io/docs/js-records/#create-new-record-with-data-validations
-        const profileRecord = new Record(profileCollection, rawProfile);
-        profileRecord.set(registrantKey, registrant);
-        $app.dao().saveRecord(profileRecord);
-
-        e.record.set(profileKey, profileRecord.id);
         $app.dao().saveRecord(e.record);
     } catch (e) {
         console.error(e);
+        throw e;
+    }
+}, "registrations");
+
+onRecordBeforeUpdateRequest((e) => {
+    const utils = require(`${__hooks}/utils.js`);
+    const { profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
+    const data = $apis.requestInfo(e.httpContext).data;
+
+    try {
+        // Validate
+        console.log(data);
+        if (data[profileDataKey] && Object.keys(data[profileDataKey]).length !== 0) {
+            const profileCollection = $app.dao().findCollectionByNameOrId(profileCollectionKey);
+            const rawProfile = data[profileDataKey];
+            const profileRecord = new Record(profileCollection, rawProfile);
+            
+            // For validation
+            const form = new RecordUpsertForm($app, profileRecord);
+            form.validate();
+        }
+    } catch (e) {
+        console.log(e);
+        throw new BadRequestError("An error occurred while submitting the form.", e);
+    }
+}, "registrations");
+
+onRecordAfterUpdateRequest((e) => {
+    const utils = require(`${__hooks}/utils.js`);
+    const registrant = e.record.id;
+    const { profileKey, profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
+    const data = $apis.requestInfo(e.httpContext).data;
+
+    try {
+        if (data[profileDataKey] && Object.keys(data[profileDataKey]).length !== 0) {
+            let oldProfileId = null;
+
+            if (e.record.getString('type') === 'student') {
+                // If a user mistakenly selects professional but is a student, delete existing record of it
+                const proProfileId = e.record.getString('professional_profile');
+                if (proProfileId.length !== 0) {
+                    e.record.set('professional_profile', null);
+                    $app.dao().saveRecord(e.record);
+
+                    const oldProfile = $app.dao().findRecordById('professional_profiles', proProfileId);
+                    $app.dao().deleteRecord(oldProfile);
+                } else {
+                    oldProfileId = e.record.getString('student_profile');
+                }
+            } else {
+                // If a user mistakenly selects student but is a professional, delete existing record of it
+                const studentProfileId = e.record.getString('student_profile');
+                if (studentProfileId.length !== 0) {
+                    e.record.set('student_profile', null);
+                    $app.dao().saveRecord(e.record);
+                    
+                    const oldProfile = $app.dao().findRecordById('student_profiles', studentProfileId);
+                    $app.dao().deleteRecord(oldProfile);
+                } else {
+                    oldProfileId = e.record.getString('professional_profile');
+                }
+            }
+
+            // If oldProfile is still empty, make it null again
+            oldProfileId = null;
+            
+            // Create and save to record
+            const profileId = utils.decodeAndSaveProfile(registrant, oldProfileId, profileCollectionKey, data[profileDataKey]);
+            e.record.set(profileKey, profileId);
+        }
+
+        $app.dao().saveRecord(e.record);
+    } catch (e) {
+        console.error(e);
+        throw e;
     }
 }, "registrations");
 

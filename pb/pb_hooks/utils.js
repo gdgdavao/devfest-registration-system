@@ -2,6 +2,55 @@
 
 module.exports = {
     /**
+     * 
+     * @param {string} type
+     * @returns {{profileKey: string, profileDataKey: string, profileCollectionKey: string}}
+     */
+    getProfileKeys(type) {
+        let profileKey = 'student_profile';
+        let profileDataKey = 'student_profile_data';
+        let profileCollectionKey = 'student_profiles';
+
+        if (type === 'professional') {
+            profileKey = 'professional_profile';
+            profileDataKey = 'professional_profile_data';
+            profileCollectionKey = 'professional_profiles';
+        }
+
+        return {
+            profileKey,
+            profileCollectionKey,
+            profileDataKey
+        }
+    },
+
+    /**
+     * 
+     * @param {string} registrant ID of the registrant
+     * @param {string | null} oldProfileId existing ID of profile
+     * @param {string} profileCollectionKey Collection key to use for the profile
+     * @param {Record<string, any>} rawProfile raw JSON profile string
+     * @returns {string}
+     */
+    decodeAndSaveProfile(registrant, oldProfileId, profileCollectionKey, rawProfile) {
+        let profileRecord;
+        
+        if (oldProfileId) {
+            profileRecord = $app.dao().findRecordById(profileCollectionKey, oldProfileId);
+            profileRecord.load(rawProfile);
+        } else {
+            const profileCollection = $app.dao().findCollectionByNameOrId(profileCollectionKey);
+            // TODO: use the "Create new record with validations"
+            // https://pocketbase.io/docs/js-records/#create-new-record-with-data-validations
+            const profileRecord = new Record(profileCollection, rawProfile);
+            profileRecord.set('registrant', registrant);
+        }
+
+        $app.dao().saveRecord(profileRecord);        
+        return profileRecord.id;
+    },
+
+    /**
      * @returns {void}
      */
     buildRegistrationFields() {
