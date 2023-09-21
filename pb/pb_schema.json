@@ -1,0 +1,750 @@
+[
+    {
+        "id": "0pmyt29dlz9zh7u",
+        "name": "topic_interests",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "eq8gq7pe",
+                "name": "topic_name",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "b8of2azr",
+                "name": "key",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            }
+        ],
+        "indexes": [],
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "11z5ibl11dbde71",
+        "name": "payments",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "fughwyxo",
+                "name": "registrant",
+                "type": "relation",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "boik9xw2mpob3lt",
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "pkuc0ll9",
+                "name": "status",
+                "type": "select",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "unpaid",
+                        "pending",
+                        "paid"
+                    ]
+                }
+            },
+            {
+                "system": false,
+                "id": "hkrezyb3",
+                "name": "transaction_id",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_qTdN3zP` ON `payments` (`registrant`)"
+        ],
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "jltdtp7iwqhkryo",
+        "name": "form_details",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "mm5ctpeo",
+                "name": "key",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "gfuwzdbp",
+                "name": "title",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "ok7wuxi1",
+                "name": "description",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "0sy2qlp7",
+                "name": "custom_options",
+                "type": "json",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {}
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_ZqNPKQr` ON `form_details` (`key`)"
+        ],
+        "listRule": null,
+        "viewRule": "",
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "o16fegk3r5k25y9",
+        "name": "slot_counter",
+        "type": "view",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "uk79e3xl",
+                "name": "type",
+                "type": "select",
+                "required": false,
+                "presentable": true,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "student",
+                        "professional"
+                    ]
+                }
+            },
+            {
+                "system": false,
+                "id": "vwm4zyxc",
+                "name": "slots_registered",
+                "type": "number",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "noDecimal": false
+                }
+            }
+        ],
+        "indexes": [],
+        "listRule": "",
+        "viewRule": "",
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {
+            "query": "SELECT registrations.type as id, registrations.type, COUNT(*) as slots_registered FROM registrations GROUP BY registrations.type"
+        }
+    },
+    {
+        "id": "ioby1a454zm4d12",
+        "name": "bundles",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "xyh09cyv",
+                "name": "title",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "raz9nmvj",
+                "name": "description",
+                "type": "editor",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "convertUrls": false
+                }
+            },
+            {
+                "system": false,
+                "id": "aaoiz50u",
+                "name": "includes",
+                "type": "editor",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "convertUrls": false
+                }
+            },
+            {
+                "system": false,
+                "id": "4dd5mvvi",
+                "name": "price",
+                "type": "number",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": 0,
+                    "max": null,
+                    "noDecimal": false
+                }
+            },
+            {
+                "system": false,
+                "id": "tvtkoczz",
+                "name": "cover_image",
+                "type": "file",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "maxSize": 5242880,
+                    "mimeTypes": [
+                        "image/jpeg",
+                        "image/png",
+                        "image/svg+xml",
+                        "image/gif",
+                        "image/webp"
+                    ],
+                    "thumbs": [],
+                    "protected": false
+                }
+            }
+        ],
+        "indexes": [],
+        "listRule": "",
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "boik9xw2mpob3lt",
+        "name": "registrations",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "xtmuuo0t",
+                "name": "type",
+                "type": "select",
+                "required": false,
+                "presentable": true,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "student",
+                        "professional"
+                    ]
+                }
+            },
+            {
+                "system": false,
+                "id": "wep7tmkm",
+                "name": "status",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "0hu0xeybm6tlpz5",
+                    "cascadeDelete": true,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "yv3c8bur",
+                "name": "email",
+                "type": "email",
+                "required": true,
+                "presentable": true,
+                "unique": false,
+                "options": {
+                    "exceptDomains": [],
+                    "onlyDomains": []
+                }
+            },
+            {
+                "system": false,
+                "id": "xjixbwvf",
+                "name": "first_name",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "1vcgff8r",
+                "name": "last_name",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "ngebjeuc",
+                "name": "contact_number",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "7pbng1jd",
+                "name": "sex",
+                "type": "select",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "male",
+                        "female"
+                    ]
+                }
+            },
+            {
+                "system": false,
+                "id": "rvvoxcf7",
+                "name": "selected_bundle",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "ioby1a454zm4d12",
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "hiegcxkw",
+                "name": "age_range",
+                "type": "select",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "below 18",
+                        "18-20",
+                        "21-24",
+                        "25-30",
+                        "31-34-35-40",
+                        "41-50",
+                        "50+"
+                    ]
+                }
+            },
+            {
+                "system": false,
+                "id": "dpddnsur",
+                "name": "years_tech_exp",
+                "type": "select",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "No Experience",
+                        "Less than 1 year",
+                        "1-2 years",
+                        "2-5 years",
+                        "5-10 years",
+                        "More than 10 years"
+                    ]
+                }
+            },
+            {
+                "system": false,
+                "id": "wgamy4ss",
+                "name": "student_profile",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "7hgiuktzbn6ajyg",
+                    "cascadeDelete": true,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "991ulbep",
+                "name": "professional_profile",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "9fq8drk3h5ph6eb",
+                    "cascadeDelete": true,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "9mk0foia",
+                "name": "topic_interests",
+                "type": "json",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {}
+            },
+            {
+                "system": false,
+                "id": "byagvm8b",
+                "name": "payment",
+                "type": "relation",
+                "required": false,
+                "presentable": true,
+                "unique": false,
+                "options": {
+                    "collectionId": "11z5ibl11dbde71",
+                    "cascadeDelete": true,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_X6ZiiOp` ON `registrations` (`email`)"
+        ],
+        "listRule": null,
+        "viewRule": "",
+        "createRule": "",
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "0hu0xeybm6tlpz5",
+        "name": "registration_statuses",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "r7ldni8r",
+                "name": "registrant",
+                "type": "relation",
+                "required": false,
+                "presentable": true,
+                "unique": false,
+                "options": {
+                    "collectionId": "boik9xw2mpob3lt",
+                    "cascadeDelete": true,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "1kkgpi6c",
+                "name": "status",
+                "type": "select",
+                "required": true,
+                "presentable": true,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "pending",
+                        "approved",
+                        "rejected"
+                    ]
+                }
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_KKxoYOA` ON `registration_statuses` (`registrant`)"
+        ],
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "7hgiuktzbn6ajyg",
+        "name": "student_profiles",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "a8cu2bkv",
+                "name": "school",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "aagxpa36",
+                "name": "designation",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "pptijepx",
+                "name": "year_level",
+                "type": "select",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "1st Year",
+                        "2nd Year",
+                        "3rd Year",
+                        "4th Year",
+                        "5th Year"
+                    ]
+                }
+            },
+            {
+                "system": false,
+                "id": "ha6li6ta",
+                "name": "registrant",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "boik9xw2mpob3lt",
+                    "cascadeDelete": true,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_lmk0UHv` ON `student_profiles` (`registrant`)"
+        ],
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "9fq8drk3h5ph6eb",
+        "name": "professional_profiles",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "teiiewpz",
+                "name": "organization",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "b01cad9s",
+                "name": "is_fresh_graduate",
+                "type": "bool",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {}
+            },
+            {
+                "system": false,
+                "id": "b1z5jlr4",
+                "name": "title",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "5smqxiob",
+                "name": "registrant",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "boik9xw2mpob3lt",
+                    "cascadeDelete": true,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_T8pHTog` ON `professional_profiles` (`registrant`)"
+        ],
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    }
+]
