@@ -41,7 +41,7 @@ A custom-built registration system for the upcoming GDG Davao DevFest 2023.
 ### Schema
 ![Schema](./pb/pb_diagram_simple.png)
 
-DFS is composed of multiple tables (or PocketBase "collections"):
+DRS is composed of multiple tables (or PocketBase "collections"):
 
 | Collection Name | Explanation | Relies on | 
 |-----------------|-------------|-----------|
