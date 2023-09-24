@@ -67,7 +67,9 @@ We utilize PocketBase's server hooks feature to create custom API endpoints simi
 Currently we only use it for getting registration fields list and registration slot counter. To add an endpoint, simply modify the `main.pb.js` inside `pb_hooks`. See PocketBase Server Hooks docs for details.
 
 ### Updating DB schema
-When updating the database schema, be sure to update and commit the `src/pocketbase-types.ts` and `pb/pb_schema.json` files. To update `pocketbase-types.ts`, simply execute `npm run generate-types`. For `pb_schema.json`, copy the JSON text found in `Settings -> Export Collection` and paste it into `pb/pb_schema.json`.
+When updating the database schema, be sure to update and commit the `src/pocketbase-types.ts` and `pb/pb_schema.json` files:
+1. To update `pocketbase-types.ts`, simply execute `npm run generate-types`.
+2. To update `pb_schema.json`, copy the JSON text found in `Settings -> Export Collection` and paste it into `pb/pb_schema.json`.
 
 ## Resources
 - [PocketBase Documentation](https://pocketbase.io/docs)
