@@ -64,7 +64,7 @@ onRecordBeforeCreateRequest((e) => {
             const profileCollection = $app.dao().findCollectionByNameOrId(profileCollectionKey);
             const rawProfile = data[profileDataKey];
             const profileRecord = new Record(profileCollection, rawProfile);
-            
+
             // For validation
             const form = new RecordUpsertForm($app, profileRecord);
             form.validate();
@@ -112,7 +112,7 @@ onRecordBeforeUpdateRequest((e) => {
             const profileCollection = $app.dao().findCollectionByNameOrId(profileCollectionKey);
             const rawProfile = data[profileDataKey];
             const profileRecord = new Record(profileCollection, rawProfile);
-            
+
             // For validation
             const form = new RecordUpsertForm($app, profileRecord);
             form.validate();
@@ -151,7 +151,7 @@ onRecordAfterUpdateRequest((e) => {
                 if (studentProfileId.length !== 0) {
                     e.record.set('student_profile', null);
                     $app.dao().saveRecord(e.record);
-                    
+
                     const oldProfile = $app.dao().findRecordById('student_profiles', studentProfileId);
                     $app.dao().deleteRecord(oldProfile);
                 } else {
@@ -161,7 +161,7 @@ onRecordAfterUpdateRequest((e) => {
 
             // If oldProfile is still empty, make it null again
             oldProfileId = null;
-            
+
             // Create and save to record
             const profileId = utils.decodeAndSaveProfile(registrant, oldProfileId, profileCollectionKey, data[profileDataKey]);
             e.record.set(profileKey, profileId);
@@ -173,6 +173,13 @@ onRecordAfterUpdateRequest((e) => {
         throw e;
     }
 }, "registrations");
+
+onCollectionAfterUpdateRequest((e) => {
+    if (e.collection.name === "registrations") {
+        const utils = require(`${__hooks}/utils.js`);
+        utils.buildRegistrationFields();
+    }
+});
 
 onRecordAfterCreateRequest((e) => {
     const utils = require(`${__hooks}/utils.js`);
