@@ -105,6 +105,8 @@ module.exports = {
      * @returns {void}
      */
     buildRegistrationFields() {
+        console.log("Building registration fields...");
+
         const registrationTypes = ["student", "professional"];
         const collection = $app.dao().findCollectionByNameOrId("registrations");
 
@@ -127,8 +129,10 @@ module.exports = {
             let options = JSON.parse(JSON.stringify(field.options));
             let title = field.name;
             let description = "";
+            let shouldExpand = false;
 
             try {
+
                 const detailRecord = new Record();
                 const key = _options.parentKey ? `${_options.parentKey}.${field.name}` : field.name;
 
@@ -141,12 +145,17 @@ module.exports = {
 
                 const rawCustomOptions = detailRecord.getString("custom_options");
                 if (rawCustomOptions.length !== 0) {
-                    const customOptions = JSON.parse(rawCustomOptions);
+                    let customOptions = JSON.parse(rawCustomOptions);
+                    if ('expand' in customOptions) {
+                        shouldExpand = customOptions.expand;
+                    }
+
                     if (typeof customOptions === "object") {
                         options = {
                             ...options,
                             ...customOptions
                         }
+
                     }
                 }
             } catch (e) {}
@@ -166,9 +175,11 @@ module.exports = {
                     if (_options.registrationType && field.name.substring(0, profileFieldIdx) !== _options.registrationType) {
                         continue;
                     }
+                }
 
-                    const profileCollection = $app.dao().findCollectionByNameOrId(field.options.collectionId);
-                    const profileFields = this.extractCollectionSchema(profileCollection, {
+                if (shouldExpand) {
+                    const relCollection = $app.dao().findCollectionByNameOrId(field.options.collectionId);
+                    const relFields = this.extractCollectionSchema(relCollection, {
                         parent: collection.id,
                         parentKey: field.name,
                         registrationType: _options.registrationType
@@ -181,7 +192,7 @@ module.exports = {
                         type: field.type,
                         options: {
                             ...options,
-                            fields: profileFields
+                            fields: relFields
                         }
                     });
                 } else {
