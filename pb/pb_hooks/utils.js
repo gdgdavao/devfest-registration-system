@@ -39,7 +39,7 @@ module.exports = {
      * @param {*} rawData
      * @returns {void}
      */
-    validateRelationData(collectionKey, rawData) {
+    validateRelationalData(collectionKey, rawData) {
         if (!rawData || Object.keys(rawData).length === 0) {
             return;
         }

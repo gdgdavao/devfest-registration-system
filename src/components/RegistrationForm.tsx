@@ -7,7 +7,7 @@ import TopicInterestFormRenderer from "./form_renderers/TopicInterestFormRendere
 import DefaultAddonsFormRenderer from "./form_renderers/DefaultAddonsFormRenderer";
 import { useEffect } from "react";
 import JsonCheckboxFormRenderer from "./form_renderers/JSONCheckboxFormRenderer";
-import RichTicketFormRenderer from "./form_renderers/RichTicketsFormRenderer copy";
+import RichTicketFormRenderer from "./form_renderers/RichTicketsFormRenderer";
 
 export default function RegistrationForm({ data: existingData, onSubmit, customComponents = {} }: {
     data?: RegistrationRecord,
