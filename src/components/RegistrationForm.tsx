@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import TopicInterestFormRenderer from "./form_renderers/TopicInterestFormRenderer";
 import DefaultAddonsFormRenderer from "./form_renderers/DefaultAddonsFormRenderer";
 import { useEffect } from "react";
+import RichTicketFormRenderer from "./form_renderers/RichTicketsFormRenderer";
 
 export default function RegistrationForm({ data: existingData, onSubmit, customComponents = {} }: {
     data?: RegistrationRecord,
