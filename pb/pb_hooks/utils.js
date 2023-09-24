@@ -146,16 +146,16 @@ module.exports = {
                 const rawCustomOptions = detailRecord.getString("custom_options");
                 if (rawCustomOptions.length !== 0) {
                     let customOptions = JSON.parse(rawCustomOptions);
-                    if ('expand' in customOptions) {
-                        shouldExpand = customOptions.expand;
-                    }
 
                     if (typeof customOptions === "object") {
+                        if ('expand' in customOptions) {
+                            shouldExpand = customOptions.expand;
+                        }
+
                         options = {
                             ...options,
                             ...customOptions
                         }
-
                     }
                 }
             } catch (e) {}
