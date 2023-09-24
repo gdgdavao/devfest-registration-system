@@ -4,7 +4,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } fr
 import FormFieldRenderer, { FormFieldRendererProps } from "./FormFieldRenderer";
 import { Button } from "./ui/button";
 import TopicInterestFormRenderer from "./form_renderers/TopicInterestFormRenderer";
-import DefaultBundleFormRenderer from "./form_renderers/DefaultBundleFormRenderer";
+import DefaultAddonsFormRenderer from "./form_renderers/DefaultAddonsFormRenderer";
 import { useEffect } from "react";
 
 export default function RegistrationForm({ data: existingData, onSubmit, customComponents = {} }: {
@@ -15,7 +15,7 @@ export default function RegistrationForm({ data: existingData, onSubmit, customC
     const { form, resetFormToDefault, fieldsQuery: { data } } = useRegistrationForm();
     const onFormSubmit = (data: RegistrationRecord) => onSubmit(data, (err) => handleFormServerSideError(err, errors => {
         for (const fieldName in errors) {
-            form.setError(fieldName as any, errors[fieldName]);
+            form.setError(fieldName as never, errors[fieldName]);
         }
     }));
 
@@ -25,17 +25,18 @@ export default function RegistrationForm({ data: existingData, onSubmit, customC
         } else {
             resetFormToDefault();
         }
-    }, [existingData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [existingData, form]);
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onFormSubmit)}
                 className="max-w-3xl px-3 mx-auto flex flex-col space-y-2">
                 {data?.map(field => (
-                    <FormField 
+                    <FormField
                         control={form.control}
-                        name={field.name as any}
-                        key={`registration_${field.name}`} 
+                        name={field.name as never}
+                        key={`registration_${field.name}`}
                         render={({ field: ofield }) => (
                             <FormItem>
                                 <FormLabel>{field.title}</FormLabel>
@@ -45,7 +46,7 @@ export default function RegistrationForm({ data: existingData, onSubmit, customC
                                         field={field}
                                         customComponents={{
                                             "topic_interests": TopicInterestFormRenderer,
-                                            "selected_bundle": DefaultBundleFormRenderer,
+                                            "addons": DefaultAddonsFormRenderer,
                                             ...customComponents
                                         }} />
                                 </FormControl>
