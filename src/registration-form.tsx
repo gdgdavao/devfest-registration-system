@@ -1,5 +1,5 @@
 import { RegistrationRecord, useRegistrationFieldsQuery } from "@/client";
-import { RegistrationsAgeRangeOptions, RegistrationsSexOptions, RegistrationsTypeOptions, RegistrationsYearsTechExpOptions } from "@/pocketbase-types";
+import { MerchSensingDataMerchSpendingLimitOptions, RegistrationsAgeRangeOptions, RegistrationsSexOptions, RegistrationsTypeOptions, RegistrationsYearsTechExpOptions, StudentProfilesYearLevelOptions } from "@/pocketbase-types";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
@@ -7,7 +7,10 @@ const defaultValues = {
     type: RegistrationsTypeOptions.student,
     sex: RegistrationsSexOptions.male,
     age_range: RegistrationsAgeRangeOptions["below 18"],
-    years_tech_exp: RegistrationsYearsTechExpOptions["No Experience"]
+    years_tech_exp: RegistrationsYearsTechExpOptions["No Experience"],
+    merch_sensing_data_data: {
+        merch_spending_limit: MerchSensingDataMerchSpendingLimitOptions["₱150-₱250"]
+    }
 };
 
 export function useRegistrationForm() {
@@ -18,7 +21,31 @@ export function useRegistrationForm() {
 
     useEffect(() => {
         if (watchRegType === RegistrationsTypeOptions.student) {
-            form.setValue('professional_profile_data', undefined)
+            form.setValue('professional_profile_data', undefined);
+
+            if (!form.getValues('student_profile_data') || Object.keys(form.getValues('student_profile_data')!).length === 0) {
+                form.setValue('student_profile_data', {
+                    designation: '',
+                    school: '',
+                    year_level: StudentProfilesYearLevelOptions['1st Year'],
+                });
+            }
+        } else {
+            form.setValue('student_profile_data', undefined);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (watchRegType === RegistrationsTypeOptions.student) {
+            form.setValue('professional_profile_data', undefined);
+
+            if (!form.getValues('student_profile_data') || Object.keys(form.getValues('student_profile_data')!).length === 0) {
+                form.setValue('student_profile_data', {
+                    designation: '',
+                    school: '',
+                    year_level: StudentProfilesYearLevelOptions['1st Year'],
+                });
+            }
         } else {
             form.setValue('student_profile_data', undefined);
         }
