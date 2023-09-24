@@ -43,22 +43,23 @@ A custom-built registration system for the upcoming GDG Davao DevFest 2023.
 
 DRS is composed of multiple tables (or PocketBase "collections"):
 
-| Collection Name | Explanation | Relies on | 
+| Collection Name | Explanation | Relies on |
 |-----------------|-------------|-----------|
-| `bundles` | List of bundles to be available in the event. ||
+| `addons` | List of available add-ons for the event. ||
 | `form_details` | Metadata / information to be used for display on the registration forms. ||
+| `merch_sensing_data` | Data related to merchandice sensing. | `registrations` |
 | `payments` | Payment data of the registrants. | `registrations` |
 | `professional_profiles` | Profile data of professional registrants. Only created if registrant is a `professional`. | `registrations` |
 | `registrations` | A list of persons who registered for the event. ||
 | `registration_statuses` | Registration statuses of the registrants if they are approved or rejected. | `registrations` |
-| `slot_counter` | Virtual collection for displaying the number of slots for each registrant/participant type | `registrations` |
 | `student_profiles` | Profile data of student registrants. Only created if registrant is a `student`. | `registrations` |
+| `ticket_types` | List of available ticket types. ||
 | `topic_interests` | List of topics to be chosen by the registrant. | `registrations` |
 
 ### Form Rendering
-For flexibility, form fields are not "hard-coded" into the frontend app but are instead rendered dynamically by relying on the information provided by the backend server through the `/api/registration-fields` endpoint. This endpoint is a JSON array containing information compiled from the `registrations` collection schema which will also query the `form_details` collection if present. 
+For flexibility, form fields are not "hard-coded" into the frontend app but are instead rendered dynamically by relying on the information provided by the backend server through the `/api/registration-fields` endpoint. This endpoint is a JSON array containing information compiled from the `registrations` collection schema which will also query the `form_details` collection if present.
 
-Once received, data is then fed into `FormFieldRenderer` component which will render the appropriate form input component based on the given field name and type. You may also provide and render custom form components by field. (See [TopicInterestFormRenderer](/src/components/form-renderers/TopicInterestFormRenderer))
+Once received, data is then fed into `FormFieldRenderer` component which will render the appropriate form input component based on the given field name and type. You may also provide and render custom form components by field. (See [TopicInterestFormRenderer](/src/components/form_renderers/TopicInterestFormRenderer.tsx))
 
 ## PocketBase Notes
 ### Custom backend API Endpoints

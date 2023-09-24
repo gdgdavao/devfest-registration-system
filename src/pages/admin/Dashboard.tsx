@@ -15,9 +15,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ReactNode } from "react";
 import RegistrationForm from "@/components/RegistrationForm";
 
-export function RegistrationRowActions({ id, onDelete }: { 
-    id: RecordIdString, 
-    onDelete: (id: RecordIdString) => Promise<void> 
+export function RegistrationRowActions({ id, onDelete }: {
+    id: RecordIdString,
+    onDelete: (id: RecordIdString) => Promise<void>
 }) {
     return <div className="flex flex-row space-x-2">
         <TooltipProvider>
@@ -94,13 +94,13 @@ function ScreenRegistrantDialog({ id, children }: { id: string, children: ReactN
             <DialogHeader>
                 <DialogTitle>Screen registrant</DialogTitle>
             </DialogHeader>
-            
+
             <div className="flex flex-col divide-y-2">
                 <div className="flex space-x-2">
                     <Button className="flex-1" onClick={() => {
                         markRegistrant({
-                            id: registrant!.status, 
-                            status: RegistrationStatusesStatusOptions.approved 
+                            id: registrant!.status,
+                            status: RegistrationStatusesStatusOptions.approved
                         });
                     }}>
                         Approve
@@ -108,8 +108,8 @@ function ScreenRegistrantDialog({ id, children }: { id: string, children: ReactN
 
                     <Button className="flex-1" onClick={() => {
                         markRegistrant({
-                            id: registrant!.status, 
-                            status: RegistrationStatusesStatusOptions.rejected 
+                            id: registrant!.status,
+                            status: RegistrationStatusesStatusOptions.rejected
                         });
                     }}>
                         Reject
@@ -138,12 +138,12 @@ function ScreenRegistrantDialog({ id, children }: { id: string, children: ReactN
                 </div>
 
                 <div className="flex flex-col space-y-2 py-4">
-                    <span className="text-slate-500">Bundle Details</span>
+                    <span className="text-slate-500">Add-on Details</span>
 
                     <div className="flex flex-row pt-4">
                         <div className="flex-1 flex flex-col">
-                            <span className="text-slate-500">Selected bundle</span>
-                            <p className="font-bold">{registrant?.expand?.selected_bundle.title}</p>
+                            <span className="text-slate-500">Selected add-ons</span>
+                            <p className="font-bold">{registrant?.expand?.addons.title}</p>
                         </div>
 
                         <div className="flex-1 flex flex-col">
@@ -165,8 +165,8 @@ function NewRegistrationDialog({ children }: { children: ReactNode }) {
         <DialogContent className="lg:max-w-screen-md overflow-y-scroll max-h-[calc(100vh-2rem)]">
             <DialogHeader>
                 <DialogTitle>Register new person</DialogTitle>
-                
-                <RegistrationForm 
+
+                <RegistrationForm
                     onSubmit={(record, onError) => {
                         submitForm(record, { onError });
                     }} />
@@ -184,9 +184,9 @@ function EditRegistrationDialog({ id, children }: { id: string, children: ReactN
         <DialogContent className="lg:max-w-screen-md overflow-y-scroll max-h-[calc(100vh-2rem)]">
             <DialogHeader>
                 <DialogTitle>Edit registrant</DialogTitle>
-                
+
                 <RegistrationForm
-                    data={data} 
+                    data={data}
                     onSubmit={(record, onError) => {
                         submitForm(record, { onError });
                     }} />

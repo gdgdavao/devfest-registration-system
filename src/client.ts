@@ -1,6 +1,6 @@
 import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
-import { BundlesResponse, Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord } from './pocketbase-types';
+import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse } from './pocketbase-types';
 import { ErrorOption } from 'react-hook-form';
 
 export const queryClient = new QueryClient();
@@ -8,7 +8,7 @@ export const pb = new PocketBase(import.meta.env.VITE_API_URL);
 
 // Server-side error handling
 export function handleFormServerSideError(
-    err: unknown, 
+    err: unknown,
     onError: (errors: Record<string, ErrorOption>) => void
 ) {
     if (err instanceof ClientResponseError) {
@@ -37,7 +37,7 @@ export function getServerSideErrors(err: ClientResponseError) {
             errorType = 'required';
             break;
         }
-        
+
         errors[fieldName] = {
             type: errorType,
             message: error.message
@@ -49,20 +49,23 @@ export function getServerSideErrors(err: ClientResponseError) {
 
 // Registrations
 export type RegistrationsResponse = PBRegistrationsResponse<
-    Record<string, string>, 
-    { 
+    Record<string, string>,
+    {
         status: RegistrationStatusesResponse,
         student_profile?: StudentProfilesResponse,
         professional_profile?: ProfessionalProfilesResponse,
         payment?: PaymentResponse,
-        selected_bundle: BundlesResponse
+        addons: AddonsResponse,
+        ticket: TicketTypesResponse
     }
 >
+
+const REGISTRATION_RESP_EXPAND = "status,student_profile,professional_profile,payment,addons,ticket";
 
 export interface RegistrationRecord extends RegistrationsRecord {
     student_profile_data?: StudentProfilesRecord
     professional_profile_data?: ProfessionalProfilesRecord
-} 
+}
 
 export interface RegistrationField {
     name: string
@@ -94,12 +97,12 @@ export function useUpdateRegistrationMutation() {
 
 export function useRegistrationsQuery(options?: RecordListOptions) {
     return useInfiniteQuery(
-        [Collections.Registrations, JSON.stringify(options)], 
+        [Collections.Registrations, JSON.stringify(options)],
         ({ pageParam = 1 }) => {
             return pb.collection(Collections.Registrations)
                 .getList<RegistrationsResponse>(pageParam, undefined, {
                     ...options,
-                    expand: "status,student_profile,professional_profile,payment,selected_bundle"
+                    expand: REGISTRATION_RESP_EXPAND
                 });
         },
         {
@@ -129,7 +132,7 @@ export function useRegistrationFieldsQuery(participantType = RegistrationsTypeOp
 export function useRegistrationQuery(id: RecordIdString) {
     return useQuery([Collections.Registrations, id], () => {
         return pb.collection(Collections.Registrations).getOne<RegistrationsResponse>(id, {
-            expand: "status,student_profile,professional_profile,payment,selected_bundle"
+            expand: REGISTRATION_RESP_EXPAND
         });
     });
 }
@@ -141,9 +144,16 @@ export function useUpdateRegistrationStatusMutation() {
     });
 }
 
-// Bundles
-export function useBundlesQuery() {
-    return useQuery([Collections.Bundles], () => {
-        return pb.collection(Collections.Bundles).getFullList<BundlesResponse>();
+// Addons
+export function useAddonsQuery() {
+    return useQuery([Collections.Addons], () => {
+        return pb.collection(Collections.Addons).getFullList<AddonsResponse>();
+    });
+}
+
+// Ticket Types
+export function useTicketTypesQuery() {
+    return useQuery([Collections.TicketTypes], () => {
+        return pb.collection(Collections.TicketTypes).getFullList<TicketTypesResponse>();
     });
 }

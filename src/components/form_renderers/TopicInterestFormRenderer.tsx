@@ -14,7 +14,7 @@ export default function TopicInterestFormRenderer({ onChange, value = {}, field 
                 return { ...pv, ...cv };
             }, {}))
         }
-    }, [value]);
+    }, [value, onChange, selected, topics, values]);
 
     return (
         <div>
