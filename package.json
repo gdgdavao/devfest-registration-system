@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "generate-types": "pocketbase-typegen --out ./src/pocketbase-types.ts --url http://localhost:8090 --email example@example.com --password '1234567890'",
+    "generate-types": "pocketbase-typegen --out ./src/pocketbase-types.ts --url http://127.0.0.1:8090 --email example@example.com --password '1234567890'",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
