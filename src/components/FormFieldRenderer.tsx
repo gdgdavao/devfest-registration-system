@@ -61,7 +61,10 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
                                 <FormLabel>{sfield.title}</FormLabel>
                                 <FormControl>
                                     <FormFieldRenderer
-                                        field={sfield}
+                                        field={{
+                                            ...sfield,
+                                            name: `${field.name}.${sfield.name}`
+                                        }}
                                         customComponents={customComponents}
                                         {...fieldProps} />
                                 </FormControl>
