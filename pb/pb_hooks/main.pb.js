@@ -60,15 +60,7 @@ onRecordBeforeCreateRequest((e) => {
 
     try {
         // Validate
-        if (data[profileDataKey] && Object.keys(data[profileDataKey]).length !== 0) {
-            const profileCollection = $app.dao().findCollectionByNameOrId(profileCollectionKey);
-            const rawProfile = data[profileDataKey];
-            const profileRecord = new Record(profileCollection, rawProfile);
-
-            // For validation
-            const form = new RecordUpsertForm($app, profileRecord);
-            form.validate();
-        }
+        utils.validateRelationalData(profileCollectionKey, data[profileDataKey]);
     } catch (e) {
         console.log(e);
         throw new BadRequestError("An error occurred while submitting the form.", e);
@@ -77,22 +69,14 @@ onRecordBeforeCreateRequest((e) => {
 
 onRecordAfterCreateRequest((e) => {
     const utils = require(`${__hooks}/utils.js`);
-    const registrant = e.record.id;
     const { profileKey, profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
     const data = $apis.requestInfo(e.httpContext).data;
 
     try {
-        const statusCollection = $app.dao().findCollectionByNameOrId('registration_statuses');
-        const statusRecord = new Record(statusCollection, { registrant, status: 'pending' });
-
-        $app.dao().saveRecord(statusRecord);
+        const statusRecord = utils.saveRelationalData('registration_statuses', { registrant: e.record.id, status: 'pending' });
         e.record.set('status', statusRecord.id);
 
-        if (data[profileDataKey] && Object.keys(data[profileDataKey]).length !== 0) {
-            const profileId = utils.decodeAndSaveProfile(registrant, profileCollectionKey, data[profileDataKey]);
-            e.record.set(profileKey, profileId);
-        }
-
+        utils.decodeAndSaveProfile(e.record, undefined, profileKey, profileCollectionKey, data[profileDataKey]);
         $app.dao().saveRecord(e.record);
     } catch (e) {
         console.error(e);
@@ -107,16 +91,7 @@ onRecordBeforeUpdateRequest((e) => {
 
     try {
         // Validate
-        console.log(data);
-        if (data[profileDataKey] && Object.keys(data[profileDataKey]).length !== 0) {
-            const profileCollection = $app.dao().findCollectionByNameOrId(profileCollectionKey);
-            const rawProfile = data[profileDataKey];
-            const profileRecord = new Record(profileCollection, rawProfile);
-
-            // For validation
-            const form = new RecordUpsertForm($app, profileRecord);
-            form.validate();
-        }
+        utils.validateRelationalData(profileCollectionKey, data[profileDataKey]);
     } catch (e) {
         console.log(e);
         throw new BadRequestError("An error occurred while submitting the form.", e);
@@ -133,38 +108,29 @@ onRecordAfterUpdateRequest((e) => {
         if (data[profileDataKey] && Object.keys(data[profileDataKey]).length !== 0) {
             let oldProfileId = null;
 
-            if (e.record.getString('type') === 'student') {
-                // If a user mistakenly selects professional but is a student, delete existing record of it
-                const proProfileId = e.record.getString('professional_profile');
-                if (proProfileId.length !== 0) {
-                    e.record.set('professional_profile', null);
-                    $app.dao().saveRecord(e.record);
+            // Get opposite keys
+            let { profileKey: oppositeProfileKey, profileCollectionKey: oppositeProfileCKey } =
+                utils.getProfileKeys(e.record.getString('type') === 'student' ? 'professional' : 'student');
 
-                    const oldProfile = $app.dao().findRecordById('professional_profiles', proProfileId);
-                    $app.dao().deleteRecord(oldProfile);
-                } else {
-                    oldProfileId = e.record.getString('student_profile');
-                }
+            // If a user mistakenly selects $type but is a $oppositeType, delete existing record of it
+            const oppositeProfileId = e.record.getString(oppositeProfileKey);
+            if (oppositeProfileId.length !== 0) {
+                e.record.set(oppositeProfileKey, null);
+                $app.dao().saveRecord(e.record);
+
+                const oldProfile = $app.dao().findRecordById(oppositeProfileCKey, oppositeProfileId);
+                $app.dao().deleteRecord(oldProfile);
             } else {
-                // If a user mistakenly selects student but is a professional, delete existing record of it
-                const studentProfileId = e.record.getString('student_profile');
-                if (studentProfileId.length !== 0) {
-                    e.record.set('student_profile', null);
-                    $app.dao().saveRecord(e.record);
+                oldProfileId = e.record.getString(profileKey);
 
-                    const oldProfile = $app.dao().findRecordById('student_profiles', studentProfileId);
-                    $app.dao().deleteRecord(oldProfile);
-                } else {
-                    oldProfileId = e.record.getString('professional_profile');
+                // If oldProfile is still empty, make it null again
+                if (oldProfileId && oldProfileId.length === 0) {
+                    oldProfileId = null;
                 }
             }
 
-            // If oldProfile is still empty, make it null again
-            oldProfileId = null;
-
             // Create and save to record
-            const profileId = utils.decodeAndSaveProfile(registrant, oldProfileId, profileCollectionKey, data[profileDataKey]);
-            e.record.set(profileKey, profileId);
+            utils.decodeAndSaveProfile(registrant, oldProfileId, profileKey, profileCollectionKey, data[profileDataKey]);
         }
 
         $app.dao().saveRecord(e.record);

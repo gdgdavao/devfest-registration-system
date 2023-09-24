@@ -2,7 +2,56 @@
 
 module.exports = {
     /**
-     * 
+     * @param {string} collectionKey Collection name/ID of the relational data
+     * @param {any} rawData JSON representation of the raw relational data
+     * @param {string | undefined} oldId ID of the old record if present
+     * @returns {models.Record} Record of the newly created/updated relational data
+     */
+    saveRelationalData(collectionKey, rawData, oldId) {
+        if (!rawData || Object.keys(rawData).length === 0) {
+            return;
+        }
+
+        // Assumed that rawData is already validated
+        /** @type {models.Record}  */
+        let relRecord;
+
+        if (oldId) {
+            relRecord = $app.dao().findRecordById(collectionKey, oldId);
+            relRecord.load(rawData);
+        } else {
+            const collection = $app.dao().findCollectionByNameOrId(collectionKey);
+
+            // TODO: use the "Create new record with validations"
+            // https://pocketbase.io/docs/js-records/#create-new-record-with-data-validations
+            relRecord = new Record(collection, rawData);
+        }
+
+        // The rest is on you kid ;)
+        $app.dao().saveRecord(relRecord);
+        return relRecord;
+    },
+
+    /**
+     * Validates the given relational data JSON
+     *
+     * @param {string} collectionKey
+     * @param {*} rawData
+     * @returns {void}
+     */
+    validateRelationData(collectionKey, rawData) {
+        if (!rawData || Object.keys(rawData).length === 0) {
+            return;
+        }
+
+        const collection = $app.dao().findCollectionByNameOrId(collectionKey);
+        const relRecord = new Record(collection, rawData);
+        const form = new RecordUpsertForm($app, relRecord);
+        form.validate();
+    },
+
+    /**
+     *
      * @param {string} type
      * @returns {{profileKey: string, profileDataKey: string, profileCollectionKey: string}}
      */
@@ -25,28 +74,30 @@ module.exports = {
     },
 
     /**
-     * 
-     * @param {string} registrant ID of the registrant
+     *
+     * @param {models.Record} registrant record of the registrant
+     * @param {string} key of the profile
      * @param {string | null} oldProfileId existing ID of profile
+     * @param {string} profileKey
      * @param {string} profileCollectionKey Collection key to use for the profile
      * @param {Record<string, any>} rawProfile raw JSON profile string
      * @returns {string}
      */
-    decodeAndSaveProfile(registrant, oldProfileId, profileCollectionKey, rawProfile) {
-        let profileRecord;
-        
-        if (oldProfileId) {
-            profileRecord = $app.dao().findRecordById(profileCollectionKey, oldProfileId);
-            profileRecord.load(rawProfile);
-        } else {
-            const profileCollection = $app.dao().findCollectionByNameOrId(profileCollectionKey);
-            // TODO: use the "Create new record with validations"
-            // https://pocketbase.io/docs/js-records/#create-new-record-with-data-validations
-            const profileRecord = new Record(profileCollection, rawProfile);
-            profileRecord.set('registrant', registrant);
+    decodeAndSaveProfile(registrant, oldProfileId, profileKey, profileCollectionKey, rawProfile) {
+        if (!rawProfile || Object.keys(rawProfile).length !== 0) {
+            return;
         }
 
-        $app.dao().saveRecord(profileRecord);        
+        const profileRecord = this.saveRelationalData(
+            profileCollectionKey,
+            {
+                registrant: registrant.id,
+                ...rawProfile,
+            },
+            oldProfileId
+        );
+
+        registrant.set(profileKey, profileRecord.id);
         return profileRecord.id;
     },
 
@@ -56,7 +107,7 @@ module.exports = {
     buildRegistrationFields() {
         const registrationTypes = ["student", "professional"];
         const collection = $app.dao().findCollectionByNameOrId("registrations");
-        
+
         for (const registrationType of registrationTypes) {
             const fields = this.extractCollectionSchema(collection, { registrationType });
             $app.cache().set(`registration_fields_${registrationType}`, fields);
