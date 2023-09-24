@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Command, CommandEmpty, CommandInput, CommandItem } from "./ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "./ui/command";
 import IconDown from "~icons/material-symbols/keyboard-arrow-down-rounded";
 import IconCheck from "~icons/material-symbols/check-small-rounded";
 
@@ -27,6 +27,7 @@ export default function ComboBox({ onChange, value = [], values, labels }: {
             <Command>
                 <CommandInput placeholder="Search add-ons..." />
                 <CommandEmpty>No add-ons found.</CommandEmpty>
+                <CommandGroup>
                 {values.map(v => (
                     <CommandItem
                         key={`select_combo_${v}`}
@@ -45,6 +46,7 @@ export default function ComboBox({ onChange, value = [], values, labels }: {
                         {labels[v] ?? v}
                     </CommandItem>
                 ))}
+                </CommandGroup>
             </Command>
         </PopoverContent>
     </Popover>;
