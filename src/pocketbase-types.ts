@@ -3,14 +3,15 @@
 */
 
 export enum Collections {
-	Bundles = "bundles",
+	Addons = "addons",
 	FormDetails = "form_details",
+	MerchSensingData = "merch_sensing_data",
 	Payments = "payments",
 	ProfessionalProfiles = "professional_profiles",
 	RegistrationStatuses = "registration_statuses",
 	Registrations = "registrations",
-	SlotCounter = "slot_counter",
 	StudentProfiles = "student_profiles",
+	TicketTypes = "ticket_types",
 	TopicInterests = "topic_interests",
 }
 
@@ -38,10 +39,9 @@ export type AuthSystemFields<T = never> = {
 
 // Record types for each collection
 
-export type BundlesRecord = {
+export type AddonsRecord = {
 	cover_image?: string
 	description?: HTMLString
-	includes?: HTMLString
 	price?: number
 	title?: string
 }
@@ -51,6 +51,19 @@ export type FormDetailsRecord<Tcustom_options = unknown> = {
 	description?: string
 	key: string
 	title: string
+}
+
+export enum MerchSensingDataMerchSpendingLimitOptions {
+	"₱150-₱250" = "₱150-₱250",
+	"₱250-₱450" = "₱250-₱450",
+	"₱450-₱600" = "₱450-₱600",
+	"₱600-₱1,000" = "₱600-₱1,000",
+}
+export type MerchSensingDataRecord<Tpreferred_offered_merch = unknown> = {
+	merch_spending_limit: MerchSensingDataMerchSpendingLimitOptions
+	other_preferred_offered_merch?: string
+	preferred_offered_merch?: null | Tpreferred_offered_merch
+	registrant: RecordIdString
 }
 
 export enum PaymentsStatusOptions {
@@ -67,7 +80,7 @@ export type PaymentsRecord = {
 export type ProfessionalProfilesRecord = {
 	is_fresh_graduate?: boolean
 	organization: string
-	registrant: RecordIdString
+	registrant?: RecordIdString
 	title: string
 }
 
@@ -110,29 +123,22 @@ export enum RegistrationsYearsTechExpOptions {
 	"More than 10 years" = "More than 10 years",
 }
 export type RegistrationsRecord<Ttopic_interests = unknown> = {
+	addons?: RecordIdString[]
 	age_range?: RegistrationsAgeRangeOptions
 	contact_number?: string
 	email: string
 	first_name: string
 	last_name: string
+	merch_sensing_data?: RecordIdString
 	payment?: RecordIdString
 	professional_profile?: RecordIdString
-	selected_bundle?: RecordIdString
 	sex?: RegistrationsSexOptions
 	status?: RecordIdString
 	student_profile?: RecordIdString
+	ticket: RecordIdString
 	topic_interests: null | Ttopic_interests
 	type?: RegistrationsTypeOptions
 	years_tech_exp: RegistrationsYearsTechExpOptions
-}
-
-export enum SlotCounterTypeOptions {
-	"student" = "student",
-	"professional" = "professional",
-}
-export type SlotCounterRecord = {
-	slots_registered?: number
-	type?: SlotCounterTypeOptions
 }
 
 export enum StudentProfilesYearLevelOptions {
@@ -144,9 +150,15 @@ export enum StudentProfilesYearLevelOptions {
 }
 export type StudentProfilesRecord = {
 	designation: string
-	registrant: RecordIdString
+	registrant?: RecordIdString
 	school: string
 	year_level: StudentProfilesYearLevelOptions
+}
+
+export type TicketTypesRecord = {
+	description?: HTMLString
+	name: string
+	price: number
 }
 
 export type TopicInterestsRecord = {
@@ -155,38 +167,41 @@ export type TopicInterestsRecord = {
 }
 
 // Response types include system fields and match responses from the PocketBase API
-export type BundlesResponse<Texpand = unknown> = Required<BundlesRecord> & BaseSystemFields<Texpand>
+export type AddonsResponse<Texpand = unknown> = Required<AddonsRecord> & BaseSystemFields<Texpand>
 export type FormDetailsResponse<Tcustom_options = unknown, Texpand = unknown> = Required<FormDetailsRecord<Tcustom_options>> & BaseSystemFields<Texpand>
+export type MerchSensingDataResponse<Tpreferred_offered_merch = unknown, Texpand = unknown> = Required<MerchSensingDataRecord<Tpreferred_offered_merch>> & BaseSystemFields<Texpand>
 export type PaymentsResponse<Texpand = unknown> = Required<PaymentsRecord> & BaseSystemFields<Texpand>
 export type ProfessionalProfilesResponse<Texpand = unknown> = Required<ProfessionalProfilesRecord> & BaseSystemFields<Texpand>
 export type RegistrationStatusesResponse<Texpand = unknown> = Required<RegistrationStatusesRecord> & BaseSystemFields<Texpand>
 export type RegistrationsResponse<Ttopic_interests = unknown, Texpand = unknown> = Required<RegistrationsRecord<Ttopic_interests>> & BaseSystemFields<Texpand>
-export type SlotCounterResponse<Texpand = unknown> = Required<SlotCounterRecord> & BaseSystemFields<Texpand>
 export type StudentProfilesResponse<Texpand = unknown> = Required<StudentProfilesRecord> & BaseSystemFields<Texpand>
+export type TicketTypesResponse<Texpand = unknown> = Required<TicketTypesRecord> & BaseSystemFields<Texpand>
 export type TopicInterestsResponse<Texpand = unknown> = Required<TopicInterestsRecord> & BaseSystemFields<Texpand>
 
 // Types containing all Records and Responses, useful for creating typing helper functions
 
 export type CollectionRecords = {
-	bundles: BundlesRecord
+	addons: AddonsRecord
 	form_details: FormDetailsRecord
+	merch_sensing_data: MerchSensingDataRecord
 	payments: PaymentsRecord
 	professional_profiles: ProfessionalProfilesRecord
 	registration_statuses: RegistrationStatusesRecord
 	registrations: RegistrationsRecord
-	slot_counter: SlotCounterRecord
 	student_profiles: StudentProfilesRecord
+	ticket_types: TicketTypesRecord
 	topic_interests: TopicInterestsRecord
 }
 
 export type CollectionResponses = {
-	bundles: BundlesResponse
+	addons: AddonsResponse
 	form_details: FormDetailsResponse
+	merch_sensing_data: MerchSensingDataResponse
 	payments: PaymentsResponse
 	professional_profiles: ProfessionalProfilesResponse
 	registration_statuses: RegistrationStatusesResponse
 	registrations: RegistrationsResponse
-	slot_counter: SlotCounterResponse
 	student_profiles: StudentProfilesResponse
+	ticket_types: TicketTypesResponse
 	topic_interests: TopicInterestsResponse
 }
