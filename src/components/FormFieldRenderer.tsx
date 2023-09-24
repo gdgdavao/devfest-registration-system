@@ -5,15 +5,16 @@ import { Checkbox } from "./ui/checkbox"
 import { RegistrationField } from "@/client"
 import { ControllerRenderProps, FieldValues, useFormContext } from "react-hook-form"
 import { FormControl, FormField, FormItem, FormLabel } from "./ui/form"
+import ComboBox from "./ComboBox"
 
 export type FormFieldRendererProps<T extends FieldValues = FieldValues> = {
     field: RegistrationField
 } & Omit<ControllerRenderProps<T, any>, 'ref'>;
 
-export default function FormFieldRenderer<T extends FieldValues = FieldValues>({ field, customComponents, ref, ...props }: {
+export default function FormFieldRenderer<T extends FieldValues = FieldValues>({ field, customComponents, ...props }: {
     field: RegistrationField,
     customComponents?: Record<string, FC<FormFieldRendererProps>>
-} & ControllerRenderProps<T, any>) {
+} & Omit<ControllerRenderProps<T, any>, 'ref'>) {
     const name = field.name;
     const form = useFormContext();
 
@@ -25,9 +26,17 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
     if (field.type === "select") {
         const labels = (field.options.labels as Record<string, string>) ?? {};
         const values = field.options.values as string[];
-        return <Select onValueChange={props.onChange} defaultValue={props.value} disabled={props.disabled}>
+
+        if (Array.isArray(props.value)) {
+            return <ComboBox
+                labels={labels}
+                values={values}
+                {...props} />
+        }
+
+        return <Select name={name} onValueChange={props.onChange} defaultValue={props.value} disabled={props.disabled}>
             <SelectTrigger>
-                <SelectValue placeholder={(labels[values[0]] ?? values[0]) ?? ''} />
+                <SelectValue placeholder={(labels[values[0]] ?? values[0]) ?? 'Select...'} />
             </SelectTrigger>
             <SelectContent>
                 {values.map(v => (
@@ -43,7 +52,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
         if (field.options.fields) {
             return <div className="flex flex-col">
                 {(field.options.fields as RegistrationField[]).map(sfield => (
-                    <FormField 
+                    <FormField
                         control={form.control}
                         name={`${field.name}_data.${sfield.name}`}
                         render={({ field: fieldProps }) => (
@@ -61,12 +70,10 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
                 ))}
             </div>
         }
-
-        return <Input type="text" defaultValue={props.value} {...props} />
     }
 
     if (field.type === "email") {
-        return <Input type="email" defaultValue={props.value} {...props} />
+        return <Input type="email" {...props} />
     }
 
     if (field.type === "bool") {
@@ -81,5 +88,5 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
         </div>
     }
 
-    return <Input type="text" defaultValue={props.value} {...props} />
+    return <Input type="text" {...props} />
 }
