@@ -45,6 +45,7 @@ export default function RegistrationForm({ data: existingData, onSubmit, customC
                                         {...ofield}
                                         field={field}
                                         customComponents={{
+                                            "ticket": RichTicketFormRenderer,
                                             "topic_interests": TopicInterestFormRenderer,
                                             "addons": DefaultAddonsFormRenderer,
                                             ...customComponents
