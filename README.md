@@ -25,14 +25,14 @@ A custom-built registration system for the upcoming GDG Davao DevFest 2023.
 ### Installation / Setup
 #### Backend
 1. Download PocketBase, and follow the [setup instructions](https://pocketbase.io/docs/).
-2. Copy the `pb_hooks` folder in repo's `pb` directory into the current PocketBase installation directory. and restart the PocketBase server.
-3. Go [`http://localhost:8090/_`](http://localhost:8090/_) (observe the `_`) and login. If not registered, use `example@example.com` and `1234567890` as e-mail and password when registering.
-4. Go to `Settings -> Backups` and click the little cloud upload icon beside "Backup and Restore your PocketBase data". Upload the `backup.zip` file from the repo's `pb` directory and wait for it to upload.
-5. Click the restore icon beside the name of the newly added backup. (Show on the picture below)
-   ![1](./docs_images/1.png)
-6. Type `backup.zip` and click "Restore Backup". And you're done!
+2. Execute `npm install` and copy `.env.example` into `.env` file. Fill the `PB_PATH` with the location of your PocketBase instance.
+   - > [!IMPORTANT] do not move .env.example!
+3. Execute `npm install` (if not installed) then `npm run pb-sync push`. This will sync the repo's `pb` folder to your PocketBase instance.
+4. Restart/start PocketBase, go to [`http://localhost:8090/_`](http://localhost:8090/_) (observe the `_`), and login.
+   - If not registered, use `example@example.com` and `1234567890` as e-mail and password when registering.
 
-> [!NOTE] If you are uploading an updated version of `backup.zip`, be sure to delete the existing backup.zip entry by clicking the trash can icon.
+> [!NOTE]
+> If you are uploading an updated version of `backup.zip`, be sure to delete the existing backup.zip entry by clicking the trash can icon.
 
 #### Frontend
 1. Open a terminal pointing to the repo directory and execute `npm install`
@@ -68,9 +68,9 @@ We utilize PocketBase's server hooks feature to create custom API endpoints simi
 Currently we only use it for getting registration fields list and registration slot counter. To add an endpoint, simply modify the `main.pb.js` inside `pb_hooks`. See PocketBase Server Hooks docs for details.
 
 ### Updating DB schema
-When updating the database schema, be sure to update and commit the `src/pocketbase-types.ts` and `pb/pb_schema.json` files:
-1. To update `pocketbase-types.ts`, simply execute `npm run generate-types`.
-2. To update `pb_schema.json`, copy the JSON text found in `Settings -> Export Collection` and paste it into `pb/pb_schema.json`.
+When updating the database schema or related to PocketBase, be sure to update PB-related and `pb/pb_schema.json` files:
+1. Run `npm run pb-sync pull`.
+2. Update `pb_schema.json` by copying the JSON text in `Settings -> Export Collection` and paste it into `pb/pb_schema.json`.
 
 ## Resources
 - [PocketBase Documentation](https://pocketbase.io/docs)
