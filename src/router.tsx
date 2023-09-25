@@ -5,20 +5,32 @@ import GuestOnly from "./components/GuestOnly";
 import AdminLayout from "./components/layouts/Admin";
 
 // Pages
-import Home from "./pages/Home";
+import Home from "./pages/Home/Home";
 import AdminLogin from "./pages/admin/Login";
 import AdminRegistrationEntries from "./pages/admin/Dashboard";
 
 export const router = createBrowserRouter([
     {
         path: "/",
-        element: <Home />
+        element: <Home />,
+    },
+    {
+        path: "/registration",
+        element: <Home />,
+        children: [],
+    },
+    {
+        path: "/registration/profile",
+        element: <Home homeRoute="profile" />,
+        children: [],
     },
     {
         path: "/admin/login",
-        element: <GuestOnly>
-            <AdminLogin />
-        </GuestOnly>
+        element: (
+            <GuestOnly>
+                <AdminLogin />
+            </GuestOnly>
+        ),
     },
     {
         path: "/admin",
@@ -26,8 +38,8 @@ export const router = createBrowserRouter([
         children: [
             {
                 index: true,
-                element: <AdminRegistrationEntries />
-            }
-        ]
-    }
+                element: <AdminRegistrationEntries />,
+            },
+        ],
+    },
 ]);
