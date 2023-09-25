@@ -12,8 +12,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { RecordIdString, RegistrationStatusesStatusOptions } from "@/pocketbase-types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ReactNode } from "react";
 import RegistrationForm from "@/components/RegistrationForm";
+import { useDebouncedCallback }  from "use-debounce";
+import { ReactNode, useState } from "react";
 
 export function RegistrationRowActions({ id, onDelete }: {
     id: RecordIdString,
@@ -196,8 +197,12 @@ function EditRegistrationDialog({ id, children }: { id: string, children: ReactN
 }
 
 export default function AdminRegistrationEntries() {
-    const { data, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useRegistrationsQuery();
     const { mutateAsync: deleteRegistration } = useDeleteRegistrationMutation();
+    const [emailFilter, setEmailFilter] = useState('');
+    const debouncedSetEmailFilter = useDebouncedCallback((v: string) => setEmailFilter(v), 1000);
+    const { data, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useRegistrationsQuery({
+        filter: emailFilter.length > 0 ? `email~"${emailFilter}"` : '',
+    });
 
     return (
         <div className="max-w-5xl mx-auto pt-12 flex flex-col">
@@ -205,6 +210,8 @@ export default function AdminRegistrationEntries() {
 
             <div className="pb-4 flex items-center justify-between space-x-2">
                 <Input
+                    defaultValue={emailFilter}
+                    onChange={(ev) => debouncedSetEmailFilter(ev.target.value)}
                     className="w-1/2"
                     placeholder="Filter by emails..." />
 
