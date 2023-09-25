@@ -37,7 +37,7 @@ export default function RichTicketFormRenderer({ value = [], onChange }: FormFie
                             onClick={() => onChange(value.includes(ticket.id) ? value.filter((id: string) => id !== ticket.id) : value.concat(ticket.id))}
                             disabled={data.length === 1}
                             className="w-full">
-                            {value.includes(ticket.id) ? 'Remove' : 'Select'}
+                            {value.includes(ticket.id) ? (data.length === 1 ? 'Selected' : 'Remove') : 'Select'}
                         </Button>
                     </CardFooter>
                 </Card>
