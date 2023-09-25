@@ -1,7 +1,9 @@
+import RegistrationSection from "@/components/layouts/RegistrationSection";
+
 export default function Done() {
     return (
-        <div className="w-full flex flex-col items-center space-y-4">
+        <RegistrationSection>
             <p>Done page goes here</p>
-        </div>
+        </RegistrationSection>
     );
 }

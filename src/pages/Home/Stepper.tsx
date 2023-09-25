@@ -1,52 +1,27 @@
+import { useFormGroupsQuery } from "@/client";
 import { cn } from "@/lib/utils";
 
-interface registrationStage {
-    id: number;
-    title: string;
-}
-
-const registrationStages: registrationStage[] = [
-    {
-        id: 1,
-        title: "Profile",
-    },
-    {
-        id: 2,
-        title: "Topics",
-    },
-    {
-        id: 3,
-        title: "Add-ons",
-    },
-    {
-        id: 4,
-        title: "Payment",
-    },
-    {
-        id: 5,
-        title: "Done",
-    },
-];
-
 const Stepper = ({ index }: { index: number }) => {
+    const { data: groups } = useFormGroupsQuery();
+
     return (
         <div className="flex justify-center space-x-5 md:space-x-10 mb-8 md:mb-12">
-            {registrationStages.map((stage) => {
+            {groups?.map((group, sIdx) => {
                 return (
                     <div
-                        key={stage.id}
+                        key={sIdx + 1}
                         className="flex flex-col items-center text-sm gap-y-2"
                     >
                         <div
                             className={cn(
                                 "h-8 w-8 md:w-12 md:h-12 rounded-full bg-secondary flex items-center justify-center",
-                                index === stage.id &&
+                                index === sIdx &&
                                     "bg-primary text-secondary"
                             )}
                         >
-                            {stage.id}
+                            {sIdx + 1}
                         </div>
-                        {stage.title}
+                        {group.short_title ?? group.title ?? ''}
                     </div>
                 );
             })}

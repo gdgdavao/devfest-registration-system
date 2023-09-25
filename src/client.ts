@@ -1,6 +1,6 @@
 import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
-import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse } from './pocketbase-types';
+import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions } from './pocketbase-types';
 import { ErrorOption } from 'react-hook-form';
 
 export const queryClient = new QueryClient();
@@ -45,6 +45,27 @@ export function getServerSideErrors(err: ClientResponseError) {
     }
 
     return errors;
+}
+
+// Forms
+export function useFormGroupQuery(key?: `${FormGroupsKeyOptions}`) {
+    return useQuery([Collections.FormGroups, key], () => {
+        if (!key) {
+            throw new Error('Must provide a key');
+        }
+
+        return pb.collection(Collections.FormGroups)
+            .getFirstListItem<FormGroupsRecord>(`key=${key}`);
+    }, {
+        enabled: typeof key !== 'undefined'
+    });
+}
+
+export function useFormGroupsQuery() {
+    return useQuery([Collections.FormGroups], () => {
+        return pb.collection(Collections.FormGroups)
+            .getFullList<FormGroupsResponse>({ sort: 'created' });
+    });
 }
 
 // Registrations

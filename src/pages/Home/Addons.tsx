@@ -1,22 +1,17 @@
 import RichAddonsFormRenderer from "@/components/form_renderers/RichAddonsFormRenderer";
-import Title from "./Title";
 import RegistrationForm from "@/components/RegistrationForm";
 import RichTicketFormRenderer from "@/components/form_renderers/RichTicketsFormRenderer";
+import RegistrationSection from "@/components/layouts/RegistrationSection";
 
 export default function Addons() {
     return (
-        <div className="w-full flex flex-col items-center space-y-4">
-            <Title
-                title="Add-ons"
-                description="Rorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis."
-            />
-
+        <RegistrationSection id="addOn">
             <RegistrationForm
                 group="addOn"
                 customComponents={{
                     ticket: RichTicketFormRenderer,
                     addons: RichAddonsFormRenderer
                 }} />
-        </div>
+        </RegistrationSection>
     );
 }

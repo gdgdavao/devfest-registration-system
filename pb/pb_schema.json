@@ -869,5 +869,98 @@
         "updateRule": null,
         "deleteRule": null,
         "options": {}
+    },
+    {
+        "id": "2d5lpbdnk1nao5z",
+        "name": "form_groups",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "0w12bgbf",
+                "name": "key",
+                "type": "select",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "welcome",
+                        "profile",
+                        "topic",
+                        "addOn",
+                        "payment",
+                        "done"
+                    ]
+                }
+            },
+            {
+                "system": false,
+                "id": "5yhpd5dn",
+                "name": "route_key",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "kt908xf5",
+                "name": "title",
+                "type": "text",
+                "required": true,
+                "presentable": true,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "ghlndru3",
+                "name": "description",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "ly5uwjbp",
+                "name": "short_title",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_Oc86YwV` ON `form_groups` (`key`)"
+        ],
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
     }
 ]
