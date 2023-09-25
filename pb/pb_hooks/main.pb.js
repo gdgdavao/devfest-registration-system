@@ -7,6 +7,8 @@ onAfterBootstrap((e) => {
 routerAdd("GET", "/api/registration_fields", (c) => {
     const utils = require(`${__hooks}/utils.js`);
     const registrationType = c.queryParamDefault("type", "student");
+    const formGroup = c.queryParamDefault("group", "all");
+
     if (["student", "professional"].indexOf(registrationType) === -1) {
         throw new BadRequestError("Type should be professional or student");
     }
@@ -16,7 +18,7 @@ routerAdd("GET", "/api/registration_fields", (c) => {
     }
 
     const fields = $app.cache().get(`registration_fields_${registrationType}`);
-    return c.json(200, fields);
+    return c.json(200, formGroup !== 'all' ? fields.filter(f => f.group === formGroup) : fields);
 });
 
 routerAdd("GET", "/api/slot_counter", (c) => {
@@ -61,7 +63,7 @@ onRecordBeforeCreateRequest((e) => {
     try {
         // Validate
         utils.validateRelationalData(profileCollectionKey, data[profileDataKey]);
-        utils.validateRelationalData('merch_sensing_data', data.merch_sensing_data);
+        utils.validateRelationalData('merch_sensing_data', data.merch_sensing_data_data);
     } catch (e) {
         console.log(e);
         throw new BadRequestError("An error occurred while submitting the form.", e);
@@ -77,7 +79,10 @@ onRecordAfterCreateRequest((e) => {
         const statusRecord = utils.saveRelationalData('registration_statuses', { registrant: e.record.id, status: 'pending' });
         e.record.set('status', statusRecord.id);
 
-        const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', data.merch_sensing_data);
+        const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', data.merch_sensing_data_data);
+        merchSensingDRecord.set('registrant', e.record.id);
+        $app.dao().saveRecord(merchSensingDRecord);
+
         e.record.set('merch_sensing_data', merchSensingDRecord);
 
         utils.decodeAndSaveProfile(e.record, undefined, profileKey, profileCollectionKey, data[profileDataKey]);
@@ -96,7 +101,7 @@ onRecordBeforeUpdateRequest((e) => {
     try {
         // Validate
         utils.validateRelationalData(profileCollectionKey, data[profileDataKey]);
-        utils.validateRelationalData('merch_sensing_data', data.merch_sensing_data);
+        utils.validateRelationalData('merch_sensing_data', data.merch_sensing_data_data);
     } catch (e) {
         console.log(e);
         throw new BadRequestError("An error occurred while submitting the form.", e);
@@ -138,7 +143,7 @@ onRecordAfterUpdateRequest((e) => {
             utils.decodeAndSaveProfile(registrant, oldProfileId, profileKey, profileCollectionKey, data[profileDataKey]);
         }
 
-        const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', data.merch_sensing_data, e.record.getString('merch_sensing_data'));
+        const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', data.merch_sensing_data_data, e.record.getString('merch_sensing_data'));
         e.record.set('merch_sensing_data', merchSensingDRecord);
 
         $app.dao().saveRecord(e.record);

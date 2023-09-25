@@ -46,10 +46,18 @@ export type AddonsRecord = {
 	title?: string
 }
 
+export enum FormDetailsFormGroupOptions {
+	"welcome" = "welcome",
+	"profile" = "profile",
+	"topic" = "topic",
+	"addOn" = "addOn",
+	"payment" = "payment",
+	"done" = "done",
+}
 export type FormDetailsRecord<Tcustom_options = unknown> = {
 	custom_options?: null | Tcustom_options
 	description?: string
-	form_group: string
+	form_group: FormDetailsFormGroupOptions
 	key: string
 	title: string
 }

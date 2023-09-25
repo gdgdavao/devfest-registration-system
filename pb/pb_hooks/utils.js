@@ -130,9 +130,9 @@ module.exports = {
             let title = field.name;
             let description = "";
             let shouldExpand = false;
+            let group = "";
 
             try {
-
                 const detailRecord = new Record();
                 const key = _options.parentKey ? `${_options.parentKey}.${field.name}` : field.name;
 
@@ -142,6 +142,7 @@ module.exports = {
 
                 title = detailRecord.getString('title');
                 description = detailRecord.getString('description');
+                group = detailRecord.getString('form_group');
 
                 const rawCustomOptions = detailRecord.getString("custom_options");
                 if (rawCustomOptions.length !== 0) {
@@ -188,6 +189,7 @@ module.exports = {
                     fields.push({
                         title,
                         description,
+                        group,
                         name: field.name,
                         type: field.type,
                         options: {
@@ -199,6 +201,7 @@ module.exports = {
                     fields.push({
                         title,
                         description,
+                        group,
                         name: field.name,
                         type: field.type,
                         options
@@ -229,6 +232,7 @@ module.exports = {
             fields.push({
                 name: field.name,
                 type: field.type,
+                group,
                 title,
                 description,
                 options
