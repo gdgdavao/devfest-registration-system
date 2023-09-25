@@ -49,6 +49,7 @@ export type AddonsRecord = {
 export type FormDetailsRecord<Tcustom_options = unknown> = {
 	custom_options?: null | Tcustom_options
 	description?: string
+	form_group: string
 	key: string
 	title: string
 }

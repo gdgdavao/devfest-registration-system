@@ -74,11 +74,7 @@
                 "unique": false,
                 "options": {
                     "maxSelect": 1,
-                    "values": [
-                        "unpaid",
-                        "pending",
-                        "paid"
-                    ]
+                    "values": ["unpaid", "pending", "paid"]
                 }
             },
             {
@@ -163,6 +159,16 @@
                 "presentable": false,
                 "unique": false,
                 "options": {}
+            },
+            {
+                "system": false,
+                "id": "qg1zrj1w",
+                "name": "form_group",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {}
             }
         ],
         "indexes": [
@@ -207,11 +213,7 @@
                 "unique": false,
                 "options": {
                     "maxSelect": 1,
-                    "values": [
-                        "pending",
-                        "approved",
-                        "rejected"
-                    ]
+                    "values": ["pending", "approved", "rejected"]
                 }
             }
         ],
@@ -469,10 +471,7 @@
                 "unique": false,
                 "options": {
                     "maxSelect": 1,
-                    "values": [
-                        "student",
-                        "professional"
-                    ]
+                    "values": ["student", "professional"]
                 }
             },
             {
@@ -556,10 +555,7 @@
                 "unique": false,
                 "options": {
                     "maxSelect": 1,
-                    "values": [
-                        "male",
-                        "female"
-                    ]
+                    "values": ["male", "female"]
                 }
             },
             {
