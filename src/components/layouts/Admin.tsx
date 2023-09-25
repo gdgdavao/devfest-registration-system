@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import AuthOnly from "../AuthOnly";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -25,29 +25,39 @@ function Sidebar({ className }: { className?: string }) {
                     </h2>
 
                     <div className="space-y-1">
-                        <Button variant="ghost" className="w-full justify-start">
-                            <IconAll className="mr-2" />
-                             All Entries
+                        <Button variant="ghost" className="w-full justify-start" asChild>
+                            <Link to="/admin/registrations">
+                                <IconAll className="mr-2" />
+                                All Entries
+                            </Link>
                         </Button>
 
-                        <Button variant="ghost" className="w-full justify-start">
-                            <IconPending className="mr-2" />
-                            Pending
+                        <Button variant="ghost" className="w-full justify-start" asChild>
+                            <Link to="/admin/registrations/pending">
+                                <IconPending className="mr-2" />
+                                Pending
+                            </Link>
                         </Button>
 
-                        <Button variant="ghost" className="w-full justify-start">
-                            <IconApprove className="mr-2" />
-                            Approved
+                        <Button variant="ghost" className="w-full justify-start" asChild>
+                            <Link to="/admin/registrations/approved">
+                                <IconApprove className="mr-2" />
+                                Approved
+                            </Link>
                         </Button>
 
-                        <Button variant="ghost" className="w-full justify-start">
-                            <IconReject className="mr-2" />
-                            Rejected
+                        <Button variant="ghost" className="w-full justify-start" asChild>
+                            <Link to="/admin/registrations/rejected">
+                                <IconReject className="mr-2" />
+                                Rejected
+                            </Link>
                         </Button>
 
-                        <Button variant="ghost" className="w-full justify-start">
-                            <IconSummary className="mr-2" />
-                            Summary
+                        <Button variant="ghost" className="w-full justify-start" asChild>
+                            <Link to="/admin/registrations/summary">
+                                <IconSummary className="mr-2" />
+                                Summary
+                            </Link>
                         </Button>
                     </div>
                 </div>
@@ -58,24 +68,32 @@ function Sidebar({ className }: { className?: string }) {
                     </h2>
 
                     <div className="space-y-1">
-                        <Button variant="ghost" className="w-full justify-start">
-                            <IconAll className="mr-2" />
-                            All Entries
+                        <Button variant="ghost" className="w-full justify-start" asChild>
+                            <Link to="/admin/payments">
+                                <IconAll className="mr-2" />
+                                All Entries
+                            </Link>
                         </Button>
 
-                        <Button variant="ghost" className="w-full justify-start">
-                            <IconPending className="mr-2" />
-                            Pending
+                        <Button variant="ghost" className="w-full justify-start" asChild>
+                            <Link to="/admin/payments/pending">
+                                <IconPending className="mr-2" />
+                                Pending
+                            </Link>
                         </Button>
 
-                        <Button variant="ghost" className="w-full justify-start">
-                            <IconApprove className="mr-2" />
-                            Paid
+                        <Button variant="ghost" className="w-full justify-start" asChild>
+                            <Link to="/admin/payments/paid">
+                                <IconApprove className="mr-2" />
+                                Paid
+                            </Link>
                         </Button>
 
-                        <Button variant="ghost" className="w-full justify-start">
-                            <IconReject className="mr-2" />
-                            Unpaid
+                        <Button variant="ghost" className="w-full justify-start" asChild>
+                            <Link to="/admin/payments/unpaid">
+                                <IconReject className="mr-2" />
+                                Unpaid
+                            </Link>
                         </Button>
                     </div>
                 </div>

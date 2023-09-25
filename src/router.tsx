@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { Navigate, createBrowserRouter } from "react-router-dom";
 import GuestOnly from "./components/GuestOnly";
 
 // Layouts
@@ -7,7 +7,10 @@ import AdminLayout from "./components/layouts/Admin";
 // Pages
 import Home from "./pages/Home";
 import AdminLogin from "./pages/admin/Login";
-import AdminRegistrationEntries from "./pages/admin/Dashboard";
+import AllRegistrations from "./pages/admin/registrations/All";
+import PendingRegistrations from "./pages/admin/registrations/Pending";
+import ApprovedRegistrations from "./pages/admin/registrations/Approved";
+import RejectedRegistrations from "./pages/admin/registrations/Rejected";
 
 export const router = createBrowserRouter([
     {
@@ -26,7 +29,28 @@ export const router = createBrowserRouter([
         children: [
             {
                 index: true,
-                element: <AdminRegistrationEntries />
+                element: <Navigate to="registrations" />
+            },
+            {
+                path: "registrations",
+                children: [
+                    {
+                        index: true,
+                        element: <AllRegistrations />
+                    },
+                    {
+                        path: "pending",
+                        element: <PendingRegistrations />
+                    },
+                    {
+                        path: "approved",
+                        element: <ApprovedRegistrations />
+                    },
+                    {
+                        path: "rejected",
+                        element: <RejectedRegistrations />
+                    },
+                ]
             }
         ]
     }
