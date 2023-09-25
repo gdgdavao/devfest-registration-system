@@ -1,3 +1,4 @@
+import { FormFieldRendererProps } from "@/components/FormFieldRenderer";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -6,32 +7,25 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import parseHtml, { Element, domToReact } from "html-react-parser";
-import React, { useState } from "react";
+import { RegistrationsTypeOptions } from "@/pocketbase-types";
+import parseHtml from "html-react-parser";
 
-export interface userType {
+export interface UserTypeProps {
+    id: RegistrationsTypeOptions;
     title?: string;
     description?: string;
 }
 
-const UserType: React.FC<userType> = ({ title, description }) => {
-    const [selectedType, setSelectedType] = useState("");
+export default function UserType({ id, title, description, value, onChange }: UserTypeProps & FormFieldRendererProps) {
     return (
-        <Card
-            className={cn(
-                "flex flex-col items-center justify-between p-4 space-y-4 text-center min-w-[250px]",
-                selectedType && "outline outline-2 outline-primary"
-            )}
-            onClick={() => setSelectedType(userType.id)}
-        >
+        <Card>
             <CardHeader>
                 <CardTitle className="flex flex-col items-center space-y-4">
                     <div className="w-40 h-40 bg-secondary" />
                     <h4>I am a {title || "Student"}.</h4>
                 </CardTitle>
 
-                <CardDescription className="text-sm">
+                <CardDescription className="text-sm text-center">
                     {parseHtml(
                         description ||
                             "Worem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis."
@@ -40,10 +34,11 @@ const UserType: React.FC<userType> = ({ title, description }) => {
             </CardHeader>
 
             <CardFooter className="w-full flex justify-center">
-                <Button className="w-[70%] max-w-md">Select</Button>
+                <Button
+                    variant={value === id ? 'secondary' : 'default'}
+                    onClick={() => onChange(id)}
+                    className="w-[70%] max-w-md">{value === id ? 'Selected' : 'Select'}</Button>
             </CardFooter>
         </Card>
     );
-};
-
-export default UserType;
+}

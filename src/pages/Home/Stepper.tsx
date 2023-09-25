@@ -1,14 +1,8 @@
 import { cn } from "@/lib/utils";
-import React from "react";
-import { homeRoute } from "./Home";
 
 interface registrationStage {
     id: number;
     title: string;
-}
-
-interface Props {
-    homeRoute?: homeRoute;
 }
 
 const registrationStages: registrationStage[] = [
@@ -34,7 +28,7 @@ const registrationStages: registrationStage[] = [
     },
 ];
 
-const Stepper = ({ homeRoute }: Props) => {
+const Stepper = ({ index }: { index: number }) => {
     return (
         <div className="flex justify-center space-x-5 md:space-x-10 mb-8 md:mb-12">
             {registrationStages.map((stage) => {
@@ -46,7 +40,7 @@ const Stepper = ({ homeRoute }: Props) => {
                         <div
                             className={cn(
                                 "h-8 w-8 md:w-12 md:h-12 rounded-full bg-secondary flex items-center justify-center",
-                                homeRoute === stage.title.toLowerCase() &&
+                                index === stage.id &&
                                     "bg-primary text-secondary"
                             )}
                         >

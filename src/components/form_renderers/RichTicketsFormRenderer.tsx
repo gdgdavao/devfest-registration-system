@@ -4,11 +4,18 @@ import parseHtml from 'html-react-parser';
 
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
+import { useEffect } from "react";
 
 const currentFormatter = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' });
 
 export default function RichTicketFormRenderer({ value = [], onChange }: FormFieldRendererProps) {
     const { data } = useTicketTypesQuery();
+
+    useEffect(() => {
+        if (typeof data !== 'undefined' && data.length === 1) {
+            onChange(data.map(d => d.id));
+        }
+    }, [data]);
 
     return (
         <div className="flex flex-row space-x-2">
@@ -28,6 +35,7 @@ export default function RichTicketFormRenderer({ value = [], onChange }: FormFie
                             type="button"
                             variant={value.includes(ticket.id) ? 'secondary' : 'default'}
                             onClick={() => onChange(value.includes(ticket.id) ? value.filter((id: string) => id !== ticket.id) : value.concat(ticket.id))}
+                            disabled={data.length === 1}
                             className="w-full">
                             {value.includes(ticket.id) ? 'Remove' : 'Select'}
                         </Button>
