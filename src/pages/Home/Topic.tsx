@@ -3,7 +3,7 @@ import RegistrationForm from "@/components/RegistrationForm";
 
 export default function Topic() {
     return (
-        <RegistrationSection>
+        <RegistrationSection id="topic">
             <RegistrationForm group="topic" />
         </RegistrationSection>
     );

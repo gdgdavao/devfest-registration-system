@@ -1,4 +1,4 @@
-import { RegistrationRecord, useRegistrationFieldsQuery } from "@/client";
+import { RegistrationRecord, handleFormServerSideError, useRegistrationFieldsQuery } from "@/client";
 import {
     MerchSensingDataMerchSpendingLimitOptions,
     RegistrationsAgeRangeOptions,
@@ -16,6 +16,7 @@ interface RegistrationFormContextData {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     form: UseFormReturn<RegistrationRecord, any, undefined>
     fields: ReturnType<typeof useRegistrationFieldsQuery>
+    onFormSubmit: (data: RegistrationRecord) => void
     resetFormToDefault: () => void
 }
 
@@ -30,11 +31,24 @@ const defaultValues = {
     },
 };
 
-export function useSetupRegistrationForm(): RegistrationFormContextData {
+export function useSetupRegistrationForm({ onSubmit }: {
+    onSubmit?: (
+        record: RegistrationRecord,
+        onError: (err: unknown) => void
+    ) => void;
+}): RegistrationFormContextData {
     const form = useForm<RegistrationRecord>({ defaultValues });
     const watchRegType = form.watch("type");
     const fieldsQuery = useRegistrationFieldsQuery(watchRegType);
     const resetFormToDefault = () => form.reset(defaultValues);
+    const onFormSubmit = (data: RegistrationRecord) =>
+        onSubmit?.(data, (err) =>
+            handleFormServerSideError(err, (errors) => {
+                for (const fieldName in errors) {
+                    form.setError(fieldName as never, errors[fieldName]);
+                }
+            })
+        );
 
     useEffect(() => {
         if (watchRegType === RegistrationsTypeOptions.student) {
@@ -80,6 +94,7 @@ export function useSetupRegistrationForm(): RegistrationFormContextData {
     return {
         form,
         fields: fieldsQuery,
+        onFormSubmit,
         resetFormToDefault
     }
 }

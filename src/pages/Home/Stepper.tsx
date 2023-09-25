@@ -15,7 +15,7 @@ const Stepper = ({ index }: { index: number }) => {
                         <div
                             className={cn(
                                 "h-8 w-8 md:w-12 md:h-12 rounded-full bg-secondary flex items-center justify-center",
-                                index === sIdx &&
+                                index - 1 === sIdx &&
                                     "bg-primary text-secondary"
                             )}
                         >
