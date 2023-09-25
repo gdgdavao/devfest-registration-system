@@ -55,7 +55,7 @@ export function useFormGroupQuery(key?: `${FormGroupsKeyOptions}`) {
         }
 
         return pb.collection(Collections.FormGroups)
-            .getFirstListItem<FormGroupsRecord>(`key=${key}`);
+            .getFirstListItem<FormGroupsRecord>(`key="${key}"`);
     }, {
         enabled: typeof key !== 'undefined'
     });
