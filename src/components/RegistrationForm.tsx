@@ -14,17 +14,24 @@ import TopicInterestFormRenderer from "./form_renderers/TopicInterestFormRendere
 import DefaultAddonsFormRenderer from "./form_renderers/DefaultAddonsFormRenderer";
 import { useEffect } from "react";
 import RichTicketFormRenderer from "./form_renderers/RichTicketsFormRenderer";
+import { FormDetailsFormGroupOptions } from "@/pocketbase-types";
+
+export type FormGroup = "all" | `${FormDetailsFormGroupOptions}`;
 
 export default function RegistrationForm({
     data: existingData,
+    group = "all",
+    noLabel = false,
     onSubmit,
     customComponents = {},
 }: {
     data?: RegistrationRecord;
-    onSubmit: (
+    group?: FormGroup;
+    onSubmit?: (
         record: RegistrationRecord,
         onError: (err: unknown) => void
     ) => void;
+    noLabel?: boolean,
     customComponents?: Partial<
         Record<keyof RegistrationRecord, React.FC<FormFieldRendererProps>>
     >;
@@ -32,10 +39,10 @@ export default function RegistrationForm({
     const {
         form,
         resetFormToDefault,
-        fieldsQuery: { data },
+        fields: { data },
     } = useRegistrationForm();
     const onFormSubmit = (data: RegistrationRecord) =>
-        onSubmit(data, (err) =>
+        onSubmit?.(data, (err) =>
             handleFormServerSideError(err, (errors) => {
                 for (const fieldName in errors) {
                     form.setError(fieldName as never, errors[fieldName]);
@@ -56,16 +63,16 @@ export default function RegistrationForm({
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(onFormSubmit)}
-                className="max-w-3xl px-3 mx-auto flex flex-col space-y-2"
+                className="w-full flex flex-col space-y-2"
             >
-                {data?.map((field) => (
+                {(data ?? []).filter(f => group !== 'all' ? f.group === group : true).map((field) => (
                     <FormField
                         control={form.control}
                         name={field.name as never}
                         key={`registration_${field.name}`}
                         render={({ field: ofield }) => (
                             <FormItem>
-                                <FormLabel>{field.title}</FormLabel>
+                                {!noLabel && <FormLabel>{field.title}</FormLabel>}
                                 <FormControl>
                                     <FormFieldRenderer
                                         {...ofield}
@@ -88,7 +95,7 @@ export default function RegistrationForm({
                         )}
                     />
                 ))}
-                <Button type="submit">Submit</Button>
+                {onSubmit && <Button type="submit">Submit</Button>}
             </form>
         </Form>
     );

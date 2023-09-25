@@ -7,8 +7,17 @@ import {
     RegistrationsYearsTechExpOptions,
     StudentProfilesYearLevelOptions,
 } from "@/pocketbase-types";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { createContext, useContext, useEffect } from "react";
+import { UseFormReturn, useForm } from "react-hook-form";
+
+export const RegistrationFormContext = createContext<RegistrationFormContextData>(null!);
+
+interface RegistrationFormContextData {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    form: UseFormReturn<RegistrationRecord, any, undefined>
+    fields: ReturnType<typeof useRegistrationFieldsQuery>
+    resetFormToDefault: () => void
+}
 
 const defaultValues = {
     type: RegistrationsTypeOptions.student,
@@ -21,7 +30,7 @@ const defaultValues = {
     },
 };
 
-export function useRegistrationForm() {
+export function useSetupRegistrationForm(): RegistrationFormContextData {
     const form = useForm<RegistrationRecord>({ defaultValues });
     const watchRegType = form.watch("type");
     const fieldsQuery = useRegistrationFieldsQuery(watchRegType);
@@ -33,8 +42,7 @@ export function useRegistrationForm() {
 
             if (
                 !form.getValues("student_profile_data") ||
-                Object.keys(form.getValues("student_profile_data")!).length ===
-                    0
+                Object.keys(form.getValues("student_profile_data")!).length === 0
             ) {
                 form.setValue("student_profile_data", {
                     designation: "",
@@ -71,7 +79,11 @@ export function useRegistrationForm() {
 
     return {
         form,
-        resetFormToDefault,
-        fieldsQuery,
-    };
+        fields: fieldsQuery,
+        resetFormToDefault
+    }
+}
+
+export function useRegistrationForm() {
+    return useContext(RegistrationFormContext);
 }
