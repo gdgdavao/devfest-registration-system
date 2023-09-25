@@ -89,7 +89,7 @@ export type MerchSensingDataRecord<Tpreferred_offered_merch = unknown> = {
 	merch_spending_limit: MerchSensingDataMerchSpendingLimitOptions
 	other_preferred_offered_merch?: string
 	preferred_offered_merch?: null | Tpreferred_offered_merch
-	registrant: RecordIdString
+	registrant?: RecordIdString
 }
 
 export enum PaymentsStatusOptions {

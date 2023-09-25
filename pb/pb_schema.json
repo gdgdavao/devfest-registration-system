@@ -440,81 +440,6 @@
         "options": {}
     },
     {
-        "id": "6oqtdvsh8whqbmc",
-        "name": "merch_sensing_data",
-        "type": "base",
-        "system": false,
-        "schema": [
-            {
-                "system": false,
-                "id": "pfzbklee",
-                "name": "registrant",
-                "type": "relation",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "collectionId": "boik9xw2mpob3lt",
-                    "cascadeDelete": true,
-                    "minSelect": null,
-                    "maxSelect": 1,
-                    "displayFields": null
-                }
-            },
-            {
-                "system": false,
-                "id": "rjm1fjyw",
-                "name": "preferred_offered_merch",
-                "type": "json",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {}
-            },
-            {
-                "system": false,
-                "id": "h6hl8r8o",
-                "name": "other_preferred_offered_merch",
-                "type": "text",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            },
-            {
-                "system": false,
-                "id": "fzpbv3wm",
-                "name": "merch_spending_limit",
-                "type": "select",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "maxSelect": 1,
-                    "values": [
-                        "₱150-₱250",
-                        "₱250-₱450",
-                        "₱450-₱600",
-                        "₱600-₱1,000"
-                    ]
-                }
-            }
-        ],
-        "indexes": [
-            "CREATE UNIQUE INDEX `idx_S0pXJKc` ON `merch_sensing_data` (`registrant`)"
-        ],
-        "listRule": null,
-        "viewRule": null,
-        "createRule": null,
-        "updateRule": null,
-        "deleteRule": null,
-        "options": {}
-    },
-    {
         "id": "boik9xw2mpob3lt",
         "name": "registrations",
         "type": "base",
@@ -955,6 +880,81 @@
         ],
         "indexes": [
             "CREATE UNIQUE INDEX `idx_Oc86YwV` ON `form_groups` (`key`)"
+        ],
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "6oqtdvsh8whqbmc",
+        "name": "merch_sensing_data",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "pfzbklee",
+                "name": "registrant",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "boik9xw2mpob3lt",
+                    "cascadeDelete": true,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "rjm1fjyw",
+                "name": "preferred_offered_merch",
+                "type": "json",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {}
+            },
+            {
+                "system": false,
+                "id": "h6hl8r8o",
+                "name": "other_preferred_offered_merch",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "fzpbv3wm",
+                "name": "merch_spending_limit",
+                "type": "select",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "₱150-₱250",
+                        "₱250-₱450",
+                        "₱450-₱600",
+                        "₱600-₱1,000"
+                    ]
+                }
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_S0pXJKc` ON `merch_sensing_data` (`registrant`)"
         ],
         "listRule": null,
         "viewRule": null,
