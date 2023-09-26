@@ -60,7 +60,7 @@ function push(pbPath) {
     console.log('PUSHING...');
 
     console.log('Copying pb_hooks to PB directory');
-    fs.cpSync(path.join(__dirname, 'pb', 'pb_hooks'), pbPath, { recursive: true, force: true });
+    fs.cpSync(path.join(__dirname, 'pb', 'pb_hooks'), path.resolve(pbPath, 'pb_hooks'), { recursive: true, force: true });
 
     console.log('Copying backup.zip data to PB directory.');
     fs.createReadStream(path.join(__dirname, 'pb', 'backup.zip'))
