@@ -11,6 +11,7 @@ import AllRegistrations from "./pages/admin/registrations/All";
 import PendingRegistrations from "./pages/admin/registrations/Pending";
 import ApprovedRegistrations from "./pages/admin/registrations/Approved";
 import RejectedRegistrations from "./pages/admin/registrations/Rejected";
+import MerchSensingSummary from "./pages/admin/merch_sensing/Summary";
 
 export const router = createBrowserRouter([
     {
@@ -50,6 +51,19 @@ export const router = createBrowserRouter([
                         path: "rejected",
                         element: <RejectedRegistrations />
                     },
+                ]
+            },
+            {
+                path: "merch_sensing",
+                children: [
+                    {
+                        index: true,
+                        element: <Navigate to="/summary" />
+                    },
+                    {
+                        path: "summary",
+                        element: <MerchSensingSummary />
+                    }
                 ]
             }
         ]
