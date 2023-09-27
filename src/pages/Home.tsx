@@ -49,7 +49,7 @@ export default function Home() {
             <RegistrationFormContext.Provider value={context}>
                 <Form {...context.form}>
                     <form onSubmit={context.form.handleSubmit(() => {
-                        if (groups[index] === FormDetailsFormGroupOptions.payment) {
+                        if (groups[index] === FormDetailsFormGroupOptions.done) {
                             return context.onFormSubmit(context.form.getValues());
                         }
                     })}>
