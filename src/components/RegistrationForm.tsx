@@ -30,7 +30,7 @@ export default function RegistrationForm({
     noLabel?: boolean;
     children?: ReactNode;
     customComponents?: Partial<
-        Record<keyof RegistrationRecord, React.FC<FormFieldRendererProps>>
+        Record<keyof RegistrationRecord | string, React.FC<FormFieldRendererProps>>
     >;
 }) {
     const {
