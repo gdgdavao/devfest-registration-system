@@ -43,70 +43,6 @@
         "options": {}
     },
     {
-        "id": "11z5ibl11dbde71",
-        "name": "payments",
-        "type": "base",
-        "system": false,
-        "schema": [
-            {
-                "system": false,
-                "id": "fughwyxo",
-                "name": "registrant",
-                "type": "relation",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "collectionId": "boik9xw2mpob3lt",
-                    "cascadeDelete": false,
-                    "minSelect": null,
-                    "maxSelect": 1,
-                    "displayFields": null
-                }
-            },
-            {
-                "system": false,
-                "id": "pkuc0ll9",
-                "name": "status",
-                "type": "select",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "maxSelect": 1,
-                    "values": [
-                        "unpaid",
-                        "pending",
-                        "paid"
-                    ]
-                }
-            },
-            {
-                "system": false,
-                "id": "hkrezyb3",
-                "name": "transaction_id",
-                "type": "text",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            }
-        ],
-        "indexes": [
-            "CREATE UNIQUE INDEX `idx_qTdN3zP` ON `payments` (`registrant`)"
-        ],
-        "listRule": null,
-        "viewRule": null,
-        "createRule": null,
-        "updateRule": null,
-        "deleteRule": null,
-        "options": {}
-    },
-    {
         "id": "0hu0xeybm6tlpz5",
         "name": "registration_statuses",
         "type": "base",
@@ -955,6 +891,112 @@
         ],
         "indexes": [
             "CREATE UNIQUE INDEX `idx_S0pXJKc` ON `merch_sensing_data` (`registrant`)"
+        ],
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "11z5ibl11dbde71",
+        "name": "payments",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "fughwyxo",
+                "name": "registrant",
+                "type": "relation",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "boik9xw2mpob3lt",
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "s43hrawc",
+                "name": "payment_method",
+                "type": "text",
+                "required": true,
+                "presentable": true,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "pkuc0ll9",
+                "name": "status",
+                "type": "select",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "unpaid",
+                        "pending",
+                        "paid"
+                    ]
+                }
+            },
+            {
+                "system": false,
+                "id": "ohsjobas",
+                "name": "expected_amount",
+                "type": "number",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": 0,
+                    "max": null,
+                    "noDecimal": false
+                }
+            },
+            {
+                "system": false,
+                "id": "0qxj5hvx",
+                "name": "amount_paid",
+                "type": "number",
+                "required": true,
+                "presentable": true,
+                "unique": false,
+                "options": {
+                    "min": 0,
+                    "max": null,
+                    "noDecimal": false
+                }
+            },
+            {
+                "system": false,
+                "id": "hkrezyb3",
+                "name": "transaction_id",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_qTdN3zP` ON `payments` (`registrant`)"
         ],
         "listRule": null,
         "viewRule": null,
