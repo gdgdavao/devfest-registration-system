@@ -66,6 +66,11 @@ export default function RegistrationForm({
                     render={({ field: ofield }) => (
                         <FormItem>
                             {!noLabel && <FormLabel>{field.title}</FormLabel>}
+                            {field.description && (
+                                <FormDescription>
+                                    {field.description}
+                                </FormDescription>
+                            )}
                             <FormControl>
                                 <FormFieldRenderer
                                     {...ofield}
@@ -83,11 +88,6 @@ export default function RegistrationForm({
                                     }}
                                 />
                             </FormControl>
-                            {field.description && (
-                                <FormDescription>
-                                    {field.description}
-                                </FormDescription>
-                            )}
                         </FormItem>
                     )}
                 />
