@@ -74,6 +74,8 @@ export default function RegistrationForm({
                                         ticket: RichTicketFormRenderer,
                                         "merch_sensing_data.preferred_offered_merch":
                                             JsonCheckboxFormRenderer,
+                                        "merch_sensing_data.merch_spending_limit":
+                                            JsonCheckboxFormRenderer,
                                         topic_interests:
                                             TopicInterestFormRenderer,
                                         addons: DefaultAddonsFormRenderer,
