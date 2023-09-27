@@ -11,6 +11,7 @@ import FormFieldRenderer, { FormFieldRendererProps } from "./FormFieldRenderer";
 import TopicInterestFormRenderer from "./form_renderers/TopicInterestFormRenderer";
 import DefaultAddonsFormRenderer from "./form_renderers/DefaultAddonsFormRenderer";
 import { ReactNode, useEffect, useRef } from "react";
+import JsonCheckboxFormRenderer from "./form_renderers/JsonCheckboxFormRenderer";
 import RichTicketFormRenderer from "./form_renderers/RichTicketsFormRenderer";
 import { FormDetailsFormGroupOptions } from "@/pocketbase-types";
 
@@ -71,6 +72,8 @@ export default function RegistrationForm({
                                     field={field}
                                     customComponents={{
                                         ticket: RichTicketFormRenderer,
+                                        "merch_sensing_data.preferred_offered_merch":
+                                            JsonCheckboxFormRenderer,
                                         topic_interests:
                                             TopicInterestFormRenderer,
                                         addons: DefaultAddonsFormRenderer,
