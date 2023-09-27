@@ -97,6 +97,21 @@ function Sidebar({ className }: { className?: string }) {
                         </Button>
                     </div>
                 </div>
+
+                <div className="px-3 py-2">
+                    <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
+                        Merch Sensing
+                    </h2>
+
+                    <div className="space-y-1">
+                        <Button variant="ghost" className="w-full justify-start" asChild>
+                            <Link to="/admin/merch_sensing/summary">
+                                <IconSummary className="mr-2" />
+                                Summary
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
             </div>
         </div>
     )

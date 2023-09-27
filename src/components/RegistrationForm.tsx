@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import TopicInterestFormRenderer from "./form_renderers/TopicInterestFormRenderer";
 import DefaultAddonsFormRenderer from "./form_renderers/DefaultAddonsFormRenderer";
 import { useEffect } from "react";
+import JsonCheckboxFormRenderer from "./form_renderers/JSONCheckboxFormRenderer";
 import RichTicketFormRenderer from "./form_renderers/RichTicketsFormRenderer";
 
 export default function RegistrationForm({ data: existingData, onSubmit, customComponents = {} }: {
@@ -46,6 +47,7 @@ export default function RegistrationForm({ data: existingData, onSubmit, customC
                                         {...ofield}
                                         field={field}
                                         customComponents={{
+                                            "merch_sensing_data.preferred_offered_merch": JsonCheckboxFormRenderer,
                                             "ticket": RichTicketFormRenderer,
                                             "topic_interests": TopicInterestFormRenderer,
                                             "addons": DefaultAddonsFormRenderer,

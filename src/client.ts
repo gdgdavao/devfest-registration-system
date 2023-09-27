@@ -1,6 +1,6 @@
 import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
-import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse } from './pocketbase-types';
+import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, MerchSensingDataRecord } from './pocketbase-types';
 import { ErrorOption } from 'react-hook-form';
 
 export const queryClient = new QueryClient();
@@ -65,6 +65,7 @@ const REGISTRATION_RESP_EXPAND = "status,student_profile,professional_profile,pa
 export interface RegistrationRecord extends RegistrationsRecord {
     student_profile_data?: StudentProfilesRecord
     professional_profile_data?: ProfessionalProfilesRecord
+    merch_sensing_data_data?: MerchSensingDataRecord
 }
 
 export interface RegistrationField {
