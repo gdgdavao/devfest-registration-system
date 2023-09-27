@@ -77,10 +77,7 @@ onRecordAfterCreateRequest((e) => {
         const statusRecord = utils.saveRelationalData('registration_statuses', { registrant: e.record.id, status: 'pending' });
         e.record.set('status', statusRecord.id);
 
-        const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', data.merch_sensing_data_data);
-        merchSensingDRecord.set('registrant', e.record.id);
-        $app.dao().saveRecord(merchSensingDRecord);
-
+        const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', Object.assign({ registrant: e.record.id }, data.merch_sensing_data_data));
         e.record.set('merch_sensing_data', merchSensingDRecord);
 
         utils.decodeAndSaveProfile(e.record, undefined, profileKey, profileCollectionKey, data[profileDataKey]);
