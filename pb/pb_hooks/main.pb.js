@@ -59,6 +59,8 @@ onRecordBeforeCreateRequest((e) => {
     const data = $apis.requestInfo(e.httpContext).data;
 
     try {
+        utils.validateRelationalData('payments', data.payment_data);
+
         // Validate
         utils.validateRelationalData(profileCollectionKey, data[profileDataKey]);
         utils.validateRelationalData('merch_sensing_data', data.merch_sensing_data_data);
@@ -74,6 +76,12 @@ onRecordAfterCreateRequest((e) => {
     const data = $apis.requestInfo(e.httpContext).data;
 
     try {
+        const paymentRecord = utils.saveRelationalData('payments',
+            Object.assign({
+                registrant: e.record.id, status: 'pending'
+            }, data.payment_data));
+        e.record.set('payment', paymentRecord.id);
+
         const statusRecord = utils.saveRelationalData('registration_statuses', { registrant: e.record.id, status: 'pending' });
         e.record.set('status', statusRecord.id);
 
