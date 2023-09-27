@@ -14,6 +14,10 @@ export default function JsonCheckboxFormRenderer({ name, value = [], field, onCh
                     <Checkbox
                             checked={value.includes(v)}
                             onCheckedChange={(checked) => {
+                                if (field.options.maxSelect === 1) {
+                                    return onChange(v);
+                                }
+                                
                                 return checked
                                     ? onChange(value.concat(v))
                                     : onChange(value.filter((val: string) => val !== v))
