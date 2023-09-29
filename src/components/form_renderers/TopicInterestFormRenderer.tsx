@@ -32,12 +32,12 @@ export default function TopicInterestFormRenderer({
 
     return (
         <div>
-            <div className="flex flex-col">
+            <div className="flex flex-col space-y-4">
                 {topics.map((topic) => (
                     <div key={`topic_${topic.key}`} className="flex flex-row">
                         <div className="w-1/2">{topic.name}</div>
 
-                        <div className="w-1/2 flex flex-row">
+                        <div className="w-1/2 flex flex-col">
                             {/* {values.map((v, i) => (
                             <div key={`topic_${topic.key}_choice_${i}`}>
                                 <Button
@@ -48,6 +48,13 @@ export default function TopicInterestFormRenderer({
                             </div>
                         ))} */}
                             <SliderWithPopup />
+                            <div className="flex justify-between">
+                                <div>😄</div>
+                                <div>🙂</div>
+                                <div>🤔</div>
+                                <div>😐</div>
+                                <div>😔</div>
+                            </div>
                         </div>
                     </div>
                 ))}
