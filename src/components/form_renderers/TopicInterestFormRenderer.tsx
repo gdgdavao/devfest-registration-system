@@ -1,32 +1,44 @@
 import { FormFieldRendererProps } from "../FormFieldRenderer";
 import { useEffect } from "react";
+import SliderWithPopup from "@/components/form_renderers/SliderWithPopup";
 import { Button } from "../ui/button";
 
-export default function TopicInterestFormRenderer({ onChange, value = {}, field }: FormFieldRendererProps) {
-    const topics = (field.options.topics as { key: string, name: string }[]);
+export default function TopicInterestFormRenderer({
+    onChange,
+    value = {},
+    field,
+}: FormFieldRendererProps) {
+    const topics = field.options.topics as { key: string; name: string }[];
     const values = field.options.values as string[];
     const selected = value as Record<string, string>;
-    const setSelected = (cb: (s: Record<string, string>) => Record<string, string>) => onChange(cb(selected));
+    const setSelected = (
+        cb: (s: Record<string, string>) => Record<string, string>
+    ) => onChange(cb(selected));
 
     useEffect(() => {
-        if (typeof selected === 'undefined' || Object.keys(selected).length === 0) {
-            onChange(topics.map(t => ({ [t.key]: values[0] })).reduce((pv, cv) => {
-                return { ...pv, ...cv };
-            }, {}))
+        if (
+            typeof selected === "undefined" ||
+            Object.keys(selected).length === 0
+        ) {
+            onChange(
+                topics
+                    .map((t) => ({ [t.key]: values[0] }))
+                    .reduce((pv, cv) => {
+                        return { ...pv, ...cv };
+                    }, {})
+            );
         }
     }, [value, onChange, selected, topics, values]);
 
     return (
         <div>
             <div className="flex flex-col">
-                {topics.map(topic => (
+                {topics.map((topic) => (
                     <div key={`topic_${topic.key}`} className="flex flex-row">
-                        <div className="w-1/2">
-                            {topic.name}
-                        </div>
+                        <div className="w-1/2">{topic.name}</div>
 
                         <div className="w-1/2 flex flex-row">
-                        {values.map((v, i) => (
+                            {/* {values.map((v, i) => (
                             <div key={`topic_${topic.key}_choice_${i}`}>
                                 <Button
                                     type="button"
@@ -34,11 +46,12 @@ export default function TopicInterestFormRenderer({ onChange, value = {}, field 
                                     variant={selected[topic.key] === v ? 'destructive' : 'default'}
                                     className="py-8">{v}</Button>
                             </div>
-                        ))}
+                        ))} */}
+                            <SliderWithPopup />
                         </div>
                     </div>
                 ))}
             </div>
         </div>
-    )
+    );
 }

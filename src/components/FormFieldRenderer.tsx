@@ -53,7 +53,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
                 defaultValue={props.value}
                 disabled={props.disabled}
             >
-                <SelectTrigger>
+                <SelectTrigger className="[&>*:first-child]:capitalize">
                     <SelectValue
                         placeholder={
                             labels[values[0]] ?? values[0] ?? "Select..."
@@ -65,6 +65,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
                         <SelectItem
                             key={`registration_${name}_select_${v}`}
                             value={v}
+                            className="capitalize"
                         >
                             {labels[v] ?? v}
                         </SelectItem>
@@ -77,15 +78,18 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
     if (field.type === "relation") {
         if (field.options.fields) {
             return (
-                <div className="flex flex-col">
+                <div className="flex flex-col space-y-2">
                     {(field.options.fields as RegistrationField[]).map(
                         (sfield) => (
                             <FormField
+                                key={`${field.name}.${sfield.name}`}
                                 control={form.control}
                                 name={`${field.name}_data.${sfield.name}`}
                                 render={({ field: fieldProps }) => (
                                     <FormItem>
-                                        <FormLabel>{sfield.title}</FormLabel>
+                                        <FormLabel className="font-medium">
+                                            {sfield.title}
+                                        </FormLabel>
                                         <FormControl>
                                             <FormFieldRenderer
                                                 field={{

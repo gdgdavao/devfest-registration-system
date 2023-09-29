@@ -22,7 +22,7 @@ export default function RegistrationForm({
     group = "all",
     noLabel = false,
     customComponents = {},
-    children
+    children,
 }: {
     data?: RegistrationRecord;
     asChild?: boolean;
@@ -30,7 +30,10 @@ export default function RegistrationForm({
     noLabel?: boolean;
     children?: ReactNode;
     customComponents?: Partial<
-        Record<keyof RegistrationRecord | string, React.FC<FormFieldRendererProps>>
+        Record<
+            keyof RegistrationRecord | string,
+            React.FC<FormFieldRendererProps>
+        >
     >;
 }) {
     const {
@@ -58,40 +61,46 @@ export default function RegistrationForm({
 
     return (
         <div className="w-full flex flex-col space-y-2">
-            {(data ?? []).filter(f => group !== 'all' ? f.group === group : true).map((field) => (
-                <FormField
-                    control={form.control}
-                    name={field.name as never}
-                    key={`registration_${field.name}`}
-                    render={({ field: ofield }) => (
-                        <FormItem>
-                            {!noLabel && <FormLabel>{field.title}</FormLabel>}
-                            {field.description && (
-                                <FormDescription>
-                                    {field.description}
-                                </FormDescription>
-                            )}
-                            <FormControl>
-                                <FormFieldRenderer
-                                    {...ofield}
-                                    field={field}
-                                    customComponents={{
-                                        ticket: RichTicketFormRenderer,
-                                        "merch_sensing_data.preferred_offered_merch":
-                                            JsonCheckboxFormRenderer,
-                                        "merch_sensing_data.merch_spending_limit":
-                                            JsonCheckboxFormRenderer,
-                                        topic_interests:
-                                            TopicInterestFormRenderer,
-                                        addons: DefaultAddonsFormRenderer,
-                                        ...customComponents,
-                                    }}
-                                />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
-            ))}
+            {(data ?? [])
+                .filter((f) => (group !== "all" ? f.group === group : true))
+                .map((field) => (
+                    <FormField
+                        control={form.control}
+                        name={field.name as never}
+                        key={`registration_${field.name}`}
+                        render={({ field: ofield }) => (
+                            <FormItem>
+                                {!noLabel && (
+                                    <FormLabel className="text-md">
+                                        {field.title}
+                                    </FormLabel>
+                                )}
+                                {field.description && (
+                                    <FormDescription>
+                                        {field.description}
+                                    </FormDescription>
+                                )}
+                                <FormControl>
+                                    <FormFieldRenderer
+                                        {...ofield}
+                                        field={field}
+                                        customComponents={{
+                                            ticket: RichTicketFormRenderer,
+                                            "merch_sensing_data.preferred_offered_merch":
+                                                JsonCheckboxFormRenderer,
+                                            "merch_sensing_data.merch_spending_limit":
+                                                JsonCheckboxFormRenderer,
+                                            topic_interests:
+                                                TopicInterestFormRenderer,
+                                            addons: DefaultAddonsFormRenderer,
+                                            ...customComponents,
+                                        }}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                ))}
 
             {children}
         </div>
