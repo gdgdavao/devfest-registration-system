@@ -7,6 +7,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { RegistrationsTypeOptions } from "@/pocketbase-types";
 import parseHtml from "html-react-parser";
 
@@ -18,9 +19,9 @@ export interface UserTypeProps {
 
 export default function UserType({ id, title, description, value, onChange }: UserTypeProps & FormFieldRendererProps) {
     return (
-        <Card>
+        <Card className={cn(value === id && 'outline outline-2 outline-primary', 'flex flex-col justify-between')}>
             <CardHeader>
-                <CardTitle className="flex flex-col items-center space-y-4">
+                <CardTitle className="flex flex-col items-center space-y-4 text-center">
                     <div className="w-40 h-40 bg-secondary" />
                     <h4>I am a {title || "Student"}.</h4>
                 </CardTitle>
