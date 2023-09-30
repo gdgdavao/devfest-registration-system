@@ -24,10 +24,6 @@ const LikertSlider = forwardRef<
     }, [nValue, steps, values]);
 
     useEffect(() => {
-        console.log(values);
-    }, [values]);
-
-    useEffect(() => {
         onChange(values[valueIdx]);
 
         setOpen(true);
