@@ -1,0 +1,14 @@
+{{define "title"}}
+Dear {{.first_name}},
+{{end}}
+
+{{define "body"}}
+    {{if eq .status "approved"}}
+        <p>You’ve been selected to attend {{.event_name}}! We want to make this event productive and fun while keeping everyone safe. Only fully vaccinated participants are allowed to be admitted to the venue. To confirm your slot & vaccination status kindly fill out the RSVP form.</p>
+    {{else}}
+        <p>Thank you for taking the time to register for our {{.event_name}}. However, we regret to inform you that you won't be able to participate for this year's event.</p>
+    {{end}}
+
+    <p style="margin-top: 28px;margin-bottom: 4px;">Best wishes,</p>
+    <p>{{.event_name}} Team</p>
+{{end}}

@@ -5,6 +5,7 @@
 export enum Collections {
 	Addons = "addons",
 	FormDetails = "form_details",
+	FormGroups = "form_groups",
 	MerchSensingData = "merch_sensing_data",
 	Payments = "payments",
 	ProfessionalProfiles = "professional_profiles",
@@ -46,10 +47,35 @@ export type AddonsRecord = {
 	title?: string
 }
 
+export enum FormDetailsFormGroupOptions {
+	"welcome" = "welcome",
+	"profile" = "profile",
+	"topic" = "topic",
+	"addOn" = "addOn",
+	"payment" = "payment",
+	"done" = "done",
+}
 export type FormDetailsRecord<Tcustom_options = unknown> = {
 	custom_options?: null | Tcustom_options
 	description?: string
+	form_group: FormDetailsFormGroupOptions
 	key: string
+	title: string
+}
+
+export enum FormGroupsKeyOptions {
+	"welcome" = "welcome",
+	"profile" = "profile",
+	"topic" = "topic",
+	"addOn" = "addOn",
+	"payment" = "payment",
+	"done" = "done",
+}
+export type FormGroupsRecord = {
+	description?: string
+	key: FormGroupsKeyOptions
+	route_key: string
+	short_title?: string
 	title: string
 }
 
@@ -63,7 +89,7 @@ export type MerchSensingDataRecord<Tpreferred_offered_merch = unknown> = {
 	merch_spending_limit: MerchSensingDataMerchSpendingLimitOptions
 	other_preferred_offered_merch?: string
 	preferred_offered_merch?: null | Tpreferred_offered_merch
-	registrant: RecordIdString
+	registrant?: RecordIdString
 }
 
 export enum PaymentsStatusOptions {
@@ -72,8 +98,11 @@ export enum PaymentsStatusOptions {
 	"paid" = "paid",
 }
 export type PaymentsRecord = {
+	amount_paid: number
+	expected_amount?: number
+	payment_method: string
 	registrant: RecordIdString
-	status: PaymentsStatusOptions
+	status?: PaymentsStatusOptions
 	transaction_id?: string
 }
 
@@ -169,6 +198,7 @@ export type TopicInterestsRecord = {
 // Response types include system fields and match responses from the PocketBase API
 export type AddonsResponse<Texpand = unknown> = Required<AddonsRecord> & BaseSystemFields<Texpand>
 export type FormDetailsResponse<Tcustom_options = unknown, Texpand = unknown> = Required<FormDetailsRecord<Tcustom_options>> & BaseSystemFields<Texpand>
+export type FormGroupsResponse<Texpand = unknown> = Required<FormGroupsRecord> & BaseSystemFields<Texpand>
 export type MerchSensingDataResponse<Tpreferred_offered_merch = unknown, Texpand = unknown> = Required<MerchSensingDataRecord<Tpreferred_offered_merch>> & BaseSystemFields<Texpand>
 export type PaymentsResponse<Texpand = unknown> = Required<PaymentsRecord> & BaseSystemFields<Texpand>
 export type ProfessionalProfilesResponse<Texpand = unknown> = Required<ProfessionalProfilesRecord> & BaseSystemFields<Texpand>
@@ -183,6 +213,7 @@ export type TopicInterestsResponse<Texpand = unknown> = Required<TopicInterestsR
 export type CollectionRecords = {
 	addons: AddonsRecord
 	form_details: FormDetailsRecord
+	form_groups: FormGroupsRecord
 	merch_sensing_data: MerchSensingDataRecord
 	payments: PaymentsRecord
 	professional_profiles: ProfessionalProfilesRecord
@@ -196,6 +227,7 @@ export type CollectionRecords = {
 export type CollectionResponses = {
 	addons: AddonsResponse
 	form_details: FormDetailsResponse
+	form_groups: FormGroupsResponse
 	merch_sensing_data: MerchSensingDataResponse
 	payments: PaymentsResponse
 	professional_profiles: ProfessionalProfilesResponse

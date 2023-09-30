@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+    <style type="text/css">
+        ol {
+            margin: 0;
+            padding: 0
+        }
+
+        table td,
+        table th {
+            padding: 0
+        }
+
+        p {
+            margin: 0;
+            color: #000000;
+            font-size: 11pt;
+            font-family: "Arial"
+        }
+
+        .font-sans {
+            font-weight: 400;
+            font-family: "Arial"
+        }
+
+        .heading {
+            color: #000000;
+            text-decoration: none;
+            vertical-align: baseline;
+            font-size: 17pt;
+            font-style: normal;
+            padding-top: 0pt;
+            padding-bottom: 10pt;
+            line-height: 1.0;
+            text-align: left
+        }
+
+        .doc-content {
+            background-color: #ffffff;
+            max-width: 468pt;
+            padding-top: 36pt;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .doc-content > table td {
+            border-right-style: solid;
+            border-bottom-color: #000000;
+            border-top-width: 0pt;
+            border-right-width: 0pt;
+            border-left-color: #000000;
+            vertical-align: top;
+            border-right-color: #000000;
+            border-left-width: 0pt;
+            border-top-style: solid;
+            border-left-style: solid;
+            border-bottom-width: 0pt;
+            width: 467.2pt;
+            border-top-color: #000000;
+            border-bottom-style: solid;
+        }
+
+        .doc-content > table td.with-spacer > span:first-child {
+            display: block;
+            height: 8pt;
+        }
+
+        .doc-content > table {
+            margin-left: auto;
+            border-spacing: 0;
+            border-collapse: collapse;
+            margin-right: auto
+        }
+
+        .email-body > td {
+            padding: 36pt;
+            background-color: #fafafa
+        }
+
+        .email-footer {
+            height: 87pt;
+        }
+
+        .email-footer > td {
+            padding: 18pt 18pt 18pt 18pt;
+            background-color: #4285f4;
+            line-height: 1.0;
+            text-align: center;
+        }
+
+        img {
+            width: 100%;
+            height: auto;
+            overflow: hidden;
+            margin-left: -0.00px;
+            margin-top: -0.00px;
+        }
+
+        /* tablet-larger phone CSS styles go here */
+        @media only screen and (max-width: 640px) {
+            .email-body > td {
+                padding: 24pt;
+            }
+        }
+
+        /* smaller-mobile-specific CSS styles go here */
+        @media only screen and (max-width: 479px) {
+            .heading {
+                font-size: 14pt;
+            }
+
+            .doc-content {
+                max-width: 100%;
+            }
+
+            .email-body > td {
+                padding: 12pt;
+            }
+        }
+    </style>
+</head>
+
+<body class="doc-content">
+    <table>
+        <tr>
+            <td class="with-spacer" colspan="1" rowspan="1">
+                <span></span>
+                <img src="{{.url}}/assets/email_assets/image1.png" style="max-width: 624.43px;">
+            </td>
+        </tr>
+        <tr class="email-body">
+            <td colspan="1" rowspan="1">
+                <p class="font-sans heading">{{block "title" .}}{{end}}</p>
+                {{block "body" .}}{{end}}
+            </td>
+        </tr>
+        <tr class="email-footer">
+            <td class="with-spacer" colspan="1" rowspan="1">
+                <span></span>
+                <img src="{{.url}}/assets/email_assets/image4.png" style="max-width: 93.50px;">
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

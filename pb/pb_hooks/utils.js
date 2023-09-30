@@ -1,6 +1,79 @@
 /// <reference path="../pb_data/types.d.ts" />
+/// <reference path="./hooks.d.ts" />
 
 module.exports = {
+    /**
+     * @param {string} type
+     * @param {string} filter
+     * @param {string} host
+     * @returns {number} Number of messages sent to recipients.
+     */
+    sendEmails(type, filter, host = "") {
+        const templates = require(`${__hooks}/email_templates.js`);
+        const mailTemplate = templates[type];
+
+        const template = $template.loadFiles(
+            `${__hooks}/views/emails/layout.html`,
+            mailTemplate.path
+        );
+        const records = filter.length !== 0
+            ? $app.dao().findRecordsByFilter("registrations", filter, "-created", -1)
+            : arrayOf(new Record);
+
+        if (filter.length === 0) {
+            $app.dao().recordQuery("registrations").all(records);
+        }
+
+        /**
+         * @type {MailerMessage[]}
+         */
+        const messages = [];
+
+        for (const record of records) {
+            const mailParams = mailTemplate.buildParams(record, {
+                url: host,
+                event_name: "GDG DevFest Davao 2023"
+            });
+
+            const output = template.render(mailParams);
+            messages.push(new MailerMessage({
+                from: {
+                    address: $app.settings().meta.senderAddress,
+                    name: $app.settings().meta.senderName
+                },
+                to: [{
+                    name: `${record.getString('first_name')} ${record.getString('last_name')}`,
+                    address: record.email()
+                }],
+                subject: mailTemplate.subject(mailParams),
+                html: output
+            }));
+        }
+
+        for (const message of messages) {
+            $app.newMailClient().send(message);
+        }
+
+        return messages.length;
+    },
+
+    /**
+     *
+     * @param {'student' | 'professional'} type
+     * @returns {RegistrationField[]}
+     */
+    getRegistrationFields(type) {
+        if (["student", "professional"].indexOf(type) === -1) {
+            throw new BadRequestError("Type should be professional or student");
+        }
+
+        if (!$app.cache().has(`registration_fields_${type}`)) {
+            utils.buildRegistrationFields();
+        }
+
+        return $app.cache().get(`registration_fields_${type}`);
+    },
+
     /**
      * @param {string} collectionKey Collection name/ID of the relational data
      * @param {any} rawData JSON representation of the raw relational data
@@ -120,9 +193,14 @@ module.exports = {
     *
     * @param {models.Collection | undefined} collection
     * @param {{parent?: string, parentKey?: string, registrationType: string} | undefined} _options
+    * @returns {RegistrationField[]}
     */
     extractCollectionSchema(collection, _options) {
         const fieldsFromSchema = collection.schema.fields();
+
+        /**
+         * @type {RegistrationField[]}
+         */
         const fields = [];
 
         for (const field of fieldsFromSchema) {
@@ -130,9 +208,9 @@ module.exports = {
             let title = field.name;
             let description = "";
             let shouldExpand = false;
+            let group = "";
 
             try {
-
                 const detailRecord = new Record();
                 const key = _options.parentKey ? `${_options.parentKey}.${field.name}` : field.name;
 
@@ -142,6 +220,7 @@ module.exports = {
 
                 title = detailRecord.getString('title');
                 description = detailRecord.getString('description');
+                group = detailRecord.getString('form_group');
 
                 const rawCustomOptions = detailRecord.getString("custom_options");
                 if (rawCustomOptions.length !== 0) {
@@ -188,6 +267,7 @@ module.exports = {
                     fields.push({
                         title,
                         description,
+                        group,
                         name: field.name,
                         type: field.type,
                         options: {
@@ -199,6 +279,7 @@ module.exports = {
                     fields.push({
                         title,
                         description,
+                        group,
                         name: field.name,
                         type: field.type,
                         options
@@ -229,6 +310,7 @@ module.exports = {
             fields.push({
                 name: field.name,
                 type: field.type,
+                group,
                 title,
                 description,
                 options
