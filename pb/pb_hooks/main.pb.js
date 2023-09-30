@@ -8,16 +8,7 @@ routerAdd("GET", "/api/registration_fields", (c) => {
     const utils = require(`${__hooks}/utils.js`);
     const registrationType = c.queryParamDefault("type", "student");
     const formGroup = c.queryParamDefault("group", "all");
-
-    if (["student", "professional"].indexOf(registrationType) === -1) {
-        throw new BadRequestError("Type should be professional or student");
-    }
-
-    if (!$app.cache().has(`registration_fields_${registrationType}`)) {
-        utils.buildRegistrationFields();
-    }
-
-    const fields = $app.cache().get(`registration_fields_${registrationType}`);
+    const fields = utils.getRegistrationFields(registrationType);
     return c.json(200, formGroup !== 'all' ? fields.filter(f => f.group === formGroup) : fields);
 });
 

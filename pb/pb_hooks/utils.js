@@ -1,6 +1,24 @@
 /// <reference path="../pb_data/types.d.ts" />
+/// <reference path="./hooks.d.ts" />
 
 module.exports = {
+    /**
+     *
+     * @param {'student' | 'professional'} type
+     * @returns {RegistrationField[]}
+     */
+    getRegistrationFields(type) {
+        if (["student", "professional"].indexOf(type) === -1) {
+            throw new BadRequestError("Type should be professional or student");
+        }
+
+        if (!$app.cache().has(`registration_fields_${type}`)) {
+            utils.buildRegistrationFields();
+        }
+
+        return $app.cache().get(`registration_fields_${type}`);
+    },
+
     /**
      * @param {string} collectionKey Collection name/ID of the relational data
      * @param {any} rawData JSON representation of the raw relational data
@@ -120,9 +138,14 @@ module.exports = {
     *
     * @param {models.Collection | undefined} collection
     * @param {{parent?: string, parentKey?: string, registrationType: string} | undefined} _options
+    * @returns {RegistrationField[]}
     */
     extractCollectionSchema(collection, _options) {
         const fieldsFromSchema = collection.schema.fields();
+
+        /**
+         * @type {RegistrationField[]}
+         */
         const fields = [];
 
         for (const field of fieldsFromSchema) {
