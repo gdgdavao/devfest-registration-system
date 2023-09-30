@@ -3,6 +3,61 @@
 
 module.exports = {
     /**
+     * @param {string} type
+     * @param {string} filter
+     * @param {string} host
+     * @returns {number} Number of messages sent to recipients.
+     */
+    sendEmails(type, filter, host = "") {
+        const templates = require(`${__hooks}/email_templates.js`);
+        const mailTemplate = templates[type];
+
+        const template = $template.loadFiles(
+            `${__hooks}/views/emails/layout.html`,
+            mailTemplate.path
+        );
+        const records = filter.length !== 0
+            ? $app.dao().findRecordsByFilter("registrations", filter, "-created", -1)
+            : arrayOf(new Record);
+
+        if (filter.length === 0) {
+            $app.dao().recordQuery("registrations").all(records);
+        }
+
+        /**
+         * @type {MailerMessage[]}
+         */
+        const messages = [];
+
+        for (const record of records) {
+            const mailParams = mailTemplate.buildParams(record, {
+                url: host,
+                event_name: "GDG DevFest Davao 2023"
+            });
+
+            const output = template.render(mailParams);
+            messages.push(new MailerMessage({
+                from: {
+                    address: $app.settings().meta.senderAddress,
+                    name: $app.settings().meta.senderName
+                },
+                to: [{
+                    name: `${record.getString('first_name')} ${record.getString('last_name')}`,
+                    address: record.email()
+                }],
+                subject: mailTemplate.subject(mailParams),
+                html: output
+            }));
+        }
+
+        for (const message of messages) {
+            $app.newMailClient().send(message);
+        }
+
+        return messages.length;
+    },
+
+    /**
      *
      * @param {'student' | 'professional'} type
      * @returns {RegistrationField[]}

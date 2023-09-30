@@ -1,0 +1,48 @@
+{{define "title"}}
+    Thank you for registering!
+{{end}}
+
+{{define "body"}}
+<p style="margin-bottom:5pt;">Our team has already received your submission and will be reviewed in the next couple of weeks. Here's the information we have received from you:</p>
+
+<div>
+{{range $entry := .data}}
+    <div style="font-family: Arial, Helvetica, sans-serif; border-bottom: 1px solid #bebebe; padding-top:12px; padding-bottom:12px;">
+        <p style="font-size: 12pt; font-weight: bold; margin-bottom: 4px;">{{ $entry.title }}</p>
+
+        {{if eq $entry.type "relation" }}
+            {{if $entry.entries}}
+                {{range $subentry := $entry.entries}}
+                    {{if $subentry.fields}}
+                        {{range $subentryField := $subentry.fields}}
+                            <div style="font-family: Arial, Helvetica, sans-serif; border-bottom: 1px solid #bebebe; padding-top:12px; padding-bottom:12px;">
+                                <p style="font-size: 10pt; font-weight: bold; margin-bottom: 4px;">{{ $subentryField.title }}</p>
+                                <p>{{ $subentryField.value }}</p>
+                            </div>
+                        {{end}}
+                    {{else if ne (len $subentry.value) 0}}
+                        <p>{{ $subentry.value }}</p>
+                    {{else}}
+                        <p><i>&lt;empty&gt;</i></p>
+                    {{end}}
+                {{end}}
+            {{else if ne (len $entry.value) 0}}
+                <p>{{ $entry.value }}</p>
+            {{else}}
+                <p><i>&lt;empty&gt;</i></p>
+            {{end}}
+        {{else if eq $entry.name "topic_interests" }}
+            <ul style="padding-left: 14px;">
+                {{range $topic, $value := $entry.value}}
+                <li><b>{{index $entry.options.labels $topic}}</b>: {{$value}}</li>
+                {{end}}
+            </ul>
+        {{else if ne (len $entry.value) 0}}
+            <p>{{ $entry.value }}</p>
+        {{else}}
+            <p><i>&lt;empty&gt;</i></p>
+        {{end}}
+    </div>
+{{end}}
+</div>
+{{end}}
