@@ -181,6 +181,12 @@ export function useTicketTypesQuery() {
     });
 }
 
+export function useTicketTypeQuery(id: string) {
+    return useQuery([Collections.TicketTypes, id], () => {
+        return pb.collection(Collections.TicketTypes).getOne<TicketTypesResponse>(id);
+    });
+}
+
 // Payments
 const PAYMENT_RESP_EXPAND = "registrant";
 
