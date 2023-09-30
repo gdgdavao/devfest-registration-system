@@ -1,6 +1,6 @@
 import { FormFieldRendererProps } from "../FormFieldRenderer";
 import { useTicketTypesQuery } from "@/client";
-import parseHtml from 'html-react-parser';
+import parseHtml, { domToReact, Element } from 'html-react-parser';
 
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
@@ -23,7 +23,13 @@ export default function RichTicketFormRenderer({ value = [], onChange }: FormFie
                 <Card key={`ticket_${ticket.id}`} className="flex flex-col w-1/3">
                     <CardHeader>
                         <CardTitle>{ticket.name}</CardTitle>
-                        <CardDescription>{parseHtml(ticket.description)}</CardDescription>
+                        {parseHtml(ticket.description, {
+                            replace: (domNode) => {
+                                if (domNode instanceof Element && domNode.attribs) {
+                                    return <CardDescription>{domToReact(domNode.children)}</CardDescription>;
+                                }
+                            }
+                        })}
                     </CardHeader>
                     <CardFooter className="mt-auto flex flex-col">
                         <div className="w-full pb-4">

@@ -1,6 +1,6 @@
 import { FormFieldRendererProps } from "../FormFieldRenderer";
 import { useAddonsQuery } from "@/client";
-import parseHtml from 'html-react-parser';
+import parseHtml, { domToReact, Element } from 'html-react-parser';
 
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
@@ -16,7 +16,13 @@ export default function RichAddonsFormRenderer({ value = [], onChange }: FormFie
                 <Card key={`addon_${addon.id}`} className="flex flex-col w-1/3">
                     <CardHeader>
                         <CardTitle>{addon.title}</CardTitle>
-                        <CardDescription>{parseHtml(addon.description)}</CardDescription>
+                        {parseHtml(addon.description, {
+                            replace: (domNode) => {
+                                if (domNode instanceof Element && domNode.attribs) {
+                                    return <CardDescription>{domToReact(domNode.children)}</CardDescription>;
+                                }
+                            }
+                        })}
                     </CardHeader>
                     <CardFooter className="mt-auto flex flex-col">
                         <div className="w-full pb-4">
