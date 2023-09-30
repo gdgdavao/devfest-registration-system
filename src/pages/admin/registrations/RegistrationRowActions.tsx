@@ -9,6 +9,8 @@ import { RecordIdString } from "@/pocketbase-types";
 import { TooltipContent } from "@radix-ui/react-tooltip";
 import EditRegistrationDialog from "./EditRegistrationDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import IconEmail from '~icons/material-symbols/stacked-email-rounded';
+import SendMailDialog from "./SendMailDialog";
 
 export function RegistrationRowActions({ id, onDelete }: {
     id: RecordIdString,
@@ -40,6 +42,20 @@ export function RegistrationRowActions({ id, onDelete }: {
                 </TooltipTrigger>
                 <TooltipContent>
                     Edit
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger>
+                    <SendMailDialog type="confirm" filter={`id = ${id}`}>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <IconEmail />
+                        </Button>
+                    </SendMailDialog>
+                </TooltipTrigger>
+                <TooltipContent>
+                    Send confirmation e-mail
                 </TooltipContent>
             </Tooltip>
         </TooltipProvider>
