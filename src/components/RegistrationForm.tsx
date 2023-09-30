@@ -1,68 +1,108 @@
-import { RegistrationRecord, handleFormServerSideError } from "@/client";
+import { RegistrationRecord } from "@/client";
 import { useRegistrationForm } from "@/registration-form";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "./ui/form";
+import {
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+} from "./ui/form";
 import FormFieldRenderer, { FormFieldRendererProps } from "./FormFieldRenderer";
-import { Button } from "./ui/button";
 import TopicInterestFormRenderer from "./form_renderers/TopicInterestFormRenderer";
 import DefaultAddonsFormRenderer from "./form_renderers/DefaultAddonsFormRenderer";
-import { useEffect } from "react";
-import JsonCheckboxFormRenderer from "./form_renderers/JSONCheckboxFormRenderer";
+import { ReactNode, useEffect, useRef } from "react";
+import JsonCheckboxFormRenderer from "./form_renderers/JsonCheckboxFormRenderer";
 import RichTicketFormRenderer from "./form_renderers/RichTicketsFormRenderer";
+import { FormDetailsFormGroupOptions } from "@/pocketbase-types";
 
-export default function RegistrationForm({ data: existingData, onSubmit, customComponents = {} }: {
-    data?: RegistrationRecord,
-    onSubmit: (record: RegistrationRecord, onError: (err: unknown) => void) => void,
-    customComponents?: Partial<Record<keyof RegistrationRecord, React.FC<FormFieldRendererProps>>>
+export type FormGroup = "all" | `${FormDetailsFormGroupOptions}`;
+
+export default function RegistrationForm({
+    data: existingData,
+    group = "all",
+    noLabel = false,
+    customComponents = {},
+    children,
+}: {
+    data?: RegistrationRecord;
+    asChild?: boolean;
+    group?: FormGroup;
+    noLabel?: boolean;
+    children?: ReactNode;
+    customComponents?: Partial<
+        Record<
+            keyof RegistrationRecord | string,
+            React.FC<FormFieldRendererProps>
+        >
+    >;
 }) {
-    const { form, resetFormToDefault, fieldsQuery: { data } } = useRegistrationForm();
-    const onFormSubmit = (data: RegistrationRecord) => onSubmit(data, (err) => handleFormServerSideError(err, errors => {
-        for (const fieldName in errors) {
-            form.setError(fieldName as never, errors[fieldName]);
-        }
-    }));
+    const {
+        form,
+        resetFormToDefault,
+        fields: { data },
+    } = useRegistrationForm();
+
+    const prev = useRef<RegistrationRecord | undefined>();
 
     useEffect(() => {
+        if (prev.current === existingData) {
+            return;
+        }
+
         if (existingData) {
             form.reset(existingData);
         } else {
             resetFormToDefault();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [existingData, form]);
+
+        prev.current = existingData;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [existingData]);
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onFormSubmit)}
-                className="max-w-3xl px-3 mx-auto flex flex-col space-y-2">
-                {data?.map(field => (
+        <div className="w-full flex flex-col space-y-2">
+            {(data ?? [])
+                .filter((f) => (group !== "all" ? f.group === group : true))
+                .map((field) => (
                     <FormField
                         control={form.control}
                         name={field.name as never}
                         key={`registration_${field.name}`}
                         render={({ field: ofield }) => (
                             <FormItem>
-                                <FormLabel>{field.title}</FormLabel>
+                                {!noLabel && (
+                                    <FormLabel className="text-md">
+                                        {field.title}
+                                    </FormLabel>
+                                )}
+                                {field.description && (
+                                    <FormDescription>
+                                        {field.description}
+                                    </FormDescription>
+                                )}
                                 <FormControl>
                                     <FormFieldRenderer
                                         {...ofield}
                                         field={field}
                                         customComponents={{
-                                            "merch_sensing_data.preferred_offered_merch": JsonCheckboxFormRenderer,
-                                            "ticket": RichTicketFormRenderer,
-                                            "topic_interests": TopicInterestFormRenderer,
-                                            "addons": DefaultAddonsFormRenderer,
-                                            ...customComponents
-                                        }} />
+                                            ticket: RichTicketFormRenderer,
+                                            "merch_sensing_data.preferred_offered_merch":
+                                                JsonCheckboxFormRenderer,
+                                            "merch_sensing_data.merch_spending_limit":
+                                                JsonCheckboxFormRenderer,
+                                            topic_interests:
+                                                TopicInterestFormRenderer,
+                                            addons: DefaultAddonsFormRenderer,
+                                            ...customComponents,
+                                        }}
+                                    />
                                 </FormControl>
-                                {field.description && <FormDescription>
-                                    {field.description}
-                                </FormDescription>}
                             </FormItem>
                         )}
                     />
                 ))}
-                <Button type="submit">Submit</Button>
-            </form>
-        </Form>
+
+            {children}
+        </div>
     );
 }

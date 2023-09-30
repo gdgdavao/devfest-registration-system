@@ -7,6 +7,8 @@ onAfterBootstrap((e) => {
 routerAdd("GET", "/api/registration_fields", (c) => {
     const utils = require(`${__hooks}/utils.js`);
     const registrationType = c.queryParamDefault("type", "student");
+    const formGroup = c.queryParamDefault("group", "all");
+
     if (["student", "professional"].indexOf(registrationType) === -1) {
         throw new BadRequestError("Type should be professional or student");
     }
@@ -16,7 +18,7 @@ routerAdd("GET", "/api/registration_fields", (c) => {
     }
 
     const fields = $app.cache().get(`registration_fields_${registrationType}`);
-    return c.json(200, fields);
+    return c.json(200, formGroup !== 'all' ? fields.filter(f => f.group === formGroup) : fields);
 });
 
 routerAdd("GET", "/api/slot_counter", (c) => {
@@ -60,6 +62,7 @@ onRecordBeforeCreateRequest((e) => {
 
     try {
         // Validate
+        utils.validateRelationalData('payments', data.payment_data);
         utils.validateRelationalData(profileCollectionKey, data[profileDataKey]);
         utils.validateRelationalData('merch_sensing_data', data.merch_sensing_data_data);
     } catch (e) {
@@ -74,6 +77,12 @@ onRecordAfterCreateRequest((e) => {
     const data = $apis.requestInfo(e.httpContext).data;
 
     try {
+        const paymentRecord = utils.saveRelationalData('payments',
+            Object.assign({
+                registrant: e.record.id, status: 'pending'
+            }, data.payment_data));
+        e.record.set('payment', paymentRecord.id);
+
         const statusRecord = utils.saveRelationalData('registration_statuses', { registrant: e.record.id, status: 'pending' });
         e.record.set('status', statusRecord.id);
 

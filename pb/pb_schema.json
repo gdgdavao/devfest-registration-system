@@ -43,139 +43,6 @@
         "options": {}
     },
     {
-        "id": "11z5ibl11dbde71",
-        "name": "payments",
-        "type": "base",
-        "system": false,
-        "schema": [
-            {
-                "system": false,
-                "id": "fughwyxo",
-                "name": "registrant",
-                "type": "relation",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "collectionId": "boik9xw2mpob3lt",
-                    "cascadeDelete": false,
-                    "minSelect": null,
-                    "maxSelect": 1,
-                    "displayFields": null
-                }
-            },
-            {
-                "system": false,
-                "id": "pkuc0ll9",
-                "name": "status",
-                "type": "select",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "maxSelect": 1,
-                    "values": [
-                        "unpaid",
-                        "pending",
-                        "paid"
-                    ]
-                }
-            },
-            {
-                "system": false,
-                "id": "hkrezyb3",
-                "name": "transaction_id",
-                "type": "text",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            }
-        ],
-        "indexes": [
-            "CREATE UNIQUE INDEX `idx_qTdN3zP` ON `payments` (`registrant`)"
-        ],
-        "listRule": null,
-        "viewRule": null,
-        "createRule": null,
-        "updateRule": null,
-        "deleteRule": null,
-        "options": {}
-    },
-    {
-        "id": "jltdtp7iwqhkryo",
-        "name": "form_details",
-        "type": "base",
-        "system": false,
-        "schema": [
-            {
-                "system": false,
-                "id": "mm5ctpeo",
-                "name": "key",
-                "type": "text",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            },
-            {
-                "system": false,
-                "id": "gfuwzdbp",
-                "name": "title",
-                "type": "text",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            },
-            {
-                "system": false,
-                "id": "ok7wuxi1",
-                "name": "description",
-                "type": "text",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            },
-            {
-                "system": false,
-                "id": "0sy2qlp7",
-                "name": "custom_options",
-                "type": "json",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {}
-            }
-        ],
-        "indexes": [
-            "CREATE UNIQUE INDEX `idx_ZqNPKQr` ON `form_details` (`key`)"
-        ],
-        "listRule": null,
-        "viewRule": "",
-        "createRule": null,
-        "updateRule": null,
-        "deleteRule": null,
-        "options": {}
-    },
-    {
         "id": "0hu0xeybm6tlpz5",
         "name": "registration_statuses",
         "type": "base",
@@ -369,6 +236,61 @@
         "indexes": [
             "CREATE UNIQUE INDEX `idx_T8pHTog` ON `professional_profiles` (`registrant`)"
         ],
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "rrb3m8sqieypp4x",
+        "name": "ticket_types",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "bjh7mvha",
+                "name": "name",
+                "type": "text",
+                "required": true,
+                "presentable": true,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "mbhzwszt",
+                "name": "description",
+                "type": "editor",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "convertUrls": false
+                }
+            },
+            {
+                "system": false,
+                "id": "pgtqeg0a",
+                "name": "price",
+                "type": "number",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "noDecimal": false
+                }
+            }
+        ],
+        "indexes": [],
         "listRule": null,
         "viewRule": null,
         "createRule": null,
@@ -721,15 +643,138 @@
         "options": {}
     },
     {
-        "id": "rrb3m8sqieypp4x",
-        "name": "ticket_types",
+        "id": "jltdtp7iwqhkryo",
+        "name": "form_details",
         "type": "base",
         "system": false,
         "schema": [
             {
                 "system": false,
-                "id": "bjh7mvha",
-                "name": "name",
+                "id": "mm5ctpeo",
+                "name": "key",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "gfuwzdbp",
+                "name": "title",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "ok7wuxi1",
+                "name": "description",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "0sy2qlp7",
+                "name": "custom_options",
+                "type": "json",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {}
+            },
+            {
+                "system": false,
+                "id": "vpswoqo9",
+                "name": "form_group",
+                "type": "select",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "welcome",
+                        "profile",
+                        "topic",
+                        "addOn",
+                        "payment",
+                        "done"
+                    ]
+                }
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_ZqNPKQr` ON `form_details` (`key`)"
+        ],
+        "listRule": null,
+        "viewRule": "",
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "2d5lpbdnk1nao5z",
+        "name": "form_groups",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "0w12bgbf",
+                "name": "key",
+                "type": "select",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "welcome",
+                        "profile",
+                        "topic",
+                        "addOn",
+                        "payment",
+                        "done"
+                    ]
+                }
+            },
+            {
+                "system": false,
+                "id": "5yhpd5dn",
+                "name": "route_key",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "kt908xf5",
+                "name": "title",
                 "type": "text",
                 "required": true,
                 "presentable": true,
@@ -742,33 +787,37 @@
             },
             {
                 "system": false,
-                "id": "mbhzwszt",
+                "id": "ghlndru3",
                 "name": "description",
-                "type": "editor",
+                "type": "text",
                 "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "convertUrls": false
-                }
-            },
-            {
-                "system": false,
-                "id": "pgtqeg0a",
-                "name": "price",
-                "type": "number",
-                "required": true,
                 "presentable": false,
                 "unique": false,
                 "options": {
                     "min": null,
                     "max": null,
-                    "noDecimal": false
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "ly5uwjbp",
+                "name": "short_title",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
                 }
             }
         ],
-        "indexes": [],
-        "listRule": "",
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_Oc86YwV` ON `form_groups` (`key`)"
+        ],
+        "listRule": null,
         "viewRule": null,
         "createRule": null,
         "updateRule": null,
@@ -842,6 +891,112 @@
         ],
         "indexes": [
             "CREATE UNIQUE INDEX `idx_S0pXJKc` ON `merch_sensing_data` (`registrant`)"
+        ],
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "11z5ibl11dbde71",
+        "name": "payments",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "fughwyxo",
+                "name": "registrant",
+                "type": "relation",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "boik9xw2mpob3lt",
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "s43hrawc",
+                "name": "payment_method",
+                "type": "text",
+                "required": true,
+                "presentable": true,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "pkuc0ll9",
+                "name": "status",
+                "type": "select",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "unpaid",
+                        "pending",
+                        "paid"
+                    ]
+                }
+            },
+            {
+                "system": false,
+                "id": "ohsjobas",
+                "name": "expected_amount",
+                "type": "number",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": 0,
+                    "max": null,
+                    "noDecimal": false
+                }
+            },
+            {
+                "system": false,
+                "id": "0qxj5hvx",
+                "name": "amount_paid",
+                "type": "number",
+                "required": true,
+                "presentable": true,
+                "unique": false,
+                "options": {
+                    "min": 0,
+                    "max": null,
+                    "noDecimal": false
+                }
+            },
+            {
+                "system": false,
+                "id": "hkrezyb3",
+                "name": "transaction_id",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_qTdN3zP` ON `payments` (`registrant`)"
         ],
         "listRule": null,
         "viewRule": null,

@@ -5,8 +5,14 @@ import GuestOnly from "./components/GuestOnly";
 import AdminLayout from "./components/layouts/Admin";
 
 // Pages
-import Home from "./pages/Home";
 import AdminLogin from "./pages/admin/Login";
+import Home from "./pages/Home";
+import Welcome from "./pages/Home/Welcome";
+import Profile from "./pages/Home/Profile";
+import Topic from "./pages/Home/Topic";
+import Addons from "./pages/Home/Addons";
+import Payment from "./pages/Home/Payment";
+import Done from "./pages/Home/Done";
 import AllRegistrations from "./pages/admin/registrations/All";
 import PendingRegistrations from "./pages/admin/registrations/Pending";
 import ApprovedRegistrations from "./pages/admin/registrations/Approved";
@@ -16,13 +22,45 @@ import MerchSensingSummary from "./pages/admin/merch_sensing/Summary";
 export const router = createBrowserRouter([
     {
         path: "/",
-        element: <Home />
+        element: <Navigate to="/registration" />,
+    },
+    {
+        path: "/registration",
+        element: <Home />,
+        children: [
+            {
+                index: true,
+                element: <Welcome />,
+            },
+            {
+                path: "profile",
+                element: <Profile />,
+            },
+            {
+                path: "topics",
+                element: <Topic />,
+            },
+            {
+                path: "addons",
+                element: <Addons />,
+            },
+            {
+                path: "payment",
+                element: <Payment />,
+            },
+            {
+                path: "done",
+                element: <Done />,
+            },
+        ],
     },
     {
         path: "/admin/login",
-        element: <GuestOnly>
-            <AdminLogin />
-        </GuestOnly>
+        element: (
+            <GuestOnly>
+                <AdminLogin />
+            </GuestOnly>
+        ),
     },
     {
         path: "/admin",
