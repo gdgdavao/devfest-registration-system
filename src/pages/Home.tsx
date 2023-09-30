@@ -3,8 +3,8 @@ import {
     RegistrationFormContext,
     useSetupRegistrationForm,
 } from "@/registration-form";
-import { useCallback, useEffect, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Stepper from "./Home/Stepper";
 import { FormDetailsFormGroupOptions } from "@/pocketbase-types";
 import { useRegistrationMutation } from "@/client";
@@ -24,6 +24,7 @@ const len = groups.length;
 
 // TODO: make payments required!
 export default function Home() {
+    const loc = useLocation();
     const [index, setIndex] = useState(0);
     const context = useSetupRegistrationForm({
         onSubmit: (data, onError) => submitForm(data, { onError }),
@@ -31,17 +32,27 @@ export default function Home() {
     const { mutate: submitForm, isLoading } = useRegistrationMutation();
     const navigate = useNavigate();
 
-    const goToNext = useCallback(() => {
-        if (index + 1 < len) {
-            setIndex(index + 1);
+    const goToPrev = () => {
+        if (index - 1 < 0) {
+            return;
+        }
+        navigate(`/registration${routes[groups[index - 1]]}`);
+    }
+
+    const goToNext = () => {
+        if (index + 1 < len - 1) {
+            navigate(`/registration${routes[groups[index + 1]]}`);
         } else {
             context.onFormSubmit(context.form.getValues());
         }
-    }, [index]);
+    }
 
     useEffect(() => {
-        navigate(`/registration${routes[groups[index]]}`);
-    }, [index]);
+        if (loc.pathname.startsWith('/registration/')) {
+            const groupName = loc.pathname.substring('/registration'.length);
+            setIndex(Object.values(routes).findIndex(g => g.startsWith(groupName)));
+        }
+    }, [loc]);
 
     return (
         <main className="max-w-3xl mx-auto flex flex-col w-full">
@@ -74,9 +85,7 @@ export default function Home() {
                                     disabled={index == 0 || isLoading}
                                     variant={"ghost"}
                                     className="disabled:opacity-0"
-                                    onClick={() =>
-                                        setIndex((idx) => Math.max(idx - 1, 0))
-                                    }
+                                    onClick={goToPrev}
                                 >
                                     Back
                                 </Button>
