@@ -8,16 +8,7 @@ routerAdd("GET", "/api/registration_fields", (c) => {
     const utils = require(`${__hooks}/utils.js`);
     const registrationType = c.queryParamDefault("type", "student");
     const formGroup = c.queryParamDefault("group", "all");
-
-    if (["student", "professional"].indexOf(registrationType) === -1) {
-        throw new BadRequestError("Type should be professional or student");
-    }
-
-    if (!$app.cache().has(`registration_fields_${registrationType}`)) {
-        utils.buildRegistrationFields();
-    }
-
-    const fields = $app.cache().get(`registration_fields_${registrationType}`);
+    const fields = utils.getRegistrationFields(registrationType);
     return c.json(200, formGroup !== 'all' ? fields.filter(f => f.group === formGroup) : fields);
 });
 
@@ -55,6 +46,35 @@ routerAdd("GET", "/api/slot_counter", (c) => {
     ]);
 });
 
+routerAdd("POST", "/api/admin/send_emails", (c) => {
+    try {
+        const params = new DynamicModel({
+            filter: "",
+            type: "confirm", // confirm or summary
+            force: false
+        });
+
+        c.bind(params);
+
+        if (params.type !== "confirm" && params.type !== "summary") {
+            throw new BadRequestError("Type should be either `confirm` or `summary`.");
+        } else if (params.filter.length === 0 && !params.force) {
+            // to avoid accidental deliveries of email to all recipients unless force is true
+            throw new BadRequestError("Filter should not be empty.");
+        }
+
+        const utils = require(`${__hooks}/utils.js`);
+        const host = "http://" + c.request().host;
+        const numEmailsSent = utils.sendEmails(params.type, params.filter, host);
+        return c.json(200, {"message": `Successfully sent to ${numEmailsSent} e-mails.`});
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+}, $apis.requireAdminAuth());
+
+routerAdd("GET", "/assets/*", $apis.staticDirectoryHandler(`${__hooks}/assets`, false));
+
 onRecordBeforeCreateRequest((e) => {
     const utils = require(`${__hooks}/utils.js`);
     const { profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
@@ -74,7 +94,8 @@ onRecordBeforeCreateRequest((e) => {
 onRecordAfterCreateRequest((e) => {
     const utils = require(`${__hooks}/utils.js`);
     const { profileKey, profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
-    const data = $apis.requestInfo(e.httpContext).data;
+    const reqInfo = $apis.requestInfo(e.httpContext);
+    const data = reqInfo.data;
 
     try {
         const paymentRecord = utils.saveRelationalData('payments',
@@ -91,6 +112,12 @@ onRecordAfterCreateRequest((e) => {
 
         utils.decodeAndSaveProfile(e.record, undefined, profileKey, profileCollectionKey, data[profileDataKey]);
         $app.dao().saveRecord(e.record);
+
+        if (!reqInfo.authRecord && !reqInfo.authRecord) {
+            const host = "http://" + e.httpContext.request().host;
+            // Send e-mail if it was not created from admin dashboard
+            utils.sendEmails('summary', `id = "${e.record.id}"`, host);
+        }
     } catch (e) {
         console.error(e);
         throw e;
