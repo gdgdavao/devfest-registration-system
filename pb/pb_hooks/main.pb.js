@@ -81,9 +81,8 @@ onRecordBeforeCreateRequest((e) => {
     const data = $apis.requestInfo(e.httpContext).data;
 
     try {
-        utils.validateRelationalData('payments', data.payment_data);
-
         // Validate
+        utils.validateRelationalData('addon_orders', data.addons_data);
         utils.validateRelationalData('payments', data.payment_data);
         utils.validateRelationalData(profileCollectionKey, data[profileDataKey]);
         utils.validateRelationalData('merch_sensing_data', data.merch_sensing_data_data);
@@ -100,6 +99,13 @@ onRecordAfterCreateRequest((e) => {
     const data = reqInfo.data;
 
     try {
+        const addonOrders = data.addons_data.map(a => {
+            const addonOrder = utils.saveRelationalData('addon_orders',
+                Object.assign({ registrant: e.record.id }, a));
+            return addonOrder.id;
+        });
+        e.record.set('addons', addonOrders);
+
         const paymentRecord = utils.saveRelationalData('payments',
             Object.assign({
                 registrant: e.record.id, status: 'pending'

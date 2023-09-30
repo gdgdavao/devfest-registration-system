@@ -113,14 +113,23 @@ module.exports = {
      * @returns {void}
      */
     validateRelationalData(collectionKey, rawData) {
-        if (!rawData || Object.keys(rawData).length === 0) {
+        if (!rawData || Object.keys(rawData).length === 0 || (Array.isArray(rawData) && rawData.length === 0)) {
             return;
         }
 
         const collection = $app.dao().findCollectionByNameOrId(collectionKey);
-        const relRecord = new Record(collection, rawData);
-        const form = new RecordUpsertForm($app, relRecord);
-        form.validate();
+
+        if (Array.isArray(rawData)) {
+            for (const entry of rawData) {
+                const relRecord = new Record(collection, entry);
+                const form = new RecordUpsertForm($app, relRecord);
+                form.validate();
+            }
+        } else {
+            const relRecord = new Record(collection, rawData);
+            const form = new RecordUpsertForm($app, relRecord);
+            form.validate();
+        }
     },
 
     /**
