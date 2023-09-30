@@ -1,6 +1,7 @@
 import { useAddonsQuery } from "@/client";
 import FormFieldRenderer, { FormFieldRendererProps } from "../FormFieldRenderer";
 
+// TODO: fix this
 export default function DefaultAddonsFormRenderer({ name, ...props }: FormFieldRendererProps) {
     const { data } = useAddonsQuery();
 

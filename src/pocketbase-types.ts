@@ -3,6 +3,7 @@
 */
 
 export enum Collections {
+	AddonOrders = "addon_orders",
 	Addons = "addons",
 	FormDetails = "form_details",
 	FormGroups = "form_groups",
@@ -40,8 +41,15 @@ export type AuthSystemFields<T = never> = {
 
 // Record types for each collection
 
-export type AddonsRecord = {
+export type AddonOrdersRecord<Tpreferences = unknown> = {
+	addon: RecordIdString
+	preferences?: null | Tpreferences
+	registrant?: RecordIdString
+}
+
+export type AddonsRecord<Tcustomization_options = unknown> = {
 	cover_image?: string
+	customization_options?: null | Tcustomization_options
 	description?: HTMLString
 	price?: number
 	title?: string
@@ -196,7 +204,8 @@ export type TopicInterestsRecord = {
 }
 
 // Response types include system fields and match responses from the PocketBase API
-export type AddonsResponse<Texpand = unknown> = Required<AddonsRecord> & BaseSystemFields<Texpand>
+export type AddonOrdersResponse<Tpreferences = unknown, Texpand = unknown> = Required<AddonOrdersRecord<Tpreferences>> & BaseSystemFields<Texpand>
+export type AddonsResponse<Tcustomization_options = unknown, Texpand = unknown> = Required<AddonsRecord<Tcustomization_options>> & BaseSystemFields<Texpand>
 export type FormDetailsResponse<Tcustom_options = unknown, Texpand = unknown> = Required<FormDetailsRecord<Tcustom_options>> & BaseSystemFields<Texpand>
 export type FormGroupsResponse<Texpand = unknown> = Required<FormGroupsRecord> & BaseSystemFields<Texpand>
 export type MerchSensingDataResponse<Tpreferred_offered_merch = unknown, Texpand = unknown> = Required<MerchSensingDataRecord<Tpreferred_offered_merch>> & BaseSystemFields<Texpand>
@@ -211,6 +220,7 @@ export type TopicInterestsResponse<Texpand = unknown> = Required<TopicInterestsR
 // Types containing all Records and Responses, useful for creating typing helper functions
 
 export type CollectionRecords = {
+	addon_orders: AddonOrdersRecord
 	addons: AddonsRecord
 	form_details: FormDetailsRecord
 	form_groups: FormGroupsRecord
@@ -225,6 +235,7 @@ export type CollectionRecords = {
 }
 
 export type CollectionResponses = {
+	addon_orders: AddonOrdersResponse
 	addons: AddonsResponse
 	form_details: FormDetailsResponse
 	form_groups: FormGroupsResponse

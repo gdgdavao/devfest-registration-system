@@ -22,6 +22,7 @@ export default function RegistrationForm({
     group = "all",
     noLabel = false,
     customComponents = {},
+    rename = {},
     children,
 }: {
     data?: RegistrationRecord;
@@ -29,6 +30,7 @@ export default function RegistrationForm({
     group?: FormGroup;
     noLabel?: boolean;
     children?: ReactNode;
+    rename?: Record<string, string>;
     customComponents?: Partial<
         Record<
             keyof RegistrationRecord | string,
@@ -66,7 +68,7 @@ export default function RegistrationForm({
                 .map((field) => (
                     <FormField
                         control={form.control}
-                        name={field.name as never}
+                        name={(rename[field.name] ?? field.name) as never}
                         key={`registration_${field.name}`}
                         render={({ field: ofield }) => (
                             <FormItem>
@@ -84,6 +86,7 @@ export default function RegistrationForm({
                                     <FormFieldRenderer
                                         {...ofield}
                                         field={field}
+                                        rename={rename}
                                         customComponents={{
                                             ticket: RichTicketFormRenderer,
                                             "merch_sensing_data.preferred_offered_merch":

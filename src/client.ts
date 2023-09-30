@@ -1,6 +1,6 @@
 import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
-import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse } from './pocketbase-types';
+import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse } from './pocketbase-types';
 import { ErrorOption } from 'react-hook-form';
 
 export const queryClient = new QueryClient();
@@ -76,7 +76,7 @@ export type RegistrationsResponse = PBRegistrationsResponse<
         student_profile?: StudentProfilesResponse,
         professional_profile?: ProfessionalProfilesResponse,
         payment?: PaymentResponse,
-        addons: AddonsResponse,
+        addons: AddonOrdersResponse,
         ticket: TicketTypesResponse
     }
 >
@@ -84,6 +84,7 @@ export type RegistrationsResponse = PBRegistrationsResponse<
 const REGISTRATION_RESP_EXPAND = "status,student_profile,professional_profile,payment,addons,ticket";
 
 export interface RegistrationRecord extends RegistrationsRecord {
+    addons_data?: AddonOrdersRecord[]
     student_profile_data?: StudentProfilesRecord
     professional_profile_data?: ProfessionalProfilesRecord
     merch_sensing_data_data?: MerchSensingDataRecord
