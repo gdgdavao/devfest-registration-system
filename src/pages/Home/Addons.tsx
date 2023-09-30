@@ -8,9 +8,10 @@ export default function Addons() {
         <RegistrationSection id="addOn">
             <RegistrationForm
                 group="addOn"
+                rename={{addons: 'addons_data'}}
                 customComponents={{
                     ticket: RichTicketFormRenderer,
-                    addons: RichAddonsFormRenderer
+                    addons: RichAddonsFormRenderer,
                 }} />
         </RegistrationSection>
     );
