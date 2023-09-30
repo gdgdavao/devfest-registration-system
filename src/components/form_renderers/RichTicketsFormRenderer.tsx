@@ -20,7 +20,7 @@ export default function RichTicketFormRenderer({ value = [], onChange }: FormFie
     return (
         <div className="flex flex-row space-x-2">
             {data?.map(ticket => (
-                <Card key={`ticket_${ticket.id}`} className="flex flex-col w-1/3">
+                <Card key={`ticket_${ticket.id}`} className="flex flex-col w-1/2 md:w-1/3">
                     <CardHeader>
                         <CardTitle>{ticket.name}</CardTitle>
                         {parseHtml(ticket.description, {

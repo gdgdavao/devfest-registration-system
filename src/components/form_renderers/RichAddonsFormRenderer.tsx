@@ -13,7 +13,7 @@ export default function RichAddonsFormRenderer({ value = [], onChange }: FormFie
     return (
         <div className="flex flex-row space-x-2">
             {data?.map(addon => (
-                <Card key={`addon_${addon.id}`} className="flex flex-col w-1/3">
+                <Card key={`addon_${addon.id}`} className="flex flex-col w-1/2 md:w-1/3">
                     <CardHeader>
                         <CardTitle>{addon.title}</CardTitle>
                         {parseHtml(addon.description, {

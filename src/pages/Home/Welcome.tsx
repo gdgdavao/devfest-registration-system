@@ -6,19 +6,18 @@ import { FormFieldRendererProps } from "@/components/FormFieldRenderer";
 import { RegistrationsTypeOptions } from "@/pocketbase-types";
 
 function RegistrationTypeFormRenderer({ field, ...props }: FormFieldRendererProps) {
-    return <div className="mx-auto w-full overflow-x-auto">
-        <div className="flex w-auto gap-x-4 p-4">
-            <UserType
-                {...props}
-                id={RegistrationsTypeOptions.student}
-                title="Student"
-                field={field} />
-            <UserType
-                {...props}
-                id={RegistrationsTypeOptions.professional}
-                title="Professional"
-                field={field} />
-        </div>
+    return <div className="flex w-auto gap-x-4 py-4">
+        <UserType
+            {...props}
+            id={RegistrationsTypeOptions.student}
+            title="Student"
+            field={field} />
+
+        <UserType
+            {...props}
+            id={RegistrationsTypeOptions.professional}
+            title="Professional"
+            field={field} />
     </div>
 }
 

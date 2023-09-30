@@ -54,6 +54,7 @@ export default function Home() {
             <RegistrationFormContext.Provider value={context}>
                 <Form {...context.form}>
                     <form
+                        className="px-4 md:px-0"
                         onSubmit={context.form.handleSubmit(() => {
                             if (
                                 groups[index] ===
@@ -68,7 +69,7 @@ export default function Home() {
                         <Outlet />
 
                         {index < len - 1 && (
-                            <div className="flex w-full justify-end mt-4 space-x-4">
+                            <div className="sticky bottom-0 flex w-full justify-end mt-12 py-4 bg-white border-t space-x-4">
                                 <Button
                                     disabled={index == 0 || isLoading}
                                     variant={"ghost"}
