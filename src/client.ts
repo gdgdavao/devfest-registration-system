@@ -1,6 +1,6 @@
 import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
-import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord } from './pocketbase-types';
+import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse } from './pocketbase-types';
 import { ErrorOption } from 'react-hook-form';
 
 export const queryClient = new QueryClient();
@@ -178,5 +178,48 @@ export function useAddonsQuery() {
 export function useTicketTypesQuery() {
     return useQuery([Collections.TicketTypes], () => {
         return pb.collection(Collections.TicketTypes).getFullList<TicketTypesResponse>();
+    });
+}
+
+// Payments
+const PAYMENT_RESP_EXPAND = "registrant";
+
+export type PaymentResponse = PaymentsResponse<{ registrant?: RegistrationRecord }>;
+
+export function usePaymentsQuery(options?: RecordListOptions) {
+    return useInfiniteQuery(
+        [Collections.Payments, JSON.stringify(options)],
+        ({ pageParam = 1 }) => {
+            return pb.collection(Collections.Payments)
+                .getList<PaymentResponse>(pageParam, undefined, {
+                    ...options,
+                    expand: PAYMENT_RESP_EXPAND
+                });
+        },
+        {
+            getNextPageParam(data) {
+                if (data.page + 1 > data.totalPages) return undefined;
+                return data.page + 1;
+            },
+            getPreviousPageParam(data) {
+                if (data.page + 1 < 0) return undefined;
+                return data.page - 1;
+            },
+        }
+    );
+}
+
+export function usePaymentQuery(id: RecordIdString) {
+    return useQuery([Collections.Payments, id], () => {
+        return pb.collection(Collections.Payments).getOne<PaymentsResponse>(id, {
+            expand: PAYMENT_RESP_EXPAND
+        });
+    });
+}
+
+export function useUpdatePaymentMutation() {
+    return useMutation(({id, record}: {id: RecordIdString, record: Partial<PaymentsRecord>}) => {
+        return pb.collection(Collections.Payments)
+            .update<PaymentsResponse>(id, record);
     });
 }

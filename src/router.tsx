@@ -17,6 +17,10 @@ import AllRegistrations from "./pages/admin/registrations/All";
 import PendingRegistrations from "./pages/admin/registrations/Pending";
 import ApprovedRegistrations from "./pages/admin/registrations/Approved";
 import RejectedRegistrations from "./pages/admin/registrations/Rejected";
+import AllPayments from "./pages/admin/payments/All";
+import PaidPayments from "./pages/admin/payments/Paid";
+import UnpaidPayments from "./pages/admin/payments/Unpaid";
+import PendingPayments from "./pages/admin/payments/Pending";
 import MerchSensingSummary from "./pages/admin/merch_sensing/Summary";
 
 export const router = createBrowserRouter([
@@ -88,6 +92,27 @@ export const router = createBrowserRouter([
                     {
                         path: "rejected",
                         element: <RejectedRegistrations />
+                    },
+                ]
+            },
+            {
+                path: "payments",
+                children: [
+                    {
+                        index: true,
+                        element: <AllPayments />
+                    },
+                    {
+                        path: "pending",
+                        element: <PendingPayments />
+                    },
+                    {
+                        path: "paid",
+                        element: <PaidPayments />
+                    },
+                    {
+                        path: "unpaid",
+                        element: <UnpaidPayments />
                     },
                 ]
             },

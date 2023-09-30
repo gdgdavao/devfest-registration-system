@@ -81,6 +81,8 @@ onRecordBeforeCreateRequest((e) => {
     const data = $apis.requestInfo(e.httpContext).data;
 
     try {
+        utils.validateRelationalData('payments', data.payment_data);
+
         // Validate
         utils.validateRelationalData('payments', data.payment_data);
         utils.validateRelationalData(profileCollectionKey, data[profileDataKey]);
