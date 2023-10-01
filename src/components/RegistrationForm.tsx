@@ -14,6 +14,7 @@ import { ReactNode, useEffect, useRef } from "react";
 import JsonCheckboxFormRenderer from "./form_renderers/JsonCheckboxFormRenderer";
 import RichTicketFormRenderer from "./form_renderers/RichTicketsFormRenderer";
 import { FormDetailsFormGroupOptions } from "@/pocketbase-types";
+import PhoneNumberFormRenderer from "./form_renderers/PhoneNumberFormRenderer";
 
 export type FormGroup = "all" | `${FormDetailsFormGroupOptions}`;
 
@@ -88,6 +89,7 @@ export default function RegistrationForm({
                                         field={field}
                                         rename={rename}
                                         customComponents={{
+                                            contact_number: PhoneNumberFormRenderer,
                                             ticket: RichTicketFormRenderer,
                                             "merch_sensing_data.preferred_offered_merch":
                                                 JsonCheckboxFormRenderer,
