@@ -15,7 +15,7 @@ import {
     FieldValues,
     useFormContext,
 } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel } from "./ui/form";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel } from "./ui/form";
 import ComboBox from "./ComboBox";
 
 export type FormFieldRendererProps<T extends FieldValues = FieldValues> = {
@@ -35,6 +35,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
     const name = field.name;
     const registeredName = rename?.[name] ?? name;
     const form = useFormContext();
+    const placeholder = (field.options.placeholder as string | undefined) ?? '';
 
     if (customComponents && customComponents[name]) {
         const CustomFormRenderer = customComponents[name];
@@ -81,7 +82,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
     if (field.type === "relation") {
         if (field.options.fields) {
             return (
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col space-y-4">
                     {(field.options.fields as RegistrationField[]).map(
                         (sfield) => (
                             <FormField
@@ -93,6 +94,11 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
                                         <FormLabel className="font-medium">
                                             {sfield.title}
                                         </FormLabel>
+                                        {sfield.description && (
+                                            <FormDescription>
+                                                {sfield.description}
+                                            </FormDescription>
+                                        )}
                                         <FormControl>
                                             <FormFieldRenderer
                                                 field={{
@@ -116,7 +122,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
     }
 
     if (field.type === "email") {
-        return <Input type="email" {...props} />;
+        return <Input type="email" placeholder={placeholder} {...props} />;
     }
 
     if (field.type === "bool") {
@@ -137,5 +143,5 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
         );
     }
 
-    return <Input type="text" {...props} />;
+    return <Input type="text" placeholder={placeholder} {...props} />;
 }
