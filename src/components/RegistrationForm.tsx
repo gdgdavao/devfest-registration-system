@@ -62,7 +62,7 @@ export default function RegistrationForm({
     }, [existingData]);
 
     return (
-        <div className="w-full flex flex-col space-y-2">
+        <div className="w-full flex flex-col space-y-4">
             {(data ?? [])
                 .filter((f) => (group !== "all" ? f.group === group : true))
                 .map((field) => (
