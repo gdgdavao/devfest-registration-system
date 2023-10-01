@@ -1,6 +1,6 @@
 import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
-import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse } from './pocketbase-types';
+import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse, TopicInterestsResponse } from './pocketbase-types';
 import { ErrorOption } from 'react-hook-form';
 
 export const queryClient = new QueryClient();
@@ -47,15 +47,22 @@ export function getServerSideErrors(err: ClientResponseError) {
     return errors;
 }
 
+// Topic Interests
+export function useTopicInterestsQuery() {
+    return useQuery([Collections.TopicInterests], () => {
+        return pb.collection(Collections.TopicInterests).getFullList<TopicInterestsResponse>({ sort: '-updated' });
+    });
+}
+
 // Forms
-export function useFormGroupQuery(key?: `${FormGroupsKeyOptions}`) {
+export function useFormGroupQuery<T = unknown>(key?: `${FormGroupsKeyOptions}`) {
     return useQuery([Collections.FormGroups, key], () => {
         if (!key) {
             throw new Error('Must provide a key');
         }
 
         return pb.collection(Collections.FormGroups)
-            .getFirstListItem<FormGroupsRecord>(`key="${key}"`);
+            .getFirstListItem<FormGroupsRecord<T>>(`key="${key}"`);
     }, {
         enabled: typeof key !== 'undefined'
     });
