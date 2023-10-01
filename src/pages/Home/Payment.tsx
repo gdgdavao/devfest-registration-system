@@ -5,7 +5,6 @@ import Alert, { AlertDescription } from "@/components/ui/alert";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 // import { FormField } from "@/components/ui/form";
 // import { useFormContext } from "react-hook-form";
-import IconOutline from "~icons/material-symbols/info-outline";
 
 function PaymentMethodFormRenderer(props: FormFieldRendererProps) {
     return (
@@ -28,8 +27,7 @@ function PaymentMethodFormRenderer(props: FormFieldRendererProps) {
 export default function Payment() {
     return (
         <RegistrationSection id="payment">
-            <Alert>
-                <IconOutline className="h-4 w-4" />
+            <Alert icon="Info" className="text-left" variant="info">
                 <AlertDescription>
                     Your payment will be on hold while we review your registration.
                     Your payment will be processed if you are accepted. Otherwise, we will refund your payment in full.
