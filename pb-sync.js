@@ -19,6 +19,10 @@ function pull(pbPath) {
     console.log('Generating TypeScript definitions...');
     exec('npm run generate-types');
 
+    console.log('Copying Dockerfile and fly.toml');
+    fs.cpSync(path.join(pbPath, 'Dockerfile'), path.resolve(__dirname, 'pb', 'Dockerfile'));
+    fs.cpSync(path.join(pbPath, 'fly.toml'), path.resolve(__dirname, 'pb', 'fly.toml'));
+
     console.log('Copying PB pb_hooks to repo pb_hooks...');
     fs.cpSync(path.join(pbPath, 'pb_hooks'), path.join(__dirname, 'pb', 'pb_hooks'), { force: true, recursive: true });
 
@@ -58,6 +62,10 @@ function pull(pbPath) {
  */
 function push(pbPath) {
     console.log('PUSHING...');
+
+    console.log('Copying Dockerfile and fly.toml');
+    fs.cpSync(path.join(__dirname, 'pb', 'Dockerfile'), path.resolve(pbPath, 'Dockerfile'));
+    fs.cpSync(path.join(__dirname, 'pb', 'fly.toml'), path.resolve(pbPath, 'fly.toml'));
 
     console.log('Copying pb_hooks to PB directory');
     fs.cpSync(path.join(__dirname, 'pb', 'pb_hooks'), path.resolve(pbPath, 'pb_hooks'), { recursive: true, force: true });
