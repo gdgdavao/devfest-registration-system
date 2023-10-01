@@ -59,6 +59,24 @@ module.exports = {
                         value: relIds,
                         entries
                     });
+                } else if (field.type === 'relation' && field.name === 'addons') {
+                    const addonIds = record.getStringSlice(field.name);
+                    const relRecord = $app.dao().findRecordsByIds(field.options.collectionId, addonIds);
+
+                    data.push({
+                        name: field.name,
+                        title: field.title,
+                        type: field.type,
+                        value: addonIds,
+                        entries: relRecord.map(record => {
+                            const addonRecord = $app.dao().findRecordById('addons', record.getString('addon'));
+                            const prefs = record.getString('preferences');
+
+                            return {
+                                value: `1 x ${addonRecord.getString('title')} ${prefs && '(' + Object.entries(JSON.parse(prefs)).map(e => `${e[0]}: ${e[1]}`).join(', ') + ')'}`,
+                            }
+                        })
+                    });
                 } else if (field.type === 'relation' && field.name === 'ticket') {
                     const relRecord = $app.dao().findRecordById(field.options.collectionId, record.getString(field.name));
                     data.push({

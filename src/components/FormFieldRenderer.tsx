@@ -24,18 +24,21 @@ export type FormFieldRendererProps<T extends FieldValues = FieldValues> = {
 
 export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
     field,
+    rename,
     customComponents,
     ...props
 }: {
     field: RegistrationField;
+    rename?: Record<string, string>;
     customComponents?: Record<string, FC<FormFieldRendererProps>>;
 } & Omit<ControllerRenderProps<T, any>, "ref">) {
     const name = field.name;
+    const registeredName = rename?.[name] ?? name;
     const form = useFormContext();
 
     if (customComponents && customComponents[name]) {
         const CustomFormRenderer = customComponents[name];
-        return <CustomFormRenderer field={field} {...props} />;
+        return <CustomFormRenderer field={{...field, name: registeredName}} {...props} />;
     }
 
     if (field.type === "select") {
@@ -84,7 +87,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
                             <FormField
                                 key={`${field.name}.${sfield.name}`}
                                 control={form.control}
-                                name={`${field.name}_data.${sfield.name}`}
+                                name={`${registeredName}_data.${sfield.name}`}
                                 render={({ field: fieldProps }) => (
                                     <FormItem>
                                         <FormLabel className="font-medium">
@@ -94,7 +97,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
                                             <FormFieldRenderer
                                                 field={{
                                                     ...sfield,
-                                                    name: `${field.name}.${sfield.name}`,
+                                                    name: `${registeredName}.${sfield.name}`,
                                                 }}
                                                 customComponents={
                                                     customComponents

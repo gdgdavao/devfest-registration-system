@@ -1,0 +1,25 @@
+# fly.toml app configuration file generated for gdg-devfest-dvo-2023 on 2023-10-01T13:59:21+08:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "gdg-devfest-dvo-2023"
+primary_region = "sin"
+
+[build]
+
+[[mounts]]
+  source = "pb_data"
+  destination = "/pb/pb_data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 550
+    soft_limit = 500
