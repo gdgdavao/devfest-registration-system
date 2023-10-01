@@ -11,6 +11,8 @@ const alertVariants = cva(
                 default: "bg-background text-foreground",
                 destructive:
                     "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+                info:
+                    "border-blue-400/50 bg-blue-200 text-foreground dark:border-blue-200 [&>svg]:text-foreground",
             },
         },
         defaultVariants: {
@@ -60,7 +62,7 @@ const AlertDescription = React.forwardRef<
 AlertDescription.displayName = "AlertDescription";
 
 interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
-    variant?: "default" | "destructive";
+    variant?: "default" | "destructive" | "info";
     title?: string;
     description?: string;
     icon?: React.ReactNode | string;
