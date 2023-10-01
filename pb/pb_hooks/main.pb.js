@@ -73,6 +73,29 @@ routerAdd("POST", "/api/admin/send_emails", (c) => {
     }
 }, $apis.requireAdminAuth());
 
+routerAdd("GET", "/api/payment-methods", (c) => {
+    return c.json(200, [
+        {
+            id: "card",
+            label: "Credit Card",
+            processorRate: 0.035,
+            extraProcessorFee: 15
+        },
+        {
+            id: "gcash",
+            label: "GCash",
+            processorRate: 0.025,
+            extraProcessorFee: 0
+        },
+        {
+            id: "paymaya",
+            label: "Maya",
+            processorRate: 0.02,
+            extraProcessorFee: 0
+        }
+    ]);
+});
+
 routerAdd("GET", "/assets/*", $apis.staticDirectoryHandler(`${__hooks}/assets`, false));
 
 onRecordBeforeCreateRequest((e) => {
