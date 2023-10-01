@@ -13,16 +13,19 @@ import parseHtml, { domToReact, Element } from "html-react-parser";
 
 export interface UserTypeProps {
     id: RegistrationsTypeOptions;
+    image?: string;
     title?: string;
     description?: string;
     className?: string;
 }
 
-export default function UserType({ id, title, description, value, className, onChange }: UserTypeProps & FormFieldRendererProps) {
+export default function UserType({ id, image, title, description, value, className, onChange }: UserTypeProps & FormFieldRendererProps) {
     return (
-        <Card className={cn(className, value === id && 'outline outline-2 outline-primary', 'flex flex-col justify-between')}>
+        <Card className={cn(className, value === id && 'outline outline-2 outline-yellow-500', 'flex flex-col justify-between')}>
             <CardHeader className="flex flex-col items-center text-center">
-                <div className="w-40 h-40 bg-secondary mb-4" />
+                {image ? (
+                    <img src={image} alt={title || "Student"} className="w-auto h-64 mb-4" />
+                ) : <div className="w-40 h-40 bg-secondary mb-4" />}
 
                 <CardTitle>
                     I am a {title || "Student"}.
