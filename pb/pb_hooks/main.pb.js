@@ -2,6 +2,14 @@
 onAfterBootstrap((e) => {
     const utils = require(`${__hooks}/utils.js`);
     utils.buildRegistrationFields();
+
+    if ($os.getenv("PAYMENT_INTENT_API_URL").length === 0) {
+        console.error("Warning: PAYMENT_INTENT_API_URL must be set. Some endpoints might not work properly.");
+    }
+
+    if ($os.getenv("PAYMONGO_TOKEN").length === 0) {
+        throw new Error("Warning: PAYMONGO_TOKEN must be set. Some endpoints might not work properly.");
+    }
 });
 
 routerAdd("GET", "/api/registration_fields", (c) => {
@@ -72,6 +80,125 @@ routerAdd("POST", "/api/admin/send_emails", (c) => {
         throw e;
     }
 }, $apis.requireAdminAuth());
+
+// NOTE: this should be opened in a window with postMessage
+routerAdd("POST", "/api/payments/initiate", (c) => {
+    const data = new DynamicModel({
+        registrant_id: "",
+        payment_id: "",
+        details: {
+            card_number: "",
+            exp_month: 0,
+            exp_year: 0,
+            cvc: "",
+            bank_code: ""
+        },
+        billing: {
+            address: "",
+            line1: "",
+            line2: "",
+            city: "",
+            state: "",
+            postal_code: "",
+            country: "",
+            name: "",
+            email: "",
+            phone: ""
+        }
+    });
+
+    c.bind(data);
+
+    const host = "http://" + c.request().host;
+    const registrantId = data.registrant_id;
+
+    // create a payment data first upon registration so that things
+    // such as "exp amount" won't be tampered easily
+    const paymentId = data.payment_id;
+    if (!registrantId || !paymentId) {
+        throw new BadRequestError("Registrant ID and payment ID are required.");
+    }
+
+    const paymentIntentUrl = $os.getenv("PAYMENT_INTENT_API_URL");
+    const paymongoToken = $os.getenv("PAYMONGO_TOKEN");
+
+    if (paymentIntentUrl.length === 0) {
+        throw new ApiError(500, "PAYMENT_INTENT_API_URL must be set");
+    } else if (paymongoToken.length === 0) {
+        throw new ApiError(500, "PAYMONGO must be set");
+    }
+
+    const record = $app.dao().findRecordById("registrations", registrantId);
+    const paymentRecord = $app.dao().findRecordById("payments", paymentId);
+
+    // 1. Create payment intent
+    const resp = $http.send({
+        url: `${paymentIntentUrl}/payment`,
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            user_id: registrantId,
+            email: record.email(),
+            cost: paymentRecord.getInt('expected_amount') * 100
+        })
+    });
+
+    if (!resp.json.success) {
+        throw new ApiError(500, "Something went wrong while processing your payments.");
+    }
+
+    /** @type {string} */
+    const clientSecret = resp.json.data.client_secret;
+    const paymentIntentId = clientSecret.split('_client')[0];
+
+    // 2. Create payment method
+    const paymentMethodResp = $http.send({
+        url: 'https://api.paymongo.com/v1/payment_methods',
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': btoa(`Basic ${paymongoToken}`),
+            body: JSON.stringify({
+                type: paymentRecord.getString('payment_method'),
+                details: data.details,
+            }),
+        },
+    });
+
+    if (!paymentMethodResp.json.success) {
+        throw new ApiError(500, "Something went wrong while processing your payments.");
+    }
+
+    const paymentMethodId = paymentMethodResp.json.data.id;
+
+    // 3. Attach payment method to payment intent
+    const attachResp = $http.send({
+        url: `https://api.paymongo.com/v1/payment_intents/${paymentIntentId}/attach`,
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': btoa(`Basic ${paymongoToken}`),
+            body: JSON.stringify({
+                payment_method: paymentMethodId,
+                client_key: clientSecret,
+                // TODO: add BASE_URL env
+                return_url: host + "/payments_redirect",
+            }),
+        },
+    });
+
+    const paymentIntent = attachResp.data.data;
+    const paymentIntentStatus = paymentIntent.attributes.status;
+
+    // 4. Redirecting the customer for authentication
+    // TODO:
+
+    return c.json(200, {"client_secret": resp.json.client_secret});
+});
 
 routerAdd("GET", "/api/payment-methods", (c) => {
     return c.json(200, [
