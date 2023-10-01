@@ -9,6 +9,7 @@ import Stepper from "./Home/Stepper";
 import { FormDetailsFormGroupOptions } from "@/pocketbase-types";
 import { useRegistrationMutation } from "@/client";
 import { Form } from "@/components/ui/form";
+import HeaderImg from "../assets/header.png";
 
 const routes: Record<FormDetailsFormGroupOptions, string> = {
     welcome: "/",
@@ -55,48 +56,51 @@ export default function Home() {
     }, [loc]);
 
     return (
-        <main className="max-w-3xl mx-auto flex flex-col w-full">
-            <header className="flex justify-center py-8 mb-4 md:mb-8">
-                <h1>DevFest 2023</h1>
+        <main className="flex flex-col w-full">
+            <header
+                className="bg-black flex justify-center py-0 mb-4 md:mb-8">
+                <div className="max-w-4xl mx-auto">
+                    <img src={HeaderImg} alt="GDG Davao DevFest 2023" />
+                </div>
             </header>
 
-            {index > 0 && <Stepper index={index} />}
-
-            <RegistrationFormContext.Provider value={context}>
-                <Form {...context.form}>
-                    <form
-                        className="px-4 md:px-0"
-                        onSubmit={context.form.handleSubmit(() => {
-                            if (
-                                groups[index] ===
-                                FormDetailsFormGroupOptions.done
-                            ) {
-                                return context.onFormSubmit(
-                                    context.form.getValues()
-                                );
-                            }
-                        })}
-                    >
-                        <Outlet />
-
-                        {index < len - 1 && (
-                            <div className="sticky bottom-0 flex w-full justify-end mt-12 py-4 bg-white border-t space-x-4">
-                                <Button
-                                    disabled={index == 0 || isLoading}
-                                    variant={"ghost"}
-                                    className="disabled:opacity-0"
-                                    onClick={goToPrev}
-                                >
-                                    Back
-                                </Button>
-                                <Button disabled={isLoading} onClick={goToNext}>
-                                    {index >= len - 2 ? "Submit" : "Next"}
-                                </Button>
-                            </div>
-                        )}
-                    </form>
-                </Form>
-            </RegistrationFormContext.Provider>
+            <div className="max-w-3xl mx-auto flex flex-col px-2">
+                {index > 0 && <Stepper index={index} />}
+                <RegistrationFormContext.Provider value={context}>
+                    <Form {...context.form}>
+                        <form
+                            className="px-4 md:px-0"
+                            onSubmit={context.form.handleSubmit(() => {
+                                if (
+                                    groups[index] ===
+                                    FormDetailsFormGroupOptions.done
+                                ) {
+                                    return context.onFormSubmit(
+                                        context.form.getValues()
+                                    );
+                                }
+                            })}
+                        >
+                            <Outlet />
+                            {index < len - 1 && (
+                                <div className="sticky bottom-0 flex w-full justify-end mt-12 py-4 bg-white border-t space-x-4">
+                                    <Button
+                                        disabled={index == 0 || isLoading}
+                                        variant={"ghost"}
+                                        className="disabled:opacity-0"
+                                        onClick={goToPrev}
+                                    >
+                                        Back
+                                    </Button>
+                                    <Button disabled={isLoading} onClick={goToNext}>
+                                        {index >= len - 2 ? "Submit" : "Next"}
+                                    </Button>
+                                </div>
+                            )}
+                        </form>
+                    </Form>
+                </RegistrationFormContext.Provider>
+            </div>
         </main>
     );
 }
