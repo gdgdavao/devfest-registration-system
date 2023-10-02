@@ -1,4 +1,5 @@
 /// <reference path="../pb_data/types.d.ts" />
+
 onAfterBootstrap((e) => {
     const utils = require(`${__hooks}/utils.js`);
     utils.buildRegistrationFields();
@@ -81,35 +82,24 @@ routerAdd("POST", "/api/admin/send_emails", (c) => {
     }
 }, $apis.requireAdminAuth());
 
-routerAdd("GET", "/api/payments/intent/:id", (c) => {
-    try {
-        const btoa = require(`${__hooks}/btoa.js`);
-        const paymongoToken = $os.getenv("PAYMONGO_TOKEN");
-        if (paymongoToken.length === 0) {
-            throw new ApiError(500, "PAYMONGO must be set");
-        }
-
-        const paymentIntentId = c.pathParam("id");
-        const clientKey = c.queryParam("client_key");
-        if (clientKey.length === 0) {
-            throw new BadRequestError("client_key query param is required");
-        }
-
-        const intentResp = $http.send({
-            url: `https://api.paymongo.com/v1/payment_intents/${paymentIntentId}?client_key=${clientKey}`,
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': btoa(`Basic ${paymongoToken}`),
-            },
-        });
-
-        return c.json(200, intentResp.data);
-    } catch (e) {
-        console.error(e);
-        throw e;
+routerAdd("GET", "/payments_redirect", (c) => {
+    const paymentIntentId = c.queryParam("payment_intent_id");
+    if (paymentIntentId.length === 0) {
+        console.log("Empty payment intent id");
+        throw new BadRequestError();
     }
+
+    const paymentRecords = $app.dao().findRecordsByFilter('payments', `payment_intent_id = "${paymentIntentId}"`);
+    if (paymentRecords.length === 0) {
+        throw new BadRequestError("Invalid transaction.");
+    }
+
+    const paymentRecord = paymentRecords[0];
+    paymentRecord.set('status', 'paid');
+    // Clear intent ID upon verified
+    paymentRecord.set('payment_intent_id', '');
+    $app.dao().saveRecord(paymentRecord);
+    return c.html(200, "Hooray!");
 });
 
 // NOTE: this should be opened in a window with postMessage
@@ -117,7 +107,6 @@ routerAdd("POST", "/api/payments/initiate", (c) => {
     try {
         const btoa = require(`${__hooks}/btoa.js`);
         const data = $apis.requestInfo(c).data;
-        const host = "http://" + c.request().host;
         const registrantId = data.registrant_id;
 
         // create a payment data first upon registration so that things
@@ -138,6 +127,7 @@ routerAdd("POST", "/api/payments/initiate", (c) => {
 
         const record = $app.dao().findRecordById("registrations", registrantId);
         const paymentRecord = $app.dao().findRecordById("payments", paymentId);
+        const apiKey = btoa(paymongoToken);
 
         // 1. Create payment intent
         const resp = $http.send({
@@ -161,60 +151,34 @@ routerAdd("POST", "/api/payments/initiate", (c) => {
         /** @type {string} */
         const clientKey = resp.json.data.client_key;
         const paymentIntentId = clientKey.split('_client')[0];
+        paymentRecord.set('payment_intent_id', paymentIntentId);
+        $app.dao().saveRecord(paymentRecord);
 
         // 2. Create payment method
-        const paymentMethodResp = $http.send({
-            url: 'https://api.paymongo.com/v1/payment_methods',
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': `Basic ${btoa(paymongoToken)}`,
-            },
-            body: JSON.stringify({
-                data: {
-                    attributes: {
-                        type: paymentRecord.getString('payment_method'),
-                        details: data.details,
-                    }
-                }
-            }),
-        });
-        if (paymentMethodResp.json.errors) {
-            console.error(paymentMethodResp.raw);
-            throw new ApiError(500, "Something went wrong while processing your payments. [2]");
-        }
-
         // 3. Attach payment method to payment intent
-        const paymentMethodId = paymentMethodResp.json.data.id;
-        const attachResp = $http.send({
-            url: `https://api.paymongo.com/v1/payment_intents/${paymentIntentId}/attach`,
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': `Basic ${btoa(paymongoToken)}`,
-            },
-            body: JSON.stringify({
-                data: {
-                    attributes: {
-                        payment_method: paymentMethodId,
-                        client_key: clientKey,
-                        // TODO: add BASE_URL env
-                        return_url: host + "/payments_redirect",
-                    }
-                }
-            }),
-        });
-        if (attachResp.json.errors) {
-            console.error(attachResp.raw);
-            throw new ApiError(500, "Something went wrong while processing your payments. [3]");
-        }
-
         // 4. Redirecting the customer for authentication
         // NOTE: It's up to the frontend for this
-        const paymentIntent = attachResp.json.data;
-        return c.json(200, paymentIntent);
+        // const paymentIntent = attachResp.json.data;
+        return c.json(200, {
+            api_key: apiKey,
+            client_key: clientKey,
+            payment_intent_id: paymentIntentId,
+            payloads: {
+                create_payment_method: {
+                    data: {
+                        attributes: {
+                            type: paymentRecord.getString('payment_method'),
+                            details: data.details
+                        }
+                    }
+                },
+            },
+            endpoints: {
+                create_payment_method: 'https://api.paymongo.com/v1/payment_methods',
+                attach_payment_intent: `https://api.paymongo.com/v1/payment_intents/${paymentIntentId}/attach`,
+                payment_intent: `https://api.paymongo.com/v1/payment_intents/${paymentIntentId}`
+            }
+        });
     } catch(e) {
         console.error(e);
         throw e;

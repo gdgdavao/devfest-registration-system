@@ -3,15 +3,16 @@ import {
     RegistrationFormContext,
     useSetupRegistrationForm,
 } from "@/registration-form";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Stepper from "./Home/Stepper";
 import { FormDetailsFormGroupOptions, RegistrationsResponse } from "@/pocketbase-types";
-import { useInitiatePaymentMutation, usePaymentIntentQuery, useRegistrationMutation } from "@/client";
+import { useAttachPaymentIntentMutation, useInitiatePaymentMutation, usePaymentIntentQuery, usePaymentMethodMutation, useRegistrationMutation } from "@/client";
 import { Form } from "@/components/ui/form";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DialogProps } from "@radix-ui/react-dialog";
-import { NextAction } from "@/payment-types";
+import { PaymentIntent } from "@/payment-types";
+import { popupCenter } from "@/lib/utils";
 
 const routes: Record<FormDetailsFormGroupOptions, string> = {
     welcome: "/",
@@ -25,19 +26,18 @@ const routes: Record<FormDetailsFormGroupOptions, string> = {
 const groups = Object.keys(routes) as FormDetailsFormGroupOptions[];
 const len = groups.length;
 
-function SubmissionProcessDialog({ isRegistrationLoading, isPaymentLoading, nextAction, intentStatus, ...props }: {
+function SubmissionProcessDialog({ isRegistrationLoading, isPaymentLoading, intentStatus, ...props }: {
     isRegistrationLoading: boolean
     isPaymentLoading: boolean
     intentStatus: string
-    nextAction?: NextAction
 } & DialogProps) {
-    return <Dialog {...props} open={props.open || (intentStatus.length !== 0 && intentStatus !== 'succeeded')}>
+    return <Dialog
+        defaultOpen={isPaymentLoading || isRegistrationLoading || (intentStatus.length !== 0 && intentStatus !== 'succeeded')}
+        open={isPaymentLoading || isRegistrationLoading || (intentStatus.length !== 0 && intentStatus !== 'succeeded')}
+        {...props}>
         <DialogContent className="lg:max-w-screen-md overflow-y-scroll max-h-[calc(100vh-2rem)]">
             {isRegistrationLoading && <p>Processing your registration</p>}
-            {(isPaymentLoading || intentStatus === 'processing') && <p>Processing your payment</p>}
-            {(intentStatus === 'awaiting_next_action' && nextAction) && (
-                <div>Iframe goes here</div>
-            )}
+            {(isPaymentLoading || intentStatus !== 'awaiting_payment_method') && <p>Processing your payment</p>}
         </DialogContent>
     </Dialog>
 }
@@ -46,10 +46,19 @@ export default function Home() {
     const loc = useLocation();
     const navigate = useNavigate();
     const [index, setIndex] = useState(0);
+    const nextActionWindow = useRef<Window | null>(null);
 
     const { mutate: submitForm, data: registrationRecord, isLoading: isRegistrationLoading } = useRegistrationMutation();
-    const { mutate: initiatePayment, data: initIntent, isLoading: isPaymentLoading } = useInitiatePaymentMutation();
-    const { data: currentIntent } = usePaymentIntentQuery(initIntent?.id, initIntent?.attributes.client_key);
+
+    // Payment stuff
+    const { mutate: initiatePayment, data: initPayload, isLoading: isPaymentLoading } = useInitiatePaymentMutation();
+    const { mutate: createPaymentMethod } = usePaymentMethodMutation();
+    const { mutate: attachPayment, data: initIntent } = useAttachPaymentIntentMutation();
+    const { data: currentIntent, fetchStatus, refetch: refetchIntent } = usePaymentIntentQuery(
+        initPayload?.endpoints.payment_intent,
+        initPayload?.api_key,
+        initPayload?.client_key
+    );
 
     const initPay = (registrationRecord: RegistrationsResponse, onError: (err: unknown) => void) => {
         initiatePayment({
@@ -58,31 +67,73 @@ export default function Home() {
             // TODO: billing and details
         }, {
             onError,
-            onSuccess(intentResp) {
-                const paymentIntentStatus = intentResp.attributes.status;
-                actOnIntentStatus(paymentIntentStatus);
+            onSuccess(initResp) {
+                // 2. Create payment method
+                createPaymentMethod({
+                    endpoint: initResp.endpoints.create_payment_method,
+                    apiKey: initResp.api_key,
+                    payload: initResp.payloads.create_payment_method
+                }, {
+                    onSuccess(paymentMethodId) {
+                        // 3. Attach to payment intent
+                        attachPayment({
+                            endpoint: initResp.endpoints.attach_payment_intent,
+                            apiKey: initResp.api_key,
+                            clientKey: initResp.client_key,
+                            paymentMethodId
+                        }, {
+                            onSuccess(data) {
+                                actOnIntentStatus(data);
+                            },
+                        });
+                    },
+                });
+
             },
         });
     }
 
-    const actOnIntentStatus = (paymentIntentStatus: string) => {
+    const actOnIntentStatus = (paymentIntent: PaymentIntent) => {
+        const paymentIntentStatus = paymentIntent.attributes.status;
         if (paymentIntentStatus === 'awaiting_next_action') {
             // Render your modal for 3D Secure Authentication since next_action has a value. You can access the next action via paymentIntent.attributes.next_action.
+
+            // TODO: add action on window close
+            if (!nextActionWindow.current) {
+                nextActionWindow.current = popupCenter({
+                    url: paymentIntent.attributes.next_action.redirect.url,
+                    title: 'GDG DevFest Davao 2023 Payment',
+                    w: 800,
+                    h: 500
+                });
+            }
+
+            setTimeout(() => {
+                refetchIntent();
+            }, 2500);
         } else if (paymentIntentStatus === 'succeeded') {
             // You already received your customer's payment. You can show a success message from this condition.
-            navigate(`/registration${routes[groups[index + 1]]}`);
+            if (nextActionWindow.current) {
+                nextActionWindow.current.close();
+                nextActionWindow.current = null;
+            }
+
+            navigate('/registration/done');
         } else if(paymentIntentStatus === 'awaiting_payment_method') {
             // The PaymentIntent encountered a processing error. You can refer to paymentIntent.attributes.last_payment_error to check the error and render the appropriate error message.
         }  else if (paymentIntentStatus === 'processing'){
             // You need to requery the PaymentIntent after a second or two. This is a transitory status and should resolve to `succeeded` or `awaiting_payment_method` quickly.
+            setTimeout(() => {
+                refetchIntent();
+            }, 2500);
         }
     }
 
     useEffect(() => {
         if (currentIntent) {
-            actOnIntentStatus(currentIntent.attributes.status);
+            actOnIntentStatus(currentIntent);
         }
-    }, [currentIntent]);
+    }, [currentIntent, fetchStatus]);
 
     const context = useSetupRegistrationForm({
         onSubmit: (data, onError) => {
@@ -99,7 +150,6 @@ export default function Home() {
             });
         },
     });
-
 
     const goToPrev = () => {
         if (index - 1 < 0) {
@@ -127,7 +177,6 @@ export default function Home() {
         <SubmissionProcessDialog
             isPaymentLoading={isPaymentLoading}
             isRegistrationLoading={isRegistrationLoading}
-            open={isRegistrationLoading || isPaymentLoading}
             intentStatus={currentIntent?.attributes.status ?? initIntent?.attributes.status ?? ''} />
 
         <main className="max-w-3xl mx-auto flex flex-col w-full">

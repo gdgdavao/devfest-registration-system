@@ -79,11 +79,13 @@ export enum FormGroupsKeyOptions {
 	"payment" = "payment",
 	"done" = "done",
 }
-export type FormGroupsRecord = {
+export type FormGroupsRecord<Tcustom_content = unknown> = {
+	custom_content?: null | Tcustom_content
 	description?: string
 	key: FormGroupsKeyOptions
 	route_key: string
 	short_title?: string
+	show_in_stepper?: boolean
 	title: string
 }
 
@@ -107,6 +109,7 @@ export enum PaymentsStatusOptions {
 }
 export type PaymentsRecord = {
 	expected_amount?: number
+	payment_intent_id?: string
 	payment_method: string
 	registrant?: RecordIdString
 	status?: PaymentsStatusOptions
@@ -145,7 +148,8 @@ export enum RegistrationsAgeRangeOptions {
 	"18-20" = "18-20",
 	"21-24" = "21-24",
 	"25-30" = "25-30",
-	"31-34-35-40" = "31-34-35-40",
+	"31-34" = "31-34",
+	"35-40" = "35-40",
 	"41-50" = "41-50",
 	"50+" = "50+",
 }
@@ -198,6 +202,7 @@ export type TicketTypesRecord = {
 }
 
 export type TopicInterestsRecord = {
+	icon?: string
 	key: string
 	topic_name: string
 }
@@ -206,7 +211,7 @@ export type TopicInterestsRecord = {
 export type AddonOrdersResponse<Tpreferences = unknown, Texpand = unknown> = Required<AddonOrdersRecord<Tpreferences>> & BaseSystemFields<Texpand>
 export type AddonsResponse<Tcustomization_options = unknown, Texpand = unknown> = Required<AddonsRecord<Tcustomization_options>> & BaseSystemFields<Texpand>
 export type FormDetailsResponse<Tcustom_options = unknown, Texpand = unknown> = Required<FormDetailsRecord<Tcustom_options>> & BaseSystemFields<Texpand>
-export type FormGroupsResponse<Texpand = unknown> = Required<FormGroupsRecord> & BaseSystemFields<Texpand>
+export type FormGroupsResponse<Tcustom_content = unknown, Texpand = unknown> = Required<FormGroupsRecord<Tcustom_content>> & BaseSystemFields<Texpand>
 export type MerchSensingDataResponse<Tpreferred_offered_merch = unknown, Texpand = unknown> = Required<MerchSensingDataRecord<Tpreferred_offered_merch>> & BaseSystemFields<Texpand>
 export type PaymentsResponse<Texpand = unknown> = Required<PaymentsRecord> & BaseSystemFields<Texpand>
 export type ProfessionalProfilesResponse<Texpand = unknown> = Required<ProfessionalProfilesRecord> & BaseSystemFields<Texpand>

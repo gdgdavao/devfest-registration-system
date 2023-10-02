@@ -1,3 +1,34 @@
+export interface InitPaymentResult {
+    api_key:           string;
+    client_key:        string;
+    endpoints:         Endpoints;
+    payloads:          Payloads;
+    payment_intent_id: string;
+}
+
+export interface Endpoints {
+    attach_payment_intent: string;
+    create_payment_method: string;
+    payment_intent: string;
+}
+
+export interface Payloads {
+    create_payment_method: CreatePaymentMethod;
+}
+
+export interface CreatePaymentMethod {
+    data: Data;
+}
+
+export interface Data {
+    attributes: Attributes;
+}
+
+export interface Attributes {
+    details: null;
+    type:    string;
+}
+
 export interface PaymentMethod {
     id: string
     label: string
