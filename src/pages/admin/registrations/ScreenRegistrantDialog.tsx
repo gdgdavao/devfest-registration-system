@@ -9,7 +9,6 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
     const { mutate: markRegistrant } = useUpdateRegistrationStatusMutation();
     const { data: registrant } = useRegistrationQuery(id);
     // const { data: fields } = useRegistrationFieldsQuery(registrantData?.type);
-    console.log(registrant);
 
     return <Dialog>
         <DialogTrigger asChild>{children}</DialogTrigger>
@@ -39,12 +38,26 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
                     </Button>
                 </div>
 
-                <div className="flex flex-col py-8">
-                    <span className="text-slate-500">Name</span>
-                    <p className="text-2xl font-bold">{registrant?.last_name}, {registrant?.first_name}</p>
-                    {
-                        registrant?.expand?.ticket?.name
-                    }
+                <div className="flex flex-row py-8 justify-center items-end">
+                    <div className="flex-1 flex flex-col">
+                        <span className="text-slate-500">Name</span>
+                        <p className="text-2xl font-bold">{registrant?.last_name}, {registrant?.first_name}</p>
+                        <p className="font-bold">
+                            {
+                                registrant?.type == "student" ?
+                                <span>Student</span>: 
+                                <span>Professional</span>
+                            }
+                        </p>
+                    </div>
+                    <div className="flex-1 flex flex-col">
+                        <span className="text-slate-500">Ticket Type</span>
+                        <p className="font-bold">{registrant?.expand?.ticket?.name}</p>
+                    </div>
+                    <div className="flex-1 flex flex-col">
+                        <span className="text-slate-500">Payment Status</span>
+                        <p className="font-bold">{registrant?.expand?.payment?.status}</p>
+                    </div>
                 </div>
 
                 <div className="flex flex-col space-y-2 py-4">
@@ -67,6 +80,55 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
                         </div>
                     </div>
                 </div>
+                
+                {
+                    registrant?.expand?.student_profile ?
+                    <div className="flex flex-col space-y-2 py-4">
+                        <span className="text-slate-500">Student Profile</span>
+
+                        <div className="flex flex-row pt-4">
+                            <div className="flex-1 flex flex-col">
+                                <span className="text-slate-500">School</span>
+                                <p className="font-bold">{registrant?.expand?.student_profile?.school}</p>
+                            </div>
+
+                            <div className="flex-1 flex flex-col">
+                                <span className="text-slate-500">Designation</span>
+                                <p className="font-bold">{registrant?.expand?.student_profile?.designation}</p>
+                            </div>
+
+                            <div className="flex-1 flex flex-col">
+                                <span className="text-slate-500">Year Level</span>
+                                <p className="font-bold">{registrant?.expand?.student_profile?.year_level}</p>
+                            </div>
+                        </div>
+                    </div> :
+                    null
+                }
+                {
+                    registrant?.expand?.professional_profile ?
+                    <div className="flex flex-col space-y-2 py-4">
+                        <span className="text-slate-500">Professional Profile</span>
+
+                        <div className="flex flex-row pt-4">
+                            <div className="flex-1 flex flex-col">
+                                <span className="text-slate-500">Is Fresh Graduate?</span>
+                                <p className="font-bold">{registrant?.expand?.professional_profile?.is_fresh_graduate}</p>
+                            </div>
+
+                            <div className="flex-1 flex flex-col">
+                                <span className="text-slate-500">Organization</span>
+                                <p className="font-bold">{registrant?.expand?.professional_profile?.organization}</p>
+                            </div>
+
+                            <div className="flex-1 flex flex-col">
+                                <span className="text-slate-500">Title</span>
+                                <p className="font-bold">{registrant?.expand?.professional_profile?.title}</p>
+                            </div>
+                        </div>
+                    </div> : 
+                    null
+                }
 
                 <div className="flex flex-col space-y-2 py-4">
                     <span className="text-slate-500">Contact Details</span>
@@ -101,8 +163,8 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
                                                 {
                                                     addon?.preferences
                                                     ?
-                                                    Object.entries(addon?.preferences).map(([key, value], index) => (
-                                                        <span key={index}>
+                                                    Object.entries(addon?.preferences).map(([key, value], id) => (
+                                                        <span key={id}>
                                                             <span>{key}:</span> {value}
                                                         </span>
                                                     ))
