@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { useRegistrationQuery, useUpdateRegistrationStatusMutation } from "@/client";
+import { useRegistrationQuery, pb, useUpdateRegistrationStatusMutation } from "@/client";
 import { RegistrationStatusesStatusOptions } from "@/pocketbase-types";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -9,6 +9,7 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
     const { mutate: markRegistrant } = useUpdateRegistrationStatusMutation();
     const { data: registrant } = useRegistrationQuery(id);
     // const { data: fields } = useRegistrationFieldsQuery(registrantData?.type);
+    console.log(registrant);
 
     return <Dialog>
         <DialogTrigger asChild>{children}</DialogTrigger>
@@ -41,6 +42,30 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
                 <div className="flex flex-col py-8">
                     <span className="text-slate-500">Name</span>
                     <p className="text-2xl font-bold">{registrant?.last_name}, {registrant?.first_name}</p>
+                    {
+                        registrant?.expand?.ticket?.name
+                    }
+                </div>
+
+                <div className="flex flex-col space-y-2 py-4">
+                    <span className="text-slate-500">Bio</span>
+
+                    <div className="flex flex-row pt-4">
+                        <div className="flex-1 flex flex-col">
+                            <span className="text-slate-500">Gender</span>
+                            <p className="font-bold">{registrant?.sex}</p>
+                        </div>
+
+                        <div className="flex-1 flex flex-col">
+                            <span className="text-slate-500">Age Range</span>
+                            <p className="font-bold">{registrant?.age_range}</p>
+                        </div>
+
+                        <div className="flex-1 flex flex-col">
+                            <span className="text-slate-500">Years of Tech Experience</span>
+                            <p className="font-bold">{registrant?.years_tech_exp}</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="flex flex-col space-y-2 py-4">
@@ -59,19 +84,46 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
                     </div>
                 </div>
 
-                <div className="flex flex-col space-y-2 py-4">
-                    <span className="text-slate-500">Add-on Details</span>
-
-                    <div className="flex flex-row pt-4">
-                        <div className="flex-1 flex flex-col">
-                            <span className="text-slate-500">Selected add-ons</span>
-                            <p className="font-bold">{registrant?.expand?.addons.title}</p>
-                        </div>
-
-                        <div className="flex-1 flex flex-col">
-                            <span className="text-slate-500">Contact Number</span>
-                            <p className="font-bold">{registrant?.contact_number}</p>
-                        </div>
+                <div className="space-y-2 py-4">
+                    <span className="text-slate-500">Selected add-ons</span>
+                    <div className="flex flex-col divide-y-2">
+                        {
+                            registrant?.expand?.addons?.map(addon => {
+                                return (
+                                    <div className="pt-4">
+                                        <div className="flex text-slate-500">Add-on Details</div>
+                                        <div className="flex flex-row justify-around py-2 ">
+                                            <div className="flex flex-col">
+                                                <span className="text-slate-500">Name</span>
+                                                <p className="font-bold">
+                                                    {addon?.expand?.addon.title}
+                                                </p>
+                                                {
+                                                    addon?.preferences
+                                                    ?
+                                                    Object.entries(addon?.preferences).map(([key, value], index) => (
+                                                        <span key={index}>
+                                                            <span>{key}:</span> {value}
+                                                        </span>
+                                                    ))
+                                                    : null
+                                                }
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <img
+                                                    src={pb.files.getUrl(addon?.expand?.addon, addon?.expand?.addon.cover_image)}
+                                                    className="rounded-md object-cover h-20 w-auto border"
+                                                    alt={addon?.expand?.addon.title} />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-slate-500">Price</span>
+                                                <p className="font-bold">{addon?.expand?.addon.price}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            })
+                        }
                     </div>
                 </div>
             </div>
