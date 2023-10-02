@@ -7,8 +7,10 @@ import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Stepper from "./Home/Stepper";
 import { FormDetailsFormGroupOptions } from "@/pocketbase-types";
-import { useRegistrationMutation } from "@/client";
+import { useInitiatePaymentMutation, useRegistrationMutation } from "@/client";
 import { Form } from "@/components/ui/form";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { DialogProps } from "@radix-ui/react-dialog";
 
 const routes: Record<FormDetailsFormGroupOptions, string> = {
     welcome: "/",
@@ -22,14 +24,39 @@ const routes: Record<FormDetailsFormGroupOptions, string> = {
 const groups = Object.keys(routes) as FormDetailsFormGroupOptions[];
 const len = groups.length;
 
-// TODO: make payments required!
+function SubmissionProcessDialog({ isRegistrationLoading, isPaymentLoading, ...props }: { isRegistrationLoading: boolean, isPaymentLoading: boolean } & DialogProps) {
+    return <Dialog {...props}>
+        <DialogContent className="lg:max-w-screen-md overflow-y-scroll max-h-[calc(100vh-2rem)]">
+            {isRegistrationLoading && <p>Processing your registration</p>}
+            {isPaymentLoading && <p>Processing your payment</p>}
+        </DialogContent>
+    </Dialog>
+}
+
 export default function Home() {
     const loc = useLocation();
+    const { mutate: submitForm, isLoading: isRegistrationLoading } = useRegistrationMutation();
+    const { mutate: initiatePayment, isLoading: isPaymentLoading } = useInitiatePaymentMutation();
     const [index, setIndex] = useState(0);
     const context = useSetupRegistrationForm({
-        onSubmit: (data, onError) => submitForm(data, { onError }),
+        onSubmit: (data, onError) => {
+            submitForm(data, { 
+                onError,
+                onSuccess(data) {
+                    initiatePayment({
+                        registrant_id: data.id,
+                        payment_id: data.payment,
+                        // TODO: billing and details
+                    }, {
+                        onError,
+                        onSuccess() {
+                            navigate(`/registration${routes[groups[index + 1]]}`);
+                        },
+                    });
+                } 
+            });
+        },
     });
-    const { mutate: submitForm, isLoading } = useRegistrationMutation();
     const navigate = useNavigate();
 
     const goToPrev = () => {
@@ -54,7 +81,12 @@ export default function Home() {
         }
     }, [loc]);
 
-    return (
+    return (<>
+        <SubmissionProcessDialog
+            open={isRegistrationLoading || isPaymentLoading}
+            isRegistrationLoading={isRegistrationLoading}
+            isPaymentLoading={isPaymentLoading} />
+
         <main className="max-w-3xl mx-auto flex flex-col w-full">
             <header className="flex justify-center py-8 mb-4 md:mb-8">
                 <h1>DevFest 2023</h1>
@@ -82,14 +114,14 @@ export default function Home() {
                         {index < len - 1 && (
                             <div className="sticky bottom-0 flex w-full justify-end mt-12 py-4 bg-white border-t space-x-4">
                                 <Button
-                                    disabled={index == 0 || isLoading}
+                                    disabled={index == 0 || isRegistrationLoading || isPaymentLoading}
                                     variant={"ghost"}
                                     className="disabled:opacity-0"
                                     onClick={goToPrev}
                                 >
                                     Back
                                 </Button>
-                                <Button disabled={isLoading} onClick={goToNext}>
+                                <Button disabled={isRegistrationLoading || isPaymentLoading} onClick={goToNext}>
                                     {index >= len - 2 ? "Submit" : "Next"}
                                 </Button>
                             </div>
@@ -98,5 +130,5 @@ export default function Home() {
                 </Form>
             </RegistrationFormContext.Provider>
         </main>
-    );
+    </>);
 }

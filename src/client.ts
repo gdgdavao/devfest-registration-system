@@ -232,3 +232,36 @@ export function useUpdatePaymentMutation() {
             .update<PaymentsResponse>(id, record);
     });
 }
+
+export interface InitPaymentPayload {
+    registrant_id: string
+    payment_id: string
+    details?: {
+        card_number: string
+        exp_month: number
+        exp_year: number
+        cvc: string
+        bank_code: string
+    },
+    billing?: {
+        address: string
+        line1: string
+        line2: string
+        city: string
+        state: string
+        postal_code: string
+        country: string
+        name: string
+        email: string
+        phone: string
+    }
+}
+
+export function useInitiatePaymentMutation() {
+    return useMutation((payload: InitPaymentPayload) => {
+        return pb.send('/api/payments/initiate', {
+            method: 'POST',
+            body: payload
+        });
+    });
+}
