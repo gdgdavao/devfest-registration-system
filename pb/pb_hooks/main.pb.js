@@ -8,7 +8,7 @@ onAfterBootstrap((e) => {
     }
 
     if ($os.getenv("PAYMONGO_TOKEN").length === 0) {
-        throw new Error("Warning: PAYMONGO_TOKEN must be set. Some endpoints might not work properly.");
+        console.error("Warning: PAYMONGO_TOKEN must be set. Some endpoints might not work properly.");
     }
 });
 
@@ -82,145 +82,143 @@ routerAdd("POST", "/api/admin/send_emails", (c) => {
 }, $apis.requireAdminAuth());
 
 routerAdd("GET", "/api/payments/intent/:id", (c) => {
-    const paymongoToken = $os.getenv("PAYMONGO_TOKEN");
-    if (paymongoToken.length === 0) {
-        throw new ApiError(500, "PAYMONGO must be set");
+    try {
+        const btoa = require(`${__hooks}/btoa.js`);
+        const paymongoToken = $os.getenv("PAYMONGO_TOKEN");
+        if (paymongoToken.length === 0) {
+            throw new ApiError(500, "PAYMONGO must be set");
+        }
+
+        const paymentIntentId = c.pathParam("id");
+        const clientKey = c.queryParam("client_key");
+        if (clientKey.length === 0) {
+            throw new BadRequestError("client_key query param is required");
+        }
+
+        const intentResp = $http.send({
+            url: `https://api.paymongo.com/v1/payment_intents/${paymentIntentId}?client_key=${clientKey}`,
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': btoa(`Basic ${paymongoToken}`),
+            },
+        });
+
+        return c.json(200, intentResp.data);
+    } catch (e) {
+        console.error(e);
+        throw e;
     }
-
-    const paymentIntentId = c.pathParam("id");
-    const clientKey = c.queryParam("client_key");
-    if (clientKey.length === 0) {
-        throw new BadRequestError("client_key query param is required");
-    }
-
-    const intentResp = $http.send({
-        url: `https://api.paymongo.com/v1/payment_intents/${paymentIntentId}?client_key=${clientKey}`,
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': btoa(`Basic ${paymongoToken}`),
-        },
-    });
-
-    return c.json(200, intentResp.data);
 });
 
 // NOTE: this should be opened in a window with postMessage
 routerAdd("POST", "/api/payments/initiate", (c) => {
-    const data = new DynamicModel({
-        registrant_id: "",
-        payment_id: "",
-        details: {
-            card_number: "",
-            exp_month: 0,
-            exp_year: 0,
-            cvc: "",
-            bank_code: ""
-        },
-        billing: {
-            address: "",
-            line1: "",
-            line2: "",
-            city: "",
-            state: "",
-            postal_code: "",
-            country: "",
-            name: "",
-            email: "",
-            phone: ""
+    try {
+        const btoa = require(`${__hooks}/btoa.js`);
+        const data = $apis.requestInfo(c).data;
+        const host = "http://" + c.request().host;
+        const registrantId = data.registrant_id;
+
+        // create a payment data first upon registration so that things
+        // such as "exp amount" won't be tampered easily
+        const paymentId = data.payment_id;
+        if (!registrantId || !paymentId) {
+            throw new BadRequestError("Registrant ID and payment ID are required.");
         }
-    });
 
-    c.bind(data);
+        const paymentIntentUrl = $os.getenv("PAYMENT_INTENT_API_URL");
+        const paymongoToken = $os.getenv("PAYMONGO_TOKEN");
 
-    const host = "http://" + c.request().host;
-    const registrantId = data.registrant_id;
+        if (paymentIntentUrl.length === 0) {
+            throw new ApiError(500, "PAYMENT_INTENT_API_URL must be set");
+        } else if (paymongoToken.length === 0) {
+            throw new ApiError(500, "PAYMONGO must be set");
+        }
 
-    // create a payment data first upon registration so that things
-    // such as "exp amount" won't be tampered easily
-    const paymentId = data.payment_id;
-    if (!registrantId || !paymentId) {
-        throw new BadRequestError("Registrant ID and payment ID are required.");
-    }
+        const record = $app.dao().findRecordById("registrations", registrantId);
+        const paymentRecord = $app.dao().findRecordById("payments", paymentId);
 
-    const paymentIntentUrl = $os.getenv("PAYMENT_INTENT_API_URL");
-    const paymongoToken = $os.getenv("PAYMONGO_TOKEN");
-
-    if (paymentIntentUrl.length === 0) {
-        throw new ApiError(500, "PAYMENT_INTENT_API_URL must be set");
-    } else if (paymongoToken.length === 0) {
-        throw new ApiError(500, "PAYMONGO must be set");
-    }
-
-    const record = $app.dao().findRecordById("registrations", registrantId);
-    const paymentRecord = $app.dao().findRecordById("payments", paymentId);
-
-    // 1. Create payment intent
-    const resp = $http.send({
-        url: `${paymentIntentUrl}/payment`,
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            user_id: registrantId,
-            email: record.email(),
-            cost: paymentRecord.getInt('expected_amount') * 100
-        })
-    });
-
-    if (!resp.json.success) {
-        throw new ApiError(500, "Something went wrong while processing your payments.");
-    }
-
-    /** @type {string} */
-    const clientSecret = resp.json.data.client_secret;
-    const paymentIntentId = clientSecret.split('_client')[0];
-
-    // 2. Create payment method
-    const paymentMethodResp = $http.send({
-        url: 'https://api.paymongo.com/v1/payment_methods',
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': btoa(`Basic ${paymongoToken}`),
+        // 1. Create payment intent
+        const resp = $http.send({
+            url: `${paymentIntentUrl}/payment`,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
-                type: paymentRecord.getString('payment_method'),
-                details: data.details,
-            }),
-        },
-    });
+                user_id: registrantId,
+                email: record.email(),
+                cost: paymentRecord.getInt('expected_amount') * 100
+            })
+        });
 
-    if (!paymentMethodResp.json.success) {
-        throw new ApiError(500, "Something went wrong while processing your payments.");
-    }
+        if (!resp.json.success) {
+            console.error(resp.raw);
+            throw new ApiError(500, "Something went wrong while processing your payments. [1]");
+        }
 
-    const paymentMethodId = paymentMethodResp.json.data.id;
+        /** @type {string} */
+        const clientKey = resp.json.data.client_key;
+        const paymentIntentId = clientKey.split('_client')[0];
 
-    // 3. Attach payment method to payment intent
-    const attachResp = $http.send({
-        url: `https://api.paymongo.com/v1/payment_intents/${paymentIntentId}/attach`,
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': btoa(`Basic ${paymongoToken}`),
+        // 2. Create payment method
+        const paymentMethodResp = $http.send({
+            url: 'https://api.paymongo.com/v1/payment_methods',
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Basic ${btoa(paymongoToken)}`,
+            },
             body: JSON.stringify({
-                payment_method: paymentMethodId,
-                client_key: clientSecret,
-                // TODO: add BASE_URL env
-                return_url: host + "/payments_redirect",
+                data: {
+                    attributes: {
+                        type: paymentRecord.getString('payment_method'),
+                        details: data.details,
+                    }
+                }
             }),
-        },
-    });
+        });
+        if (paymentMethodResp.json.errors) {
+            console.error(paymentMethodResp.raw);
+            throw new ApiError(500, "Something went wrong while processing your payments. [2]");
+        }
 
-    const paymentIntent = attachResp.data.data;
+        // 3. Attach payment method to payment intent
+        const paymentMethodId = paymentMethodResp.json.data.id;
+        const attachResp = $http.send({
+            url: `https://api.paymongo.com/v1/payment_intents/${paymentIntentId}/attach`,
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Basic ${btoa(paymongoToken)}`,
+            },
+            body: JSON.stringify({
+                data: {
+                    attributes: {
+                        payment_method: paymentMethodId,
+                        client_key: clientKey,
+                        // TODO: add BASE_URL env
+                        return_url: host + "/payments_redirect",
+                    }
+                }
+            }),
+        });
+        if (attachResp.json.errors) {
+            console.error(attachResp.raw);
+            throw new ApiError(500, "Something went wrong while processing your payments. [3]");
+        }
 
-    // 4. Redirecting the customer for authentication
-    // NOTE: It's up to the frontend for this
-    return c.json(200, paymentIntent);
+        // 4. Redirecting the customer for authentication
+        // NOTE: It's up to the frontend for this
+        const paymentIntent = attachResp.json.data;
+        return c.json(200, paymentIntent);
+    } catch(e) {
+        console.error(e);
+        throw e;
+    }
 });
 
 routerAdd("GET", "/api/payment-methods", (c) => {
@@ -272,11 +270,11 @@ onRecordAfterCreateRequest((e) => {
     const data = reqInfo.data;
 
     try {
-        const addonOrders = data.addons_data.map(a => {
+        const addonOrders = data.addons_data ? data.addons_data.map(a => {
             const addonOrder = utils.saveRelationalData('addon_orders',
                 Object.assign({ registrant: e.record.id }, a));
             return addonOrder.id;
-        });
+        }) : [];
         e.record.set('addons', addonOrders);
 
         const paymentRecord = utils.saveRelationalData('payments',
