@@ -83,23 +83,33 @@ routerAdd("POST", "/api/admin/send_emails", (c) => {
 }, $apis.requireAdminAuth());
 
 routerAdd("GET", "/payments_redirect", (c) => {
-    const paymentIntentId = c.queryParam("payment_intent_id");
-    if (paymentIntentId.length === 0) {
-        console.log("Empty payment intent id");
-        throw new BadRequestError();
-    }
+    try {
+        const utils = require(`${__hooks}/utils.js`);
+        const paymentIntentId = c.queryParam("payment_intent_id");
+        if (paymentIntentId.length === 0) {
+            console.log("Empty payment intent id");
+            throw new BadRequestError();
+        }
 
-    const paymentRecords = $app.dao().findRecordsByFilter('payments', `payment_intent_id = "${paymentIntentId}"`);
-    if (paymentRecords.length === 0) {
-        throw new BadRequestError("Invalid transaction.");
-    }
+        const paymentRecords = $app.dao().findRecordsByFilter('payments', `payment_intent_id = "${paymentIntentId}"`);
+        if (paymentRecords.length === 0) {
+            throw new BadRequestError("Invalid transaction.");
+        }
 
-    const paymentRecord = paymentRecords[0];
-    paymentRecord.set('status', 'paid');
-    // Clear intent ID upon verified
-    paymentRecord.set('payment_intent_id', '');
-    $app.dao().saveRecord(paymentRecord);
-    return c.html(200, "Hooray!");
+        const paymentRecord = paymentRecords[0];
+        paymentRecord.set('status', 'paid');
+        // Clear intent ID upon verified
+        paymentRecord.set('payment_intent_id', '');
+        $app.dao().saveRecord(paymentRecord);
+
+        // NOTE: Send summary e-mail here lol
+        const host = "http://" + c.request().host;
+        // Send e-mail if it was not created from admin dashboard
+        utils.sendEmails('summary', `id = "${paymentRecord.getString('registrant')}"`, host);
+        return c.html(200, "Hooray!");
+    } catch (e) {
+        console.error(e);
+    }
 });
 
 // NOTE: this should be opened in a window with postMessage
@@ -255,12 +265,6 @@ onRecordAfterCreateRequest((e) => {
 
         utils.decodeAndSaveProfile(e.record, undefined, profileKey, profileCollectionKey, data[profileDataKey]);
         $app.dao().saveRecord(e.record);
-
-        if (!reqInfo.authRecord && !reqInfo.authRecord) {
-            const host = "http://" + e.httpContext.request().host;
-            // Send e-mail if it was not created from admin dashboard
-            utils.sendEmails('summary', `id = "${e.record.id}"`, host);
-        }
     } catch (e) {
         console.error(e);
         throw e;
