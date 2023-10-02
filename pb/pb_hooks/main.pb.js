@@ -81,6 +81,31 @@ routerAdd("POST", "/api/admin/send_emails", (c) => {
     }
 }, $apis.requireAdminAuth());
 
+routerAdd("GET", "/api/payments/intent/:id", (c) => {
+    const paymongoToken = $os.getenv("PAYMONGO_TOKEN");
+    if (paymongoToken.length === 0) {
+        throw new ApiError(500, "PAYMONGO must be set");
+    }
+
+    const paymentIntentId = c.pathParam("id");
+    const clientKey = c.queryParam("client_key");
+    if (clientKey.length === 0) {
+        throw new BadRequestError("client_key query param is required");
+    }
+
+    const intentResp = $http.send({
+        url: `https://api.paymongo.com/v1/payment_intents/${paymentIntentId}?client_key=${clientKey}`,
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': btoa(`Basic ${paymongoToken}`),
+        },
+    });
+
+    return c.json(200, intentResp.data);
+});
+
 // NOTE: this should be opened in a window with postMessage
 routerAdd("POST", "/api/payments/initiate", (c) => {
     const data = new DynamicModel({
@@ -192,12 +217,10 @@ routerAdd("POST", "/api/payments/initiate", (c) => {
     });
 
     const paymentIntent = attachResp.data.data;
-    const paymentIntentStatus = paymentIntent.attributes.status;
 
     // 4. Redirecting the customer for authentication
-    // TODO:
-
-    return c.json(200, {"client_secret": resp.json.client_secret});
+    // NOTE: It's up to the frontend for this
+    return c.json(200, paymentIntent);
 });
 
 routerAdd("GET", "/api/payment-methods", (c) => {
