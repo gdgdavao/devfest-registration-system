@@ -2,6 +2,7 @@ import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/
 import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
 import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse } from './pocketbase-types';
 import { ErrorOption } from 'react-hook-form';
+import { PaymentIntent, PaymentMethod } from './payment-types';
 
 export const queryClient = new QueryClient();
 export const pb = new PocketBase(import.meta.env.VITE_API_URL);
@@ -257,11 +258,32 @@ export interface InitPaymentPayload {
     }
 }
 
+export function usePaymentMethodsQuery() {
+    return useQuery(['payment-methods'], () => {
+        return pb.send<PaymentMethod[]>('/api/payment-methods', {});
+    });
+}
+
 export function useInitiatePaymentMutation() {
     return useMutation((payload: InitPaymentPayload) => {
-        return pb.send('/api/payments/initiate', {
+        return pb.send<PaymentIntent>('/api/payments/initiate', {
             method: 'POST',
             body: payload
         });
+    });
+}
+
+export function usePaymentIntentQuery(id?: string, clientKey?: string) {
+    return useQuery(['payment_intent', id, clientKey], () => {
+        return pb.send<PaymentIntent>(`/api/payments/intent/${id!}?client_key=${clientKey}`, {});
+    }, {
+        enabled: !!id && !!clientKey,
+        refetchOnWindowFocus: false,
+        refetchInterval(data) {
+            if (typeof data === 'undefined' || data.attributes.status === 'processing') {
+                return 1000;
+            }
+            return false;
+        },
     });
 }

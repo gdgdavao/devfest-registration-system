@@ -1,11 +1,9 @@
 import { FormFieldRendererProps } from "@/components/FormFieldRenderer";
-import { pb } from "@/client";
 import RegistrationSection from "@/components/layouts/RegistrationSection";
 import RegistrationForm from "@/components/RegistrationForm";
 import Alert, { AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
 import IconOutline from "~icons/material-symbols/info-outline";
 import { currencyFormatter } from "@/lib/utils";
 import { SVGProps, useEffect, useMemo } from "react";
@@ -14,13 +12,7 @@ import { useFormContext } from "react-hook-form";
 
 import IconCard from "~icons/material-symbols/add-card";
 import { JSX } from "react/jsx-runtime";
-
-interface PaymentMethod {
-    id: string
-    label: string
-    processorRate: number
-    extraProcessorFee: number
-}
+import { usePaymentMethodsQuery } from "@/client";
 
 const PaymentIcons = {
     "card": IconCard,
@@ -82,12 +74,6 @@ const PaymentIcons = {
                 />
         </svg>
     )
-}
-
-function usePaymentMethodsQuery() {
-    return useQuery(['payment-methods'], () => {
-        return pb.send<PaymentMethod[]>('/api/payment-methods', {});
-    });
 }
 
 function PaymentMethodFormRenderer({ value, onChange }: FormFieldRendererProps) {
@@ -155,7 +141,7 @@ function ExpectedAmountFormRenderer({ value, onChange }: FormFieldRendererProps)
 
                     {selectedAddons.length > 0 && <div className="flex flex-col py-2 space-y-2">
                         {selectedAddons.map((addon) =>
-                            <div className="flex flex-row items-center justify-between">
+                            <div key={`addon_${addon.id}`} className="flex flex-row items-center justify-between">
                                 <p>{addon.title}</p>
                                 <p className="font-bold">{currencyFormatter.format(addon.price)}</p>
                             </div>)}
@@ -171,7 +157,6 @@ function ExpectedAmountFormRenderer({ value, onChange }: FormFieldRendererProps)
                         <p className="font-bold text-2xl">{currencyFormatter.format(subtotal + processorFee)}</p>
                     </div>
                 </div>
-                {value}
             </CardContent>
 
             <CardFooter>
