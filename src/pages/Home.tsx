@@ -276,6 +276,7 @@ export default function Home() {
                     context.form.clearErrors();
                     if (groups[index] !== 'payment') {
                         navigate(`/registration${routes[groups[index + 1]]}`);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                     } else {
                         context.onFormSubmit(context.form.getValues());
                     }
