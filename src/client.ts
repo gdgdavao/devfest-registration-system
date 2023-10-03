@@ -4,7 +4,14 @@ import { Collections, ProfessionalProfilesResponse, RecordIdString, Registration
 import { ErrorOption } from 'react-hook-form';
 import { CreatePaymentMethod, InitPaymentResult, PaymentIntent, PaymentMethod } from './payment-types';
 
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            refetchOnWindowFocus: false,
+            refetchOnReconnect: false
+        }
+    }
+});
 export const pb = new PocketBase(import.meta.env.VITE_API_URL);
 
 // Server-side error handling
@@ -86,6 +93,7 @@ const REGISTRATION_RESP_EXPAND = "status,student_profile,professional_profile,pa
 
 export interface RegistrationRecord extends RegistrationsRecord {
     addons_data?: AddonOrdersRecord[]
+    payment_data?: PaymentsRecord
     student_profile_data?: StudentProfilesRecord
     professional_profile_data?: ProfessionalProfilesRecord
     merch_sensing_data_data?: MerchSensingDataRecord
