@@ -181,10 +181,20 @@ export default function Payment() {
             </Alert>
 
             <RegistrationForm
+                noLabel={["payment"]}
                 group="payment"
-                noLabel
+                extraFields={[
+                    {
+                        group: "payment",
+                        type: "text",
+                        name: "payment_data.payment_method",
+                        title: "Payment Method",
+                        description: "",
+                        options: {}
+                    }
+                ]}
                 customComponents={{
-                    "payment.payment_method": PaymentMethodFormRenderer,
+                    "payment_data.payment_method": PaymentMethodFormRenderer,
                     "payment.expected_amount": ExpectedAmountFormRenderer,
                 }} />
         </RegistrationSection>
