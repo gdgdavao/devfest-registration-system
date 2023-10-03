@@ -209,22 +209,36 @@ export default function Home() {
         navigate(`/registration${routes[groups[index - 1]]}`);
     }
 
-    const getFieldsOf = (index: number) => {
+    const getFieldsOf = (index: number, to = false) => {
+        if (to) {
+            const fields = [] as string[];
+            for (let i = 0; i <= index; i++) {
+                fields.push(...getFieldsOf(i));
+            }
+            return fields as (keyof RegistrationRecord)[];
+        }
         return (context.fields.data ?? []).filter(f => f.group === groups[index])
             .map(f => f.type === 'relation' ? f.name + '_data' : f.name) as (keyof RegistrationRecord)[];
     }
 
     const goToNext = () => {
-        context.form.trigger(getFieldsOf(index))
+        context.form.trigger(getFieldsOf(index, true))
             .then((isValid) => {
                 if (isValid) {
-                    const fieldsToClear = getFieldsOf(index + 1);
-                    context.form.clearErrors(fieldsToClear as (keyof RegistrationRecord)[]);
+                    context.form.clearErrors();
                     if (groups[index] !== 'payment') {
                         navigate(`/registration${routes[groups[index + 1]]}`);
                     } else {
                         context.onFormSubmit(context.form.getValues());
                     }
+                } else if (context.fields.data) {
+                    const errorKeys = Object.keys(context.form.formState.errors);
+                    const firstErrorKey = errorKeys[0];
+                    const firstError = context.fields.data.find(f => f.name === firstErrorKey);
+                    if (!firstError || firstError.group === groups[index]) {
+                        return;
+                    }
+                    navigate(`/registration${routes[firstError.group as FormDetailsFormGroupOptions]}`);
                 }
             });
 
