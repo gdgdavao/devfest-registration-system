@@ -110,10 +110,8 @@ export enum PaymentsStatusOptions {
 export type PaymentsRecord = {
 	expected_amount?: number
 	payment_intent_id?: string
-	payment_method: string
 	registrant?: RecordIdString
 	status?: PaymentsStatusOptions
-	transaction_id?: string
 }
 
 export type ProfessionalProfilesRecord = {
