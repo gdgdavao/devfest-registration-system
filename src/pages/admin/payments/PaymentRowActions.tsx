@@ -38,7 +38,6 @@ export function PaymentRowActions({ record, refetch }: {
                                 <AlertDialogAction onClick={() => updatePayment({
                                     id: record.id,
                                     record: {
-                                        amount_paid: record.expected_amount,
                                         status: PaymentsStatusOptions.paid
                                     }
                                 }, {

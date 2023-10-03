@@ -201,7 +201,7 @@ module.exports = {
     /**
     *
     * @param {models.Collection | undefined} collection
-    * @param {{parent?: string, parentKey?: string, registrationType: string} | undefined} _options
+    * @param {{parent?: string, parentKey?: string, registrationType: string, hidden?: string[]} | undefined} _options
     * @returns {RegistrationField[]}
     */
     extractCollectionSchema(collection, _options) {
@@ -213,11 +213,19 @@ module.exports = {
         const fields = [];
 
         for (const field of fieldsFromSchema) {
+            if (_options.hidden && _options.hidden.indexOf(field.name) !== -1) {
+                continue;
+            }
+
             let options = JSON.parse(JSON.stringify(field.options));
             let title = field.name;
             let description = "";
             let shouldExpand = false;
             let group = "";
+
+            options = Object.assign(options, {
+                required: field.required
+            });
 
             try {
                 const detailRecord = new Record();
@@ -248,7 +256,7 @@ module.exports = {
                 }
             } catch (e) {}
 
-            if (options.hidden) {
+            if (typeof options.hidden == "boolean" && options.hidden) {
                 continue;
             }
 
@@ -266,11 +274,13 @@ module.exports = {
                 }
 
                 if (shouldExpand) {
+                    const hiddenFields = Array.isArray(options.hidden) ? options.hidden : [];
                     const relCollection = $app.dao().findCollectionByNameOrId(field.options.collectionId);
                     const relFields = this.extractCollectionSchema(relCollection, {
                         parent: collection.id,
                         parentKey: field.name,
-                        registrationType: _options.registrationType
+                        registrationType: _options.registrationType,
+                        hidden: hiddenFields
                     });
 
                     fields.push({
