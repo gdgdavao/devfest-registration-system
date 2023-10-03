@@ -229,7 +229,7 @@ export default function Home() {
                 </div>
             </header>
 
-            <div className="max-w-3xl mx-auto flex flex-col px-2">
+            <div className="max-w-3xl w-full mx-auto flex flex-col px-2">
                 {index > 0 && <Stepper index={index} />}
                 <RegistrationFormContext.Provider value={context}>
                     <Form {...context.form}>
