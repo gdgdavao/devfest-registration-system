@@ -17,10 +17,10 @@ function RegistrationTypeFormRenderer({ field, ...props }: FormFieldRendererProp
         professional_description: string
     }>("welcome");
 
-    return <div className="flex w-auto gap-x-4 py-4">
+    return <div className="flex flex-col gap-y-4 md:gap-y-0 md:flex-row md:gap-x-4 py-4">
         <UserType
             {...props}
-            className="w-1/2"
+            className="w-full md:w-1/2"
             image={StudentIconImg}
             id={RegistrationsTypeOptions.student}
             title={data?.custom_content?.student_title}
@@ -29,7 +29,7 @@ function RegistrationTypeFormRenderer({ field, ...props }: FormFieldRendererProp
 
         <UserType
             {...props}
-            className="w-1/2"
+            className="w-full md:w-1/2"
             image={ProIconImg}
             id={RegistrationsTypeOptions.professional}
             title={data?.custom_content?.professional_title}

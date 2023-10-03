@@ -115,10 +115,12 @@ export function buildValidationSchema(fields: RegistrationField[], level = 0) {
         } else if (field.type === "json") {
             rawSchema[field.name] = Joi.any();
             continue;
-        }
-
-        if (field.type === "number") {
+        } else if (field.type === "number") {
             const validator = Joi.number();
+            rawSchema[field.name] = validator.messages(messages);
+            continue;
+        } else if (field.type === "bool") {
+            const validator = Joi.bool();
             rawSchema[field.name] = validator.messages(messages);
             continue;
         }
