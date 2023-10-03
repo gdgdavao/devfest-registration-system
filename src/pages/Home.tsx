@@ -16,6 +16,7 @@ import { popupCenter } from "@/lib/utils";
 import Alert from "@/components/ui/alert";
 import { ClientResponseError } from "pocketbase";
 import Loading from "@/components/Loading";
+import Footer from "@/components/Footer";
 import scrollIntoView from 'scroll-into-view-if-needed';
 
 const routes: Record<FormDetailsFormGroupOptions, string> = {
@@ -358,6 +359,8 @@ export default function Home() {
                     </Form>
                 </RegistrationFormContext.Provider>
             </div>
+
+            <Footer />
         </main>
     </>);
 }
