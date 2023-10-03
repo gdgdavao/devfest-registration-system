@@ -16,6 +16,7 @@ import { popupCenter } from "@/lib/utils";
 import Alert from "@/components/ui/alert";
 import { ClientResponseError } from "pocketbase";
 import Loading from "@/components/Loading";
+import scrollIntoView from 'scroll-into-view-if-needed';
 
 const routes: Record<FormDetailsFormGroupOptions, string> = {
     welcome: "/",
@@ -179,6 +180,7 @@ function usePayment(onDone: () => void) {
 }
 
 export default function Home() {
+    const formContainer = useRef<HTMLDivElement>(null);
     const loc = useLocation();
     const navigate = useNavigate();
     const [index, setIndex] = useState(0);
@@ -239,6 +241,34 @@ export default function Home() {
     }
 
     const goToNext = () => {
+        let shouldProceed = false;
+
+        if (formContainer.current) {
+            shouldProceed = scrollIntoView(formContainer.current, {
+                behavior: (actions) => {
+                    let scrolled = 0;
+                    actions.forEach(a => {
+                        if ((a.el.scrollTop / a.top) >= 0.82) {
+                            return;
+                        }
+                        a.el.scrollTo({
+                            left: a.left,
+                            top: a.top,
+                            behavior: 'smooth'
+                        });
+                        scrolled++;
+                    });
+                    return scrolled === 0;
+                },
+                block: 'end',
+                scrollMode: 'if-needed',
+            });
+        }
+
+        if (!shouldProceed) {
+            return;
+        }
+
         context.form.trigger(getFieldsOf(index, true))
             .then((isValid) => {
                 if (isValid) {
@@ -282,7 +312,7 @@ export default function Home() {
                 </div>
             </header>
 
-            <div className="max-w-3xl w-full mx-auto flex flex-col px-2">
+            <div ref={formContainer} className="max-w-3xl w-full mx-auto flex flex-col px-2">
                 {index > 0 && <Stepper index={index} />}
                 <RegistrationFormContext.Provider value={context}>
                     <Form {...context.form}>
