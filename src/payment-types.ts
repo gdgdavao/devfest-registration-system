@@ -17,14 +17,14 @@ export interface Payloads {
 }
 
 export interface CreatePaymentMethod {
-    data: Data;
+    data: PMData;
 }
 
-export interface Data {
-    attributes: Attributes;
+export interface PMData {
+    attributes: PMAttributes;
 }
 
-export interface Attributes {
+export interface PMAttributes {
     details: null;
     type:    string;
 }

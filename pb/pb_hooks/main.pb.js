@@ -91,22 +91,20 @@ routerAdd("GET", "/payments_redirect", (c) => {
             throw new BadRequestError();
         }
 
-        const paymentRecords = $app.dao().findRecordsByFilter('payments', `payment_intent_id = "${paymentIntentId}"`);
+        const paymentRecords = $app.dao().findRecordsByFilter('payments', `status != "paid" && payment_intent_id = "${paymentIntentId}"`);
         if (paymentRecords.length === 0) {
             throw new BadRequestError("Invalid transaction.");
         }
 
         const paymentRecord = paymentRecords[0];
         paymentRecord.set('status', 'paid');
-        // Clear intent ID upon verified
-        paymentRecord.set('payment_intent_id', '');
         $app.dao().saveRecord(paymentRecord);
 
         // NOTE: Send summary e-mail here lol
         const host = "http://" + c.request().host;
         // Send e-mail if it was not created from admin dashboard
         utils.sendEmails('summary', `id = "${paymentRecord.getString('registrant')}"`, host);
-        return c.html(200, "Hooray!");
+        return c.html(200, "OK");
     } catch (e) {
         console.error(e);
     }
@@ -173,16 +171,6 @@ routerAdd("POST", "/api/payments/initiate", (c) => {
             api_key: apiKey,
             client_key: clientKey,
             payment_intent_id: paymentIntentId,
-            payloads: {
-                create_payment_method: {
-                    data: {
-                        attributes: {
-                            type: paymentRecord.getString('payment_method'),
-                            details: data.details
-                        }
-                    }
-                },
-            },
             endpoints: {
                 create_payment_method: 'https://api.paymongo.com/v1/payment_methods',
                 attach_payment_intent: `https://api.paymongo.com/v1/payment_intents/${paymentIntentId}/attach`,
