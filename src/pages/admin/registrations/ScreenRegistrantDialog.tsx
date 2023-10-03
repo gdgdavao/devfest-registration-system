@@ -65,7 +65,7 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
                     <div className="flex flex-row pt-4">
                         <div className="flex-1 flex flex-col">
                             <span className="text-slate-500">Selected add-ons</span>
-                            <p className="font-bold">{registrant?.expand?.addons.title}</p>
+                            <p className="font-bold">{registrant?.expand?.addons.addon}</p>
                         </div>
 
                         <div className="flex-1 flex flex-col">
