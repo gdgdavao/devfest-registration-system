@@ -130,6 +130,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
         return (
             <div className="flex items-center space-x-2">
                 <Checkbox
+                    defaultChecked={props.value}
                     checked={props.value}
                     onCheckedChange={props.onChange}
                     id={name}
