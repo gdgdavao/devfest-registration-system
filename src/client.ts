@@ -2,8 +2,16 @@ import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/
 import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
 import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse } from './pocketbase-types';
 import { ErrorOption } from 'react-hook-form';
+import { CreatePaymentMethod, InitPaymentResult, PaymentIntent, PaymentMethod } from './payment-types';
 
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            refetchOnWindowFocus: false,
+            refetchOnReconnect: false
+        }
+    }
+});
 export const pb = new PocketBase(import.meta.env.VITE_API_URL);
 
 // Server-side error handling
@@ -85,6 +93,7 @@ const REGISTRATION_RESP_EXPAND = "status,student_profile,professional_profile,pa
 
 export interface RegistrationRecord extends RegistrationsRecord {
     addons_data?: AddonOrdersRecord[]
+    payment_data?: PaymentsRecord
     student_profile_data?: StudentProfilesRecord
     professional_profile_data?: ProfessionalProfilesRecord
     merch_sensing_data_data?: MerchSensingDataRecord
@@ -185,6 +194,8 @@ export function useTicketTypesQuery() {
 export function useTicketTypeQuery(id: string) {
     return useQuery([Collections.TicketTypes, id], () => {
         return pb.collection(Collections.TicketTypes).getOne<TicketTypesResponse>(id);
+    }, {
+        enabled: typeof id !== "undefined"
     });
 }
 
@@ -228,5 +239,123 @@ export function useUpdatePaymentMutation() {
     return useMutation(({id, record}: {id: RecordIdString, record: Partial<PaymentsRecord>}) => {
         return pb.collection(Collections.Payments)
             .update<PaymentsResponse>(id, record);
+    });
+}
+
+export interface InitPaymentPayload {
+    registrant_id: string
+    payment_id: string
+    details?: {
+        card_number: string
+        exp_month: number
+        exp_year: number
+        cvc: string
+        bank_code: string
+    },
+    billing?: {
+        address: string
+        line1: string
+        line2: string
+        city: string
+        state: string
+        postal_code: string
+        country: string
+        name: string
+        email: string
+        phone: string
+    }
+}
+
+export function usePaymentMethodsQuery() {
+    return useQuery(['payment-methods'], () => {
+        return pb.send<PaymentMethod[]>('/api/payment-methods', {});
+    });
+}
+
+export function useInitiatePaymentMutation() {
+    return useMutation((payload: InitPaymentPayload) => {
+        return pb.send<InitPaymentResult>('/api/payments/initiate', {
+            method: 'POST',
+            body: payload
+        });
+    });
+}
+
+export function usePaymentMethodMutation() {
+    return useMutation(async ({ endpoint, apiKey, payload }: { endpoint: string, apiKey: string, payload: CreatePaymentMethod }) => {
+        if (!endpoint) {
+            throw new Error("Endpoint is required.");
+        }
+
+        const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Basic ${apiKey}`
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!resp.ok) {
+            throw new Error("Something went wrong while processing your payments. [2]");
+        }
+
+        const json = await resp.json();
+        return json.data.id as string;
+    });
+}
+
+export function useAttachPaymentIntentMutation() {
+    return useMutation(async ({ endpoint, apiKey, paymentMethodId, clientKey }: { endpoint: string, apiKey: string, paymentMethodId: string, clientKey: string }) => {
+        if (!endpoint) {
+            throw new Error("Endpoint is required.");
+        }
+
+        const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Basic ${apiKey}`
+            },
+            body: JSON.stringify({
+                data: {
+                    attributes: {
+                        payment_method: paymentMethodId,
+                        client_key: clientKey,
+                        return_url: pb.buildUrl("/payments_redirect")
+                    }
+                }
+            }),
+        });
+        if (!resp.ok) {
+            throw new Error("Something went wrong while processing your payments. [3]");
+        }
+
+        const json = await resp.json();
+        return json.data as PaymentIntent;
+    })
+}
+
+export function usePaymentIntentQuery(paymentIntentEndpoint?: string, apiKey?: string, clientKey?: string) {
+    return useQuery(['payment_intent', paymentIntentEndpoint], async () => {
+        const resp = await fetch(paymentIntentEndpoint + `?client_key=${clientKey}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Basic ${apiKey}`
+            },
+        });
+        if (!resp.ok) {
+            throw new Error("Something went wrong when fetching payment intent.");
+        }
+        const json = await resp.json();
+        return json.data as PaymentIntent;
+    }, {
+        enabled: false,
+        refetchOnWindowFocus: false,
+        refetchInterval: false,
     });
 }

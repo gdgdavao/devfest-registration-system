@@ -1,5 +1,6 @@
-import { RegistrationRecord, handleFormServerSideError, useRegistrationFieldsQuery } from "@/client";
+import { RegistrationRecord, handleFormServerSideError, useAddonsQuery, useRegistrationFieldsQuery, useTicketTypeQuery } from "@/client";
 import {
+    AddonOrdersRecord,
     MerchSensingDataMerchSpendingLimitOptions,
     RegistrationsAgeRangeOptions,
     RegistrationsSexOptions,
@@ -7,8 +8,8 @@ import {
     RegistrationsYearsTechExpOptions,
     StudentProfilesYearLevelOptions,
 } from "@/pocketbase-types";
-import { createContext, useContext, useEffect } from "react";
-import { UseFormReturn, useForm } from "react-hook-form";
+import { createContext, useContext, useEffect, useMemo } from "react";
+import { UseFormReturn, useForm, useFormContext } from "react-hook-form";
 
 export const RegistrationFormContext = createContext<RegistrationFormContextData>(null!);
 
@@ -30,6 +31,41 @@ const defaultValues = {
             MerchSensingDataMerchSpendingLimitOptions["₱150-₱250"],
     },
 };
+
+export function useSubtotal() {
+    const { data: addOns } = useAddonsQuery();
+    const form = useFormContext();
+    const { data: selectedTicket } = useTicketTypeQuery(form.getValues('ticket'));
+    const value = form.getValues('addons_data') as AddonOrdersRecord[];
+
+    const selectedAddons = useMemo(() => {
+        if (!addOns || !value) {
+            return [];
+        }
+
+        return addOns
+            .filter(a => value.findIndex(o => o.addon === a.id) !== -1);
+    }, [value, addOns]);
+
+    const subtotal = useMemo(() => {
+        let total = 0;
+        if (selectedTicket) {
+            total += selectedTicket.price;
+        }
+
+        const totalAddonPrices = selectedAddons
+            .reduce((pv, cv) => pv + cv.price, 0) ?? 0;
+
+        total += totalAddonPrices;
+        return total;
+    }, [selectedTicket, selectedAddons]);
+
+    return {
+        selectedTicket,
+        selectedAddons,
+        subtotal
+    }
+}
 
 export function useSetupRegistrationForm({ onSubmit }: {
     onSubmit?: (

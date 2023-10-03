@@ -1,4 +1,4 @@
-import { RegistrationRecord } from "@/client";
+import { RegistrationField, RegistrationRecord } from "@/client";
 import { useRegistrationForm } from "@/registration-form";
 import {
     FormControl,
@@ -23,14 +23,15 @@ export default function RegistrationForm({
     noLabel = false,
     customComponents = {},
     rename = {},
-    children,
+    extraFields = []
 }: {
     data?: RegistrationRecord;
     asChild?: boolean;
     group?: FormGroup;
-    noLabel?: boolean;
+    noLabel?: boolean | string[];
     children?: ReactNode;
     rename?: Record<string, string>;
+    extraFields?: RegistrationField[];
     customComponents?: Partial<
         Record<
             keyof RegistrationRecord | string,
@@ -63,7 +64,8 @@ export default function RegistrationForm({
 
     return (
         <div className="w-full flex flex-col space-y-2">
-            {(data ?? [])
+            {extraFields
+                .concat(...(data ?? []))
                 .filter((f) => (group !== "all" ? f.group === group : true))
                 .map((field) => (
                     <FormField
@@ -72,7 +74,7 @@ export default function RegistrationForm({
                         key={`registration_${field.name}`}
                         render={({ field: ofield }) => (
                             <FormItem>
-                                {!noLabel && (
+                                {((typeof noLabel === "boolean" && !noLabel) || (Array.isArray(noLabel) && !noLabel.includes(field.name))) && (
                                     <FormLabel className="text-md">
                                         {field.title}
                                     </FormLabel>
@@ -104,8 +106,6 @@ export default function RegistrationForm({
                         )}
                     />
                 ))}
-
-            {children}
         </div>
     );
 }

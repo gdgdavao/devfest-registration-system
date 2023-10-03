@@ -11,11 +11,15 @@
         <p style="font-size: 12pt; font-weight: bold; margin-bottom: 4px;">{{ $entry.title }}</p>
 
         {{if eq $entry.name "addons" }}
-            <ul style="padding-left: 14px;">
-                {{range $subentry := $entry.entries}}
-                <li>{{$subentry.value}}</li>
-                {{end}}
-            </ul>
+            {{if $entry.entries}}
+                <ul style="padding-left: 14px;">
+                    {{range $subentry := $entry.entries}}
+                    <li>{{$subentry.value}}</li>
+                    {{end}}
+                </ul>
+            {{else}}
+                <p><i>&lt;empty&gt;</i></p>
+            {{end}}
         {{else if eq $entry.name "topic_interests" }}
             <ul style="padding-left: 14px;">
                 {{range $topic, $value := $entry.value}}

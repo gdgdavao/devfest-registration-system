@@ -1,48 +1,5 @@
 [
     {
-        "id": "0pmyt29dlz9zh7u",
-        "name": "topic_interests",
-        "type": "base",
-        "system": false,
-        "schema": [
-            {
-                "system": false,
-                "id": "eq8gq7pe",
-                "name": "topic_name",
-                "type": "text",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            },
-            {
-                "system": false,
-                "id": "b8of2azr",
-                "name": "key",
-                "type": "text",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            }
-        ],
-        "indexes": [],
-        "listRule": null,
-        "viewRule": null,
-        "createRule": null,
-        "updateRule": null,
-        "deleteRule": null,
-        "options": {}
-    },
-    {
         "id": "0hu0xeybm6tlpz5",
         "name": "registration_statuses",
         "type": "base",
@@ -408,205 +365,6 @@
         "options": {}
     },
     {
-        "id": "11z5ibl11dbde71",
-        "name": "payments",
-        "type": "base",
-        "system": false,
-        "schema": [
-            {
-                "system": false,
-                "id": "fughwyxo",
-                "name": "registrant",
-                "type": "relation",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "collectionId": "boik9xw2mpob3lt",
-                    "cascadeDelete": false,
-                    "minSelect": null,
-                    "maxSelect": 1,
-                    "displayFields": null
-                }
-            },
-            {
-                "system": false,
-                "id": "s43hrawc",
-                "name": "payment_method",
-                "type": "text",
-                "required": true,
-                "presentable": true,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            },
-            {
-                "system": false,
-                "id": "pkuc0ll9",
-                "name": "status",
-                "type": "select",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "maxSelect": 1,
-                    "values": [
-                        "unpaid",
-                        "pending",
-                        "paid"
-                    ]
-                }
-            },
-            {
-                "system": false,
-                "id": "ohsjobas",
-                "name": "expected_amount",
-                "type": "number",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": 0,
-                    "max": null,
-                    "noDecimal": false
-                }
-            },
-            {
-                "system": false,
-                "id": "0qxj5hvx",
-                "name": "amount_paid",
-                "type": "number",
-                "required": true,
-                "presentable": true,
-                "unique": false,
-                "options": {
-                    "min": 0,
-                    "max": null,
-                    "noDecimal": false
-                }
-            },
-            {
-                "system": false,
-                "id": "hkrezyb3",
-                "name": "transaction_id",
-                "type": "text",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            }
-        ],
-        "indexes": [
-            "CREATE UNIQUE INDEX `idx_qTdN3zP` ON `payments` (`registrant`)"
-        ],
-        "listRule": null,
-        "viewRule": null,
-        "createRule": null,
-        "updateRule": null,
-        "deleteRule": null,
-        "options": {}
-    },
-    {
-        "id": "2d5lpbdnk1nao5z",
-        "name": "form_groups",
-        "type": "base",
-        "system": false,
-        "schema": [
-            {
-                "system": false,
-                "id": "0w12bgbf",
-                "name": "key",
-                "type": "select",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "maxSelect": 1,
-                    "values": [
-                        "welcome",
-                        "profile",
-                        "topic",
-                        "addOn",
-                        "payment",
-                        "done"
-                    ]
-                }
-            },
-            {
-                "system": false,
-                "id": "5yhpd5dn",
-                "name": "route_key",
-                "type": "text",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            },
-            {
-                "system": false,
-                "id": "kt908xf5",
-                "name": "title",
-                "type": "text",
-                "required": true,
-                "presentable": true,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            },
-            {
-                "system": false,
-                "id": "ghlndru3",
-                "name": "description",
-                "type": "text",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            },
-            {
-                "system": false,
-                "id": "ly5uwjbp",
-                "name": "short_title",
-                "type": "text",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            }
-        ],
-        "indexes": [
-            "CREATE UNIQUE INDEX `idx_Oc86YwV` ON `form_groups` (`key`)"
-        ],
-        "listRule": "",
-        "viewRule": "",
-        "createRule": null,
-        "updateRule": null,
-        "deleteRule": null,
-        "options": {}
-    },
-    {
         "id": "ioby1a454zm4d12",
         "name": "addons",
         "type": "base",
@@ -749,6 +507,178 @@
         "options": {}
     },
     {
+        "id": "57z08jrg1m2n5i0",
+        "name": "addon_orders",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "dcvujdta",
+                "name": "registrant",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "boik9xw2mpob3lt",
+                    "cascadeDelete": true,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "u4ohppfq",
+                "name": "addon",
+                "type": "relation",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "ioby1a454zm4d12",
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "qoa9ywcd",
+                "name": "preferences",
+                "type": "json",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {}
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_FWiENOA` ON `addon_orders` (\n  `registrant`,\n  `addon`\n)"
+        ],
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "2d5lpbdnk1nao5z",
+        "name": "form_groups",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "0w12bgbf",
+                "name": "key",
+                "type": "select",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "welcome",
+                        "profile",
+                        "topic",
+                        "addOn",
+                        "payment",
+                        "done"
+                    ]
+                }
+            },
+            {
+                "system": false,
+                "id": "5yhpd5dn",
+                "name": "route_key",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "kt908xf5",
+                "name": "title",
+                "type": "text",
+                "required": true,
+                "presentable": true,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "ghlndru3",
+                "name": "description",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "ly5uwjbp",
+                "name": "short_title",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "uqgenx9o",
+                "name": "show_in_stepper",
+                "type": "bool",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {}
+            },
+            {
+                "system": false,
+                "id": "omdpoud4",
+                "name": "custom_content",
+                "type": "json",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {}
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_Oc86YwV` ON `form_groups` (`key`)"
+        ],
+        "listRule": "",
+        "viewRule": "",
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
         "id": "boik9xw2mpob3lt",
         "name": "registrations",
         "type": "base",
@@ -872,7 +802,8 @@
                         "18-20",
                         "21-24",
                         "25-30",
-                        "31-34-35-40",
+                        "31-34",
+                        "35-40",
                         "41-50",
                         "50+"
                     ]
@@ -1016,14 +947,81 @@
         "options": {}
     },
     {
-        "id": "57z08jrg1m2n5i0",
-        "name": "addon_orders",
+        "id": "0pmyt29dlz9zh7u",
+        "name": "topic_interests",
         "type": "base",
         "system": false,
         "schema": [
             {
                 "system": false,
-                "id": "dcvujdta",
+                "id": "eq8gq7pe",
+                "name": "topic_name",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "b8of2azr",
+                "name": "key",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "qq6vcl3n",
+                "name": "icon",
+                "type": "file",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "maxSize": 5242880,
+                    "mimeTypes": [
+                        "image/jpeg",
+                        "image/png",
+                        "image/svg+xml",
+                        "image/gif",
+                        "image/webp"
+                    ],
+                    "thumbs": [
+                        "0x30"
+                    ],
+                    "protected": false
+                }
+            }
+        ],
+        "indexes": [],
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "11z5ibl11dbde71",
+        "name": "payments",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "fughwyxo",
                 "name": "registrant",
                 "type": "relation",
                 "required": false,
@@ -1039,33 +1037,52 @@
             },
             {
                 "system": false,
-                "id": "u4ohppfq",
-                "name": "addon",
-                "type": "relation",
-                "required": true,
+                "id": "pkuc0ll9",
+                "name": "status",
+                "type": "select",
+                "required": false,
                 "presentable": false,
                 "unique": false,
                 "options": {
-                    "collectionId": "ioby1a454zm4d12",
-                    "cascadeDelete": false,
-                    "minSelect": null,
                     "maxSelect": 1,
-                    "displayFields": null
+                    "values": [
+                        "unpaid",
+                        "pending",
+                        "paid"
+                    ]
                 }
             },
             {
                 "system": false,
-                "id": "qoa9ywcd",
-                "name": "preferences",
-                "type": "json",
+                "id": "ohsjobas",
+                "name": "expected_amount",
+                "type": "number",
                 "required": false,
                 "presentable": false,
                 "unique": false,
-                "options": {}
+                "options": {
+                    "min": 0,
+                    "max": null,
+                    "noDecimal": false
+                }
+            },
+            {
+                "system": false,
+                "id": "89o5pfhs",
+                "name": "payment_intent_id",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
             }
         ],
         "indexes": [
-            "CREATE UNIQUE INDEX `idx_FWiENOA` ON `addon_orders` (\n  `registrant`,\n  `addon`\n)"
+            "CREATE UNIQUE INDEX `idx_qTdN3zP` ON `payments` (`registrant`)"
         ],
         "listRule": null,
         "viewRule": null,
