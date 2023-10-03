@@ -175,7 +175,7 @@ export type RegistrationsRecord<Ttopic_interests = unknown> = {
 	student_profile?: RecordIdString
 	ticket: RecordIdString
 	topic_interests: null | Ttopic_interests
-	type?: RegistrationsTypeOptions
+	type: RegistrationsTypeOptions
 	years_tech_exp: RegistrationsYearsTechExpOptions
 }
 
