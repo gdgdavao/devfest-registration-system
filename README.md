@@ -62,6 +62,13 @@ For flexibility, form fields are not "hard-coded" into the frontend app but are 
 Once received, data is then fed into `FormFieldRenderer` component which will render the appropriate form input component based on the given field name and type. You may also provide and render custom form components by field. (See [TopicInterestFormRenderer](/src/components/form_renderers/TopicInterestFormRenderer.tsx))
 
 ## PocketBase Notes
+### Environment Variables
+The following environment variables must be set up or some of the endpoints won't work:
+- `PAYMENT_INTENT_API_URL` - URL/endpoint for generating payment intent
+- `PAYMONGO_TOKEN` - Public PayMongo API token
+
+To run with the following env variables, do: `PAYMENT_INTENT_API_URL=<url> PAYMONGO_TOKEN=<token> ./pocketbase serve`
+
 ### Custom backend API Endpoints
 We utilize PocketBase's server hooks feature to create custom API endpoints similar to Firebase's custom functions.
 
