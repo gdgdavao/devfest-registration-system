@@ -58,6 +58,8 @@ export default function TopicInterestFormRenderer({
                                     <div>🙂</div>
                                     <div>😄</div>
                                 </div>
+
+                                <p className="text-center">{selected[topic.key]}</p>
                             </div>
                         </CardContent>
                     </Card>
