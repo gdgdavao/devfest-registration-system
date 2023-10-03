@@ -11,6 +11,7 @@ export default function DefaultAddonsFormRenderer({ name, ...props }: FormFieldR
         field={{
             name,
             title: 'Addons',
+            group: '',
             description: '',
             type: 'select',
             options: {

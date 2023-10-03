@@ -4,7 +4,6 @@ import RegistrationForm from "@/components/RegistrationForm";
 import Alert, { AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import IconOutline from "~icons/material-symbols/info-outline";
 import { currencyFormatter } from "@/lib/utils";
 import { SVGProps, useEffect, useMemo } from "react";
 import { useSubtotal } from "@/registration-form";
@@ -173,8 +172,7 @@ function ExpectedAmountFormRenderer({ value, onChange }: FormFieldRendererProps)
 export default function Payment() {
     return (
         <RegistrationSection id="payment">
-            <Alert>
-                <IconOutline className="h-4 w-4" />
+            <Alert icon="Info" className="text-left" variant="info">
                 <AlertDescription>
                     Your payment will be on hold while we review your registration.
                     Your payment will be processed if you are accepted. Otherwise, we will refund your payment in full.

@@ -507,65 +507,6 @@
         "options": {}
     },
     {
-        "id": "57z08jrg1m2n5i0",
-        "name": "addon_orders",
-        "type": "base",
-        "system": false,
-        "schema": [
-            {
-                "system": false,
-                "id": "dcvujdta",
-                "name": "registrant",
-                "type": "relation",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "collectionId": "boik9xw2mpob3lt",
-                    "cascadeDelete": true,
-                    "minSelect": null,
-                    "maxSelect": 1,
-                    "displayFields": null
-                }
-            },
-            {
-                "system": false,
-                "id": "u4ohppfq",
-                "name": "addon",
-                "type": "relation",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "collectionId": "ioby1a454zm4d12",
-                    "cascadeDelete": false,
-                    "minSelect": null,
-                    "maxSelect": 1,
-                    "displayFields": null
-                }
-            },
-            {
-                "system": false,
-                "id": "qoa9ywcd",
-                "name": "preferences",
-                "type": "json",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {}
-            }
-        ],
-        "indexes": [
-            "CREATE UNIQUE INDEX `idx_FWiENOA` ON `addon_orders` (\n  `registrant`,\n  `addon`\n)"
-        ],
-        "listRule": null,
-        "viewRule": null,
-        "createRule": null,
-        "updateRule": null,
-        "deleteRule": null,
-        "options": {}
-    },
-    {
         "id": "2d5lpbdnk1nao5z",
         "name": "form_groups",
         "type": "base",
@@ -679,6 +620,143 @@
         "options": {}
     },
     {
+        "id": "11z5ibl11dbde71",
+        "name": "payments",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "fughwyxo",
+                "name": "registrant",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "boik9xw2mpob3lt",
+                    "cascadeDelete": true,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "pkuc0ll9",
+                "name": "status",
+                "type": "select",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "unpaid",
+                        "pending",
+                        "paid"
+                    ]
+                }
+            },
+            {
+                "system": false,
+                "id": "ohsjobas",
+                "name": "expected_amount",
+                "type": "number",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": 0,
+                    "max": null,
+                    "noDecimal": false
+                }
+            },
+            {
+                "system": false,
+                "id": "89o5pfhs",
+                "name": "payment_intent_id",
+                "type": "text",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_qTdN3zP` ON `payments` (`registrant`)"
+        ],
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "57z08jrg1m2n5i0",
+        "name": "addon_orders",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "dcvujdta",
+                "name": "registrant",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "boik9xw2mpob3lt",
+                    "cascadeDelete": true,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "u4ohppfq",
+                "name": "addon",
+                "type": "relation",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "ioby1a454zm4d12",
+                    "cascadeDelete": true,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "qoa9ywcd",
+                "name": "preferences",
+                "type": "json",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {}
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_FWiENOA` ON `addon_orders` (\n  `registrant`,\n  `addon`\n)"
+        ],
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
         "id": "boik9xw2mpob3lt",
         "name": "registrations",
         "type": "base",
@@ -689,7 +767,7 @@
                 "id": "xtmuuo0t",
                 "name": "type",
                 "type": "select",
-                "required": false,
+                "required": true,
                 "presentable": true,
                 "unique": false,
                 "options": {
@@ -1006,85 +1084,7 @@
             }
         ],
         "indexes": [],
-        "listRule": null,
-        "viewRule": null,
-        "createRule": null,
-        "updateRule": null,
-        "deleteRule": null,
-        "options": {}
-    },
-    {
-        "id": "11z5ibl11dbde71",
-        "name": "payments",
-        "type": "base",
-        "system": false,
-        "schema": [
-            {
-                "system": false,
-                "id": "fughwyxo",
-                "name": "registrant",
-                "type": "relation",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "collectionId": "boik9xw2mpob3lt",
-                    "cascadeDelete": true,
-                    "minSelect": null,
-                    "maxSelect": 1,
-                    "displayFields": null
-                }
-            },
-            {
-                "system": false,
-                "id": "pkuc0ll9",
-                "name": "status",
-                "type": "select",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "maxSelect": 1,
-                    "values": [
-                        "unpaid",
-                        "pending",
-                        "paid"
-                    ]
-                }
-            },
-            {
-                "system": false,
-                "id": "ohsjobas",
-                "name": "expected_amount",
-                "type": "number",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": 0,
-                    "max": null,
-                    "noDecimal": false
-                }
-            },
-            {
-                "system": false,
-                "id": "89o5pfhs",
-                "name": "payment_intent_id",
-                "type": "text",
-                "required": false,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            }
-        ],
-        "indexes": [
-            "CREATE UNIQUE INDEX `idx_qTdN3zP` ON `payments` (`registrant`)"
-        ],
-        "listRule": null,
+        "listRule": "",
         "viewRule": null,
         "createRule": null,
         "updateRule": null,

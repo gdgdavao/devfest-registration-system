@@ -14,7 +14,7 @@ interface SliderWithPopupProps {
 const LikertSlider = forwardRef<
     ElementRef<typeof SliderPrimitive.Root>,
     SliderWithPopupProps
->(({ className, onChange, values }, ref) => {
+>(({ className, onChange, values, value }, ref) => {
     const [nValue, setNValue] = useState([50]);
     const [open, setOpen] = useState(false);
     const steps = useMemo(() => Math.abs(Math.floor(100 / (values.length - 1))), [values]);
@@ -22,6 +22,10 @@ const LikertSlider = forwardRef<
         const idx = nValue[0] / steps;
         return idx % values.length;
     }, [nValue, steps, values]);
+
+    useEffect(() => {
+        setNValue([Math.max(values.indexOf(value ?? ''), 0) * steps]);
+    }, []);
 
     useEffect(() => {
         onChange(values[valueIdx]);
