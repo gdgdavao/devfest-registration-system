@@ -15,6 +15,7 @@ import { PaymentIntent } from "@/payment-types";
 import { popupCenter } from "@/lib/utils";
 import Alert from "@/components/ui/alert";
 import { ClientResponseError } from "pocketbase";
+import Loading from "@/components/Loading";
 
 const routes: Record<FormDetailsFormGroupOptions, string> = {
     welcome: "/",
@@ -42,11 +43,22 @@ function SubmissionProcessDialog({ isRegistrationLoading, isPaymentLoading, inte
 
     return <Dialog defaultOpen={shouldOpen} open={shouldOpen}>
         <DialogContent className="lg:max-w-screen-md text-center">
-            {isRegistrationLoading && <p className="font-bold">Processing your registration</p>}
-            {(isPaymentLoading || intentStatus !== 'awaiting_payment_method') &&
-                <p className="font-bold">Processing your payment</p>}
-            {intentStatus === 'awaiting_payment_method' &&
-                <p className="font-bold">Something went wrong with your chosen payment method.</p>}
+            <div className="flex flex-col items-center md:py-12 md:px-8">
+                {intentStatus !== 'awaiting_payment_method' && (
+                    <Loading className="w-1/4 py-20" />
+                )}
+
+                {isRegistrationLoading && (
+                    <h3 className="font-bold">Processing your registration</h3>)}
+
+                {(isPaymentLoading || intentStatus !== 'awaiting_payment_method') && (<>
+                        <h3 className="font-bold">Processing your payment</h3>
+                        <p>Pop-up windows may be required for payment. Click the "Allow pop-ups" button if you see a message asking for permission.</p>
+                </>)}
+
+                {intentStatus === 'awaiting_payment_method' &&
+                    <p className="font-bold">Something went wrong with your chosen payment method.</p>}
+            </div>
         </DialogContent>
     </Dialog>
 }
