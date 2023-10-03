@@ -12,6 +12,7 @@ import { Form } from "@/components/ui/form";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { PaymentIntent } from "@/payment-types";
 import { popupCenter } from "@/lib/utils";
+import Alert from "@/components/ui/alert";
 
 const routes: Record<FormDetailsFormGroupOptions, string> = {
     welcome: "/",
@@ -279,6 +280,13 @@ export default function Home() {
                             }
                         })}
                     >
+                        {!context.form.formState.isValid &&
+                            <Alert
+                                icon="AlertCircle"
+                                variant="destructive"
+                                className="text-left mb-4"
+                                description="Oops! There seems to be an error with your registration form." />}
+
                         <Outlet />
 
                         {index < len - 1 && (
