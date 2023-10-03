@@ -249,7 +249,7 @@ onRecordAfterCreateRequest((e) => {
         e.record.set('status', statusRecord.id);
 
         const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', Object.assign({ registrant: e.record.id }, data.merch_sensing_data_data));
-        e.record.set('merch_sensing_data', merchSensingDRecord);
+        e.record.set('merch_sensing_data', merchSensingDRecord.id);
 
         utils.decodeAndSaveProfile(e.record, undefined, profileKey, profileCollectionKey, data[profileDataKey]);
         $app.dao().saveRecord(e.record);
