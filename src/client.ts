@@ -151,13 +151,30 @@ export function useRegistrationsQuery(options?: RecordListOptions) {
     );
 }
 
-export function useRegistrationFieldsQuery(participantType = RegistrationsTypeOptions.student) {
+export function useRegistrationFieldsQuery({ participantType = RegistrationsTypeOptions.student, rename = {addons: 'addons_data'}, extraFields = [] }: {
+    participantType?: RegistrationsTypeOptions
+    rename?: Record<string, string>
+    extraFields?: RegistrationField[]
+}) {
     return useQuery(['registration_fields', participantType], () => {
         return pb.send<RegistrationField[]>(
             `/api/registration_fields?type=${participantType}`,
             { method: 'GET' }
         );
     }, {
+        select(data) {
+            const dt = (extraFields ?? []).concat(...data);
+            if (!rename) {
+                return dt;
+            }
+
+            return dt.map(f => {
+                if (f.name in rename) {
+                    return { ...f, name: rename[f.name] }
+                }
+                return f;
+            });
+        },
         refetchOnWindowFocus: false
     });
 }

@@ -7,11 +7,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Stepper from "./Home/Stepper";
 import { FormDetailsFormGroupOptions, RegistrationsResponse } from "@/pocketbase-types";
-import { useAttachPaymentIntentMutation, useInitiatePaymentMutation, usePaymentIntentQuery, usePaymentMethodMutation, useRegistrationMutation } from "@/client";
+import { RegistrationRecord, useAttachPaymentIntentMutation, useInitiatePaymentMutation, usePaymentIntentQuery, usePaymentMethodMutation, useRegistrationMutation } from "@/client";
 import { Form } from "@/components/ui/form";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { PaymentIntent } from "@/payment-types";
 import { popupCenter } from "@/lib/utils";
+import Alert from "@/components/ui/alert";
 
 const routes: Record<FormDetailsFormGroupOptions, string> = {
     welcome: "/",
@@ -168,6 +169,18 @@ export default function Home() {
     const navigate = useNavigate();
     const [index, setIndex] = useState(0);
     const context = useSetupRegistrationForm({
+        extraFields: [
+            {
+                group: "payment",
+                type: "text",
+                name: "payment_data.payment_method",
+                title: "Payment Method",
+                description: "",
+                options: {
+                    required: true
+                }
+            }
+        ],
         onSubmit: (data, onError) => {
             if (registrationRecord) {
                 initiatePayment(registrationRecord, data.payment_data!.payment_method)
@@ -197,12 +210,39 @@ export default function Home() {
         navigate(`/registration${routes[groups[index - 1]]}`);
     }
 
-    const goToNext = () => {
-        if (groups[index] !== 'payment') {
-            navigate(`/registration${routes[groups[index + 1]]}`);
-        } else {
-            context.onFormSubmit(context.form.getValues());
+    const getFieldsOf = (index: number, to = false) => {
+        if (to) {
+            const fields = [] as string[];
+            for (let i = 0; i <= index; i++) {
+                fields.push(...getFieldsOf(i));
+            }
+            return fields as (keyof RegistrationRecord)[];
         }
+        return (context.fields.data ?? []).filter(f => f.group === groups[index])
+            .map(f => f.type === 'relation' ? f.name + '_data' : f.name) as (keyof RegistrationRecord)[];
+    }
+
+    const goToNext = () => {
+        context.form.trigger(getFieldsOf(index, true))
+            .then((isValid) => {
+                if (isValid) {
+                    context.form.clearErrors();
+                    if (groups[index] !== 'payment') {
+                        navigate(`/registration${routes[groups[index + 1]]}`);
+                    } else {
+                        context.onFormSubmit(context.form.getValues());
+                    }
+                } else if (context.fields.data) {
+                    const errorKeys = Object.keys(context.form.formState.errors);
+                    const firstErrorKey = errorKeys[0];
+                    const firstError = context.fields.data.find(f => f.name === firstErrorKey);
+                    if (!firstError || firstError.group === groups[index]) {
+                        return;
+                    }
+                    navigate(`/registration${routes[firstError.group as FormDetailsFormGroupOptions]}`);
+                }
+            });
+
     }
 
     useEffect(() => {
@@ -240,11 +280,19 @@ export default function Home() {
                             }
                         })}
                     >
+                        {!context.form.formState.isValid &&
+                            <Alert
+                                icon="AlertCircle"
+                                variant="destructive"
+                                className="text-left mb-4"
+                                description="Oops! There seems to be an error with your registration form." />}
+
                         <Outlet />
 
                         {index < len - 1 && (
                             <div className="sticky bottom-0 flex w-full justify-end mt-12 py-4 bg-white border-t space-x-4">
                                 <Button
+                                    type="button"
                                     disabled={index == 0 || isRegistrationLoading || isPaymentLoading}
                                     variant={"ghost"}
                                     className="disabled:opacity-0"
@@ -252,7 +300,7 @@ export default function Home() {
                                 >
                                     Back
                                 </Button>
-                                <Button disabled={isRegistrationLoading || isPaymentLoading} onClick={goToNext}>
+                                <Button type="button" disabled={isRegistrationLoading || isPaymentLoading} onClick={goToNext}>
                                     {index >= len - 2 ? "Submit" : "Next"}
                                 </Button>
                             </div>
