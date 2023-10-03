@@ -14,6 +14,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { PaymentIntent } from "@/payment-types";
 import { popupCenter } from "@/lib/utils";
 import Alert from "@/components/ui/alert";
+import { ClientResponseError } from "pocketbase";
 
 const routes: Record<FormDetailsFormGroupOptions, string> = {
     welcome: "/",
@@ -204,7 +205,7 @@ export default function Home() {
     const { initiatePayment, intentStatus, isPaymentLoading } = usePayment(
         () => navigate(`/registration${routes.done}`)
     );
-    const { mutate: submitForm, data: registrationRecord, isLoading: isRegistrationLoading } = useRegistrationMutation();
+    const { mutate: submitForm, data: registrationRecord, isError, error, isLoading: isRegistrationLoading } = useRegistrationMutation();
 
     const goToPrev = () => {
         if (index - 1 < 0) {
@@ -286,12 +287,12 @@ export default function Home() {
                                 }
                             })}
                         >
-                            {!context.form.formState.isValid &&
+                            {(isError || Object.keys(context.form.formState.errors).length > 0) &&
                                 <Alert
                                     icon="AlertCircle"
                                     variant="destructive"
                                     className="text-left mb-4"
-                                    description="Oops! There seems to be an error with your registration form." />}
+                                    description={error instanceof ClientResponseError ? error.message : 'Oops! There seems to be an error with your registration form.'} />}
 
                             <Outlet />
 
