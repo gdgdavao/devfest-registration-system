@@ -15,7 +15,7 @@ import {
     FieldValues,
     useFormContext,
 } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel } from "./ui/form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import ComboBox from "./ComboBox";
 
 export type FormFieldRendererProps<T extends FieldValues = FieldValues> = {
@@ -105,6 +105,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
                                                 {...fieldProps}
                                             />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -116,7 +117,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
     }
 
     if (field.type === "email") {
-        return <Input type="email" {...props} />;
+        return <Input type="email" defaultValue={props.value} {...props} />;
     }
 
     if (field.type === "bool") {
@@ -137,5 +138,5 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
         );
     }
 
-    return <Input type="text" {...props} />;
+    return <Input type="text" defaultValue={props.value} {...props} />;
 }

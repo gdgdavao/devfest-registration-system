@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Stepper from "./Home/Stepper";
 import { FormDetailsFormGroupOptions, RegistrationsResponse } from "@/pocketbase-types";
-import { useAttachPaymentIntentMutation, useInitiatePaymentMutation, usePaymentIntentQuery, usePaymentMethodMutation, useRegistrationMutation } from "@/client";
+import { RegistrationRecord, useAttachPaymentIntentMutation, useInitiatePaymentMutation, usePaymentIntentQuery, usePaymentMethodMutation, useRegistrationMutation } from "@/client";
 import { Form } from "@/components/ui/form";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { PaymentIntent } from "@/payment-types";
@@ -168,6 +168,18 @@ export default function Home() {
     const navigate = useNavigate();
     const [index, setIndex] = useState(0);
     const context = useSetupRegistrationForm({
+        extraFields: [
+            {
+                group: "payment",
+                type: "text",
+                name: "payment_data.payment_method",
+                title: "Payment Method",
+                description: "",
+                options: {
+                    required: true
+                }
+            }
+        ],
         onSubmit: (data, onError) => {
             if (registrationRecord) {
                 initiatePayment(registrationRecord, data.payment_data!.payment_method)
@@ -197,12 +209,25 @@ export default function Home() {
         navigate(`/registration${routes[groups[index - 1]]}`);
     }
 
+    const getFieldsOf = (index: number) => {
+        return (context.fields.data ?? []).filter(f => f.group === groups[index])
+            .map(f => f.type === 'relation' ? f.name + '_data' : f.name) as (keyof RegistrationRecord)[];
+    }
+
     const goToNext = () => {
-        if (groups[index] !== 'payment') {
-            navigate(`/registration${routes[groups[index + 1]]}`);
-        } else {
-            context.onFormSubmit(context.form.getValues());
-        }
+        context.form.trigger(getFieldsOf(index))
+            .then((isValid) => {
+                if (isValid) {
+                    const fieldsToClear = getFieldsOf(index + 1);
+                    context.form.clearErrors(fieldsToClear as (keyof RegistrationRecord)[]);
+                    if (groups[index] !== 'payment') {
+                        navigate(`/registration${routes[groups[index + 1]]}`);
+                    } else {
+                        context.onFormSubmit(context.form.getValues());
+                    }
+                }
+            });
+
     }
 
     useEffect(() => {
@@ -245,6 +270,7 @@ export default function Home() {
                         {index < len - 1 && (
                             <div className="sticky bottom-0 flex w-full justify-end mt-12 py-4 bg-white border-t space-x-4">
                                 <Button
+                                    type="button"
                                     disabled={index == 0 || isRegistrationLoading || isPaymentLoading}
                                     variant={"ghost"}
                                     className="disabled:opacity-0"
@@ -252,7 +278,7 @@ export default function Home() {
                                 >
                                     Back
                                 </Button>
-                                <Button disabled={isRegistrationLoading || isPaymentLoading} onClick={goToNext}>
+                                <Button type="button" disabled={isRegistrationLoading || isPaymentLoading} onClick={goToNext}>
                                     {index >= len - 2 ? "Submit" : "Next"}
                                 </Button>
                             </div>

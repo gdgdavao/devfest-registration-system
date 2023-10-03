@@ -93,6 +93,7 @@ function PaymentMethodFormRenderer({ value, onChange }: FormFieldRendererProps) 
                             </div>
 
                             <Button
+                                type="button"
                                 onClick={() => onChange(method.id)}
                                 variant={value === method.id ? 'secondary' : 'default'}>
                                 {value === method.id ? 'Selected' : 'Select'}
@@ -183,16 +184,6 @@ export default function Payment() {
             <RegistrationForm
                 noLabel={["payment"]}
                 group="payment"
-                extraFields={[
-                    {
-                        group: "payment",
-                        type: "text",
-                        name: "payment_data.payment_method",
-                        title: "Payment Method",
-                        description: "",
-                        options: {}
-                    }
-                ]}
                 customComponents={{
                     "payment_data.payment_method": PaymentMethodFormRenderer,
                     "payment.expected_amount": ExpectedAmountFormRenderer,

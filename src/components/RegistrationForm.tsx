@@ -1,4 +1,4 @@
-import { RegistrationField, RegistrationRecord } from "@/client";
+import { RegistrationRecord } from "@/client";
 import { useRegistrationForm } from "@/registration-form";
 import {
     FormControl,
@@ -6,6 +6,7 @@ import {
     FormField,
     FormItem,
     FormLabel,
+    FormMessage,
 } from "./ui/form";
 import FormFieldRenderer, { FormFieldRendererProps } from "./FormFieldRenderer";
 import TopicInterestFormRenderer from "./form_renderers/TopicInterestFormRenderer";
@@ -22,16 +23,12 @@ export default function RegistrationForm({
     group = "all",
     noLabel = false,
     customComponents = {},
-    rename = {},
-    extraFields = []
 }: {
     data?: RegistrationRecord;
     asChild?: boolean;
     group?: FormGroup;
     noLabel?: boolean | string[];
     children?: ReactNode;
-    rename?: Record<string, string>;
-    extraFields?: RegistrationField[];
     customComponents?: Partial<
         Record<
             keyof RegistrationRecord | string,
@@ -64,13 +61,12 @@ export default function RegistrationForm({
 
     return (
         <div className="w-full flex flex-col space-y-2">
-            {extraFields
-                .concat(...(data ?? []))
+            {(data ?? [])
                 .filter((f) => (group !== "all" ? f.group === group : true))
                 .map((field) => (
                     <FormField
                         control={form.control}
-                        name={(rename[field.name] ?? field.name) as never}
+                        name={field.name as never}
                         key={`registration_${field.name}`}
                         render={({ field: ofield }) => (
                             <FormItem>
@@ -88,7 +84,6 @@ export default function RegistrationForm({
                                     <FormFieldRenderer
                                         {...ofield}
                                         field={field}
-                                        rename={rename}
                                         customComponents={{
                                             ticket: RichTicketFormRenderer,
                                             "merch_sensing_data.preferred_offered_merch":
@@ -102,6 +97,7 @@ export default function RegistrationForm({
                                         }}
                                     />
                                 </FormControl>
+                                <FormMessage />
                             </FormItem>
                         )}
                     />

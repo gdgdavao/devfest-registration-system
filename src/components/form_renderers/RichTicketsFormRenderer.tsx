@@ -8,12 +8,12 @@ import { useEffect } from "react";
 
 const currentFormatter = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' });
 
-export default function RichTicketFormRenderer({ value = [], onChange }: FormFieldRendererProps) {
+export default function RichTicketFormRenderer({ value, onChange }: FormFieldRendererProps) {
     const { data } = useTicketTypesQuery();
 
     useEffect(() => {
         if (typeof data !== 'undefined' && data.length === 1) {
-            onChange(data.map(d => d.id));
+            onChange(data[0].id);
         }
     }, [data]);
 
@@ -39,11 +39,11 @@ export default function RichTicketFormRenderer({ value = [], onChange }: FormFie
 
                         <Button
                             type="button"
-                            variant={value.includes(ticket.id) ? 'secondary' : 'default'}
-                            onClick={() => onChange(value.includes(ticket.id) ? value.filter((id: string) => id !== ticket.id) : value.concat(ticket.id))}
+                            variant={value === ticket.id ? 'secondary' : 'default'}
+                            onClick={() => onChange(ticket.id)}
                             disabled={data.length === 1}
                             className="w-full">
-                            {value.includes(ticket.id) ? (data.length === 1 ? 'Selected' : 'Remove') : 'Select'}
+                            {value === ticket.id ? (data.length === 1 ? 'Pre-selected' : 'Remove') : 'Select'}
                         </Button>
                     </CardFooter>
                 </Card>
