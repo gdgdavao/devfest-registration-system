@@ -7,21 +7,33 @@ import { RegistrationsTypeOptions } from "@/pocketbase-types";
 import StudentIconImg from "@/assets/student_icon.png";
 import ProIconImg from "@/assets/prof_icon.png";
 import RegistrationSection from "@/components/layouts/RegistrationSection";
+import { useFormGroupQuery } from "@/client";
 
 function RegistrationTypeFormRenderer({ field, ...props }: FormFieldRendererProps) {
+    const { data } = useFormGroupQuery<{
+        student_title: string
+        student_description: string
+        professional_title: string
+        professional_description: string
+    }>("welcome");
+
     return <div className="flex w-auto gap-x-4 py-4">
         <UserType
             {...props}
+            className="w-1/2"
             image={StudentIconImg}
             id={RegistrationsTypeOptions.student}
-            title="Student"
+            title={data?.custom_content?.student_title}
+            description={data?.custom_content?.student_description}
             field={field} />
 
         <UserType
             {...props}
+            className="w-1/2"
             image={ProIconImg}
             id={RegistrationsTypeOptions.professional}
-            title="Professional"
+            title={data?.custom_content?.professional_title}
+            description={data?.custom_content?.professional_description}
             field={field} />
     </div>
 }

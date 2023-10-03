@@ -27,9 +27,7 @@ export default function UserType({ id, image, title, description, value, classNa
                     <img src={image} alt={title || "Student"} className="w-auto h-64 mb-4" />
                 ) : <div className="w-40 h-40 bg-secondary mb-4" />}
 
-                <CardTitle>
-                    I am a {title || "Student"}.
-                </CardTitle>
+                <CardTitle>{title}</CardTitle>
 
                 {parseHtml(
                     description ||
