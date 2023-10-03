@@ -36,8 +36,8 @@ export default function TopicInterestFormRenderer({
             <div className="flex flex-col space-y-3">
                 {topics?.map((topic) => (
                     <Card key={`topic_${topic.key}`}>
-                        <CardContent className="flex pt-6 flex-row items-center">
-                            <div className="w-1/2 space-y-2">
+                        <CardContent className="flex pt-6 flex-col md:flex-row items-center">
+                            <div className="w-full md:w-1/2 space-y-2 mb-8 md:mb-0">
                                 {topic.icon &&
                                     <img
                                         src={pb.files.getUrl(topic, topic.icon, { 'thumb': '0x30' })}
@@ -45,7 +45,7 @@ export default function TopicInterestFormRenderer({
                                 <p>{topic.topic_name}</p>
                             </div>
 
-                            <div className="w-1/2 flex flex-col">
+                            <div className="w-full md:w-1/2 flex flex-col">
                                 <LikertSlider
                                     onChange={(v) => setSelected(s => ({ ...s, [topic.key]: v }))}
                                     value={selected[topic.key]}
@@ -59,7 +59,7 @@ export default function TopicInterestFormRenderer({
                                     <div>😄</div>
                                 </div>
 
-                                <p className="text-center">{selected[topic.key]}</p>
+                                <p className="mt-4 text-left md:text-center">{selected[topic.key]}</p>
                             </div>
                         </CardContent>
                     </Card>
