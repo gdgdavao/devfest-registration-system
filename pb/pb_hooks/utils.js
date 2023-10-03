@@ -223,6 +223,10 @@ module.exports = {
             let shouldExpand = false;
             let group = "";
 
+            options = Object.assign(options, {
+                required: field.required
+            });
+
             try {
                 const detailRecord = new Record();
                 const key = _options.parentKey ? `${_options.parentKey}.${field.name}` : field.name;
