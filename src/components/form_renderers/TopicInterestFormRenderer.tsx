@@ -3,13 +3,14 @@ import { useEffect } from "react";
 import LikertSlider from "@/components/form_renderers/LikertSlider";
 import { pb, useTopicInterestsQuery } from "@/client";
 import { Card, CardContent } from "../ui/card";
+import Loading from "../Loading";
 
 export default function TopicInterestFormRenderer({
     onChange,
     value = {},
     field,
 }: FormFieldRendererProps) {
-    const { data: topics } = useTopicInterestsQuery();
+    const { data: topics, isLoading } = useTopicInterestsQuery();
     const values = (field.options.values as string[]).slice().reverse();
     const selected = value as Record<string, string>;
     const setSelected = (
@@ -32,7 +33,11 @@ export default function TopicInterestFormRenderer({
     }, [value, onChange, selected, topics, values]);
 
     return (
-        <div>
+        <div className="relative">
+            {isLoading && <div className="bg-white/40 h-full w-full absolute inset-0 flex flex-col py-24">
+                <Loading className="w-48 mx-auto" />
+            </div>}
+
             <div className="flex flex-col space-y-3">
                 {topics?.map((topic) => (
                     <Card key={`topic_${topic.key}`}>
