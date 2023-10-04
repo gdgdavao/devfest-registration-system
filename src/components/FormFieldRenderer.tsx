@@ -17,6 +17,7 @@ import {
 } from "react-hook-form";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import ComboBox from "./ComboBox";
+import FileFormRenderer from "./form_renderers/FileFormRenderer";
 
 export type FormFieldRendererProps<T extends FieldValues = FieldValues> = {
     field: RegistrationField;
@@ -143,6 +144,10 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
                 </label>
             </div>
         );
+    }
+
+    if (field.type === "file") {
+        return <FileFormRenderer field={field} {...props} />
     }
 
     return <Input type="text" placeholder={placeholder} defaultValue={props.value} {...props} />;
