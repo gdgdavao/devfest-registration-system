@@ -757,6 +757,73 @@
         "options": {}
     },
     {
+        "id": "0pmyt29dlz9zh7u",
+        "name": "topic_interests",
+        "type": "base",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "eq8gq7pe",
+                "name": "topic_name",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "b8of2azr",
+                "name": "key",
+                "type": "text",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "pattern": ""
+                }
+            },
+            {
+                "system": false,
+                "id": "qq6vcl3n",
+                "name": "icon",
+                "type": "file",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "maxSize": 5242880,
+                    "mimeTypes": [
+                        "image/jpeg",
+                        "image/png",
+                        "image/svg+xml",
+                        "image/gif",
+                        "image/webp"
+                    ],
+                    "thumbs": [
+                        "0x30"
+                    ],
+                    "protected": false
+                }
+            }
+        ],
+        "indexes": [],
+        "listRule": "",
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {}
+    },
+    {
         "id": "boik9xw2mpob3lt",
         "name": "registrations",
         "type": "base",
@@ -999,15 +1066,15 @@
             },
             {
                 "system": false,
-                "id": "byagvm8b",
+                "id": "di58xpht",
                 "name": "payment",
                 "type": "relation",
                 "required": false,
-                "presentable": true,
+                "presentable": false,
                 "unique": false,
                 "options": {
-                    "collectionId": "11z5ibl11dbde71",
-                    "cascadeDelete": true,
+                    "collectionId": "eouudss2qmvmo39",
+                    "cascadeDelete": false,
                     "minSelect": null,
                     "maxSelect": 1,
                     "displayFields": null
@@ -1025,45 +1092,33 @@
         "options": {}
     },
     {
-        "id": "0pmyt29dlz9zh7u",
-        "name": "topic_interests",
+        "id": "eouudss2qmvmo39",
+        "name": "manual_payments",
         "type": "base",
         "system": false,
         "schema": [
             {
                 "system": false,
-                "id": "eq8gq7pe",
-                "name": "topic_name",
-                "type": "text",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            },
-            {
-                "system": false,
-                "id": "b8of2azr",
-                "name": "key",
-                "type": "text",
-                "required": true,
-                "presentable": false,
-                "unique": false,
-                "options": {
-                    "min": null,
-                    "max": null,
-                    "pattern": ""
-                }
-            },
-            {
-                "system": false,
-                "id": "qq6vcl3n",
-                "name": "icon",
-                "type": "file",
+                "id": "wtandpok",
+                "name": "registrant",
+                "type": "relation",
                 "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "boik9xw2mpob3lt",
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "n873hoa3",
+                "name": "receipt",
+                "type": "file",
+                "required": true,
                 "presentable": false,
                 "unique": false,
                 "options": {
@@ -1076,15 +1131,53 @@
                         "image/gif",
                         "image/webp"
                     ],
-                    "thumbs": [
-                        "0x30"
-                    ],
-                    "protected": false
+                    "thumbs": [],
+                    "protected": true
+                }
+            },
+            {
+                "system": false,
+                "id": "g4mz3ecg",
+                "name": "transaction_details",
+                "type": "json",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {}
+            },
+            {
+                "system": false,
+                "id": "g44gsebc",
+                "name": "amount_paid",
+                "type": "number",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "noDecimal": false
+                }
+            },
+            {
+                "system": false,
+                "id": "9yun7csr",
+                "name": "expected_amount",
+                "type": "number",
+                "required": true,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "noDecimal": false
                 }
             }
         ],
-        "indexes": [],
-        "listRule": "",
+        "indexes": [
+            "CREATE INDEX `idx_hq3jw5P` ON `manual_payments` (`registrant`)"
+        ],
+        "listRule": null,
         "viewRule": null,
         "createRule": null,
         "updateRule": null,

@@ -6,7 +6,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Stepper from "./Home/Stepper";
-import { FormDetailsFormGroupOptions, PaymentsRecord, RegistrationsResponse } from "@/pocketbase-types";
+import { FormDetailsFormGroupOptions, RegistrationsResponse } from "@/pocketbase-types";
 import { RegistrationRecord, useAttachPaymentIntentMutation, useInitiatePaymentMutation, usePaymentIntentQuery, usePaymentMethodMutation, useRegistrationMutation } from "@/client";
 import { Form } from "@/components/ui/form";
 import HeaderImg from "../assets/header.png";
@@ -200,31 +200,35 @@ export default function Home() {
             }
         ],
         onSubmit: (data, onError) => {
-            const payment_data = data.payment_data as ((PaymentsRecord & { payment_method: string }) | null)
-
-            if (registrationRecord) {
-                initiatePayment(registrationRecord, payment_data!.payment_method)
-                    .catch(onError);
-                return;
-            }
+            // const payment_data = data.payment_data as ((PaymentsRecord & { payment_method: string }) | null)
+            // if (registrationRecord) {
+            //     initiatePayment(registrationRecord, payment_data!.payment_method)
+            //         .catch(onError);
+            //     return;
+            // }
 
             submitForm(data, {
                 onError,
-                onSuccess(record) {
-                    initiatePayment(record, payment_data!.payment_method)
-                        .catch(onError);
+                onSuccess() {
+                    // initiatePayment(record, payment_data!.payment_method)
+                    //     .catch(onError);
+
+                    context.removePersistedFormData();
+                    navigate(`/registration${routes.done}`, { state: { from: 'payments-done' } });
                 }
             });
+            // console.log(onError)
         },
     });
 
-    const { initiatePayment, intentStatus, isPaymentLoading } = usePayment(
-        () => {
-            context.removePersistedFormData();
-            navigate(`/registration${routes.done}`, { state: { from: 'payments-done' } });
-        }
-    );
-    const { mutate: submitForm, data: registrationRecord, isError, error, isLoading: isRegistrationLoading } = useRegistrationMutation();
+    const isPaymentLoading = false;
+    // const { isPaymentLoading } = usePayment(
+    //     () => {
+    //         context.removePersistedFormData();
+    //         navigate(`/registration${routes.done}`, { state: { from: 'payments-done' } });
+    //     }
+    // );
+    const { mutate: submitForm, isError, error, isLoading: isRegistrationLoading } = useRegistrationMutation();
 
     const goToPrev = () => {
         if (index - 1 < 0) {
@@ -308,7 +312,7 @@ export default function Home() {
         <SubmissionProcessDialog
             isPaymentLoading={isPaymentLoading}
             isRegistrationLoading={isRegistrationLoading}
-            intentStatus={intentStatus} />
+            intentStatus={''} />
 
         <main className="flex flex-col w-full">
             <header
