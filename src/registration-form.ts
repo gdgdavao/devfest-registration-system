@@ -118,7 +118,11 @@ export function buildValidationSchema(fields: RegistrationField[], level = 0) {
             rawSchema[field.name] = Joi.any();
             continue;
         } else if (field.type === "number") {
-            const validator = Joi.number();
+            let validator = Joi.number();
+            if (field.options.required) {
+                validator = validator.required();
+            }
+
             rawSchema[field.name] = validator.messages(messages);
             continue;
         } else if (field.type === "bool") {
@@ -126,7 +130,11 @@ export function buildValidationSchema(fields: RegistrationField[], level = 0) {
             rawSchema[field.name] = validator.messages(messages);
             continue;
         } else if (field.type === "file") {
-            const validator = Joi.any();
+            let validator = Joi.any();
+            if (field.options.required) {
+                validator = validator.required();
+            }
+
             rawSchema[field.name] = validator.messages(messages);
             continue;
         }
