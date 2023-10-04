@@ -13,7 +13,7 @@ import HeaderImg from "../assets/header.png";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { PaymentIntent } from "@/payment-types";
 import { popupCenter } from "@/lib/utils";
-import Alert from "@/components/ui/alert";
+import Alert, { AlertDescription } from "@/components/ui/alert";
 import { ClientResponseError } from "pocketbase";
 import Loading from "@/components/Loading";
 import Footer from "@/components/Footer";
@@ -186,6 +186,7 @@ export default function Home() {
     const navigate = useNavigate();
     const [index, setIndex] = useState(0);
     const context = useSetupRegistrationForm({
+        persistData: true,
         extraFields: [
             {
                 group: "payment",
@@ -218,7 +219,10 @@ export default function Home() {
     });
 
     const { initiatePayment, intentStatus, isPaymentLoading } = usePayment(
-        () => navigate(`/registration${routes.done}`)
+        () => {
+            context.removePersistedFormData();
+            navigate(`/registration${routes.done}`);
+        }
     );
     const { mutate: submitForm, data: registrationRecord, isError, error, isLoading: isRegistrationLoading } = useRegistrationMutation();
 
@@ -337,6 +341,25 @@ export default function Home() {
                                     variant="destructive"
                                     className="text-left mb-4"
                                     description={error instanceof ClientResponseError ? error.message : 'Oops! There seems to be an error with your registration form.'} />}
+
+                            {context.isLoadedFromPersistedData &&
+                                <Alert
+                                    icon="Info"
+                                    variant="info"
+                                    className="text-left mb-4">
+                                    <AlertDescription className="-my-2">
+                                        We have saved your form! Not your data?
+                                        <Button
+                                            variant="link"
+                                            className="px-3"
+                                            type="button"
+                                            onClick={() => {
+                                                context.resetFormToDefault();
+                                                navigate(`/registration${routes[groups[0]]}`);
+                                            }}>Reset your form.</Button>
+                                    </AlertDescription>
+                                </Alert>}
+
 
                             <Outlet />
 
