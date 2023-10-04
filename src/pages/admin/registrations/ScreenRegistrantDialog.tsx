@@ -113,7 +113,13 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
                         <div className="flex flex-row pt-4">
                             <div className="flex-1 flex flex-col">
                                 <span className="text-slate-500">Is Fresh Graduate?</span>
-                                <p className="font-bold">{registrant?.expand?.professional_profile?.is_fresh_graduate}</p>
+                                <p className="font-bold">
+                                    {
+                                        registrant?.expand?.professional_profile?.is_fresh_graduate ?
+                                        <span>Yes</span> :
+                                        <span>No</span>
+                                    }
+                                </p>
                             </div>
 
                             <div className="flex-1 flex flex-col">
