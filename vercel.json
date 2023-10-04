@@ -4,5 +4,8 @@
     "outputDirectory": "dist",
     "github": {
         "enabled": false
-    }
+    },
+    "rewrites":  [
+        {"source": "/(.*)", "destination": "/"}
+    ]
 }
