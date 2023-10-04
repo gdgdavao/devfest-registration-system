@@ -136,6 +136,7 @@ export function useRegistrationMutation() {
         const fd = jsonToFormData(entryData);
         const gotRecord = await pb.collection(Collections.Registrations).create<RegistrationsResponse>(fd);
         const paymentRecord = await pb.collection(Collections.ManualPayments).create<ManualPaymentsResponse>(jsonToFormData({
+            registrant: gotRecord.id,
             receipt: record.payment_data?.receipt,
             expected_amount: record.payment_data?.expected_amount,
             transaction_details: JSON.stringify(
@@ -144,8 +145,25 @@ export function useRegistrationMutation() {
             )
         }));
 
+        const extra: Record<string, string> = {};
+        if (record.student_profile_data) {
+            const profileRecord = await pb.collection(Collections.StudentProfiles).create<StudentProfilesResponse>(jsonToFormData({
+                registrant: gotRecord.id,
+                ...record.student_profile_data
+            }));
+
+            extra['student_profile_data'] = profileRecord.id;
+        } else if (record.professional_profile_data) {
+            const profileRecord = await pb.collection(Collections.ProfessionalProfiles).create<ProfessionalProfilesResponse>(jsonToFormData({
+                registrant: gotRecord.id,
+                ...record.professional_profile_data
+            }));
+
+            extra['professional_profile_data'] = profileRecord.id;
+        }
+
         return await pb.collection(Collections.Registrations)
-            .update<RegistrationsResponse>(gotRecord.id, { payment: paymentRecord.id });
+            .update<RegistrationsResponse>(gotRecord.id, { payment: paymentRecord.id, ...extra });
     });
 }
 
