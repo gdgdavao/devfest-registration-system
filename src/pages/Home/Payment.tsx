@@ -11,7 +11,10 @@ import { useFormContext } from "react-hook-form";
 
 import IconCard from "~icons/material-symbols/add-card";
 import { JSX } from "react/jsx-runtime";
-import { usePaymentMethodsQuery } from "@/client";
+import { useFormGroupQuery, usePaymentMethodsQuery } from "@/client";
+import Loading from "@/components/Loading";
+import parseHtml, { domToReact, Element } from "html-react-parser";
+import TransactionReceiptFormRenderer from "@/components/form_renderers/TransactionReceiptFormRenderer";
 
 const PaymentIcons = {
     "card": IconCard,
@@ -73,6 +76,34 @@ const PaymentIcons = {
                 />
         </svg>
     )
+}
+
+function ManualPaymentMethodFormRenderer({ onChange }: FormFieldRendererProps) {
+    const { data, isLoading } = useFormGroupQuery<{ payment_instructions: string }>("payment");
+
+    useEffect(() => {
+        onChange("gcash");
+    }, []);
+
+    return (<div className="relative">
+        {(!data && isLoading) ? (
+            <div className="bg-white/40 h-full w-full absolute inset-0 flex flex-col py-24">
+                <Loading className="w-48 mx-auto" />
+            </div>
+        ) : (
+            <div>
+                {parseHtml(data?.custom_content?.payment_instructions ?? '<p>No instructions found.</p>', {
+                    replace: (domNode) => {
+                        if (domNode instanceof Element && domNode.tagName === "ul") {
+                            return <ol className="my-6 ml-6 list-disc [&>li]:mt-2">
+                                {domToReact(domNode.children)}
+                            </ol>;
+                        }
+                    }
+                })}
+            </div>
+        )}
+    </div>);
 }
 
 function PaymentMethodFormRenderer({ value, onChange }: FormFieldRendererProps) {
@@ -147,7 +178,7 @@ function ExpectedAmountFormRenderer({ value, onChange }: FormFieldRendererProps)
                             </div>)}
                     </div>}
 
-                    {selectedPaymentMethod && <div className="flex flex-row items-center py-2 justify-between">
+                    {(selectedPaymentMethod && selectedPaymentMethod.processorRate > 0) && <div className="flex flex-row items-center py-2 justify-between">
                         <p>Processor Fee ({(selectedPaymentMethod.processorRate * 100).toFixed(1)}%{selectedPaymentMethod.extraProcessorFee > 0 ? ` + ${currencyFormatter.format(selectedPaymentMethod.extraProcessorFee)}` : ``})</p>
                         <p className="font-bold">{currencyFormatter.format(processorFee)}</p>
                     </div>}
@@ -183,8 +214,9 @@ export default function Payment() {
                 noLabel={["payment"]}
                 group="payment"
                 customComponents={{
-                    "payment_data.payment_method": PaymentMethodFormRenderer,
+                    "payment_data.payment_method": ManualPaymentMethodFormRenderer,
                     "payment.expected_amount": ExpectedAmountFormRenderer,
+                    "payment.transaction_details": TransactionReceiptFormRenderer,
                 }} />
         </RegistrationSection>
     );
