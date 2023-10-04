@@ -221,12 +221,13 @@ export default function Home() {
         },
     });
 
-    const { intentStatus, isPaymentLoading } = usePayment(
-        () => {
-            context.removePersistedFormData();
-            navigate(`/registration${routes.done}`, { state: { from: 'payments-done' } });
-        }
-    );
+    const isPaymentLoading = false;
+    // const { isPaymentLoading } = usePayment(
+    //     () => {
+    //         context.removePersistedFormData();
+    //         navigate(`/registration${routes.done}`, { state: { from: 'payments-done' } });
+    //     }
+    // );
     const { mutate: submitForm, isError, error, isLoading: isRegistrationLoading } = useRegistrationMutation();
 
     const goToPrev = () => {
@@ -311,7 +312,7 @@ export default function Home() {
         <SubmissionProcessDialog
             isPaymentLoading={isPaymentLoading}
             isRegistrationLoading={isRegistrationLoading}
-            intentStatus={intentStatus} />
+            intentStatus={''} />
 
         <main className="flex flex-col w-full">
             <header
