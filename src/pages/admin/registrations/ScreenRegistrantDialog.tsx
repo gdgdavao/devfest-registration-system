@@ -53,10 +53,22 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
                     <div className="flex-1 flex flex-col">
                         <span className="text-slate-500">Ticket Type</span>
                         <p className="font-bold">{registrant?.expand?.ticket?.name}</p>
+                        <p className="font-bold">
+                            {
+                                registrant?.created &&
+                                new Date(registrant?.created).toLocaleString()
+                            }
+                        </p>
                     </div>
                     <div className="flex-1 flex flex-col">
                         <span className="text-slate-500">Payment Status</span>
                         <p className="font-bold">{registrant?.expand?.payment?.status}</p>
+                        <p className="font-bold">
+                            {
+                                registrant?.expand?.payment?.expected_amount && 
+                                <span>₱{registrant.expand.payment.expected_amount}</span>
+                            }
+                        </p>
                     </div>
                 </div>
 
@@ -82,7 +94,7 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
                 </div>
                 
                 {
-                    registrant?.expand?.student_profile ?
+                    registrant?.expand?.student_profile &&
                     <div className="flex flex-col space-y-2 py-4">
                         <span className="text-slate-500">Student Profile</span>
 
@@ -102,11 +114,10 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
                                 <p className="font-bold">{registrant?.expand?.student_profile?.year_level}</p>
                             </div>
                         </div>
-                    </div> :
-                    null
+                    </div> 
                 }
                 {
-                    registrant?.expand?.professional_profile ?
+                    registrant?.expand?.professional_profile &&
                     <div className="flex flex-col space-y-2 py-4">
                         <span className="text-slate-500">Professional Profile</span>
 
@@ -132,8 +143,7 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
                                 <p className="font-bold">{registrant?.expand?.professional_profile?.title}</p>
                             </div>
                         </div>
-                    </div> : 
-                    null
+                    </div> 
                 }
 
                 <div className="flex flex-col space-y-2 py-4">
@@ -167,14 +177,12 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
                                                     {addon?.expand?.addon.title}
                                                 </p>
                                                 {
-                                                    addon?.preferences
-                                                    ?
+                                                    addon?.preferences != undefined &&
                                                     Object.entries(addon?.preferences).map(([key, value], id) => (
                                                         <span key={id}>
                                                             <span>{key}:</span> {value}
                                                         </span>
                                                     ))
-                                                    : null
                                                 }
                                             </div>
                                             <div className="flex flex-col">
