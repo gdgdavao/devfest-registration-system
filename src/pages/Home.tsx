@@ -221,7 +221,7 @@ export default function Home() {
     const { initiatePayment, intentStatus, isPaymentLoading } = usePayment(
         () => {
             context.removePersistedFormData();
-            navigate(`/registration${routes.done}`);
+            navigate(`/registration${routes.done}`, { state: { from: 'payments-done' } });
         }
     );
     const { mutate: submitForm, data: registrationRecord, isError, error, isLoading: isRegistrationLoading } = useRegistrationMutation();
