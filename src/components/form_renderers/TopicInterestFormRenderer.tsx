@@ -10,7 +10,7 @@ export default function TopicInterestFormRenderer({
     field,
 }: FormFieldRendererProps) {
     const { data: topics } = useTopicInterestsQuery();
-    const values = (field.options.values as string[]).reverse();
+    const values = (field.options.values as string[]).slice().reverse();
     const selected = value as Record<string, string>;
     const setSelected = (
         cb: (s: Record<string, string>) => Record<string, string>

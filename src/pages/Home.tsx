@@ -6,14 +6,14 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Stepper from "./Home/Stepper";
-import { FormDetailsFormGroupOptions, PaymentsRecord, RegistrationsResponse } from "@/pocketbase-types";
+import { FormDetailsFormGroupOptions, RegistrationsResponse } from "@/pocketbase-types";
 import { RegistrationRecord, useAttachPaymentIntentMutation, useInitiatePaymentMutation, usePaymentIntentQuery, usePaymentMethodMutation, useRegistrationMutation } from "@/client";
 import { Form } from "@/components/ui/form";
 import HeaderImg from "../assets/header.png";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { PaymentIntent } from "@/payment-types";
 import { popupCenter } from "@/lib/utils";
-import Alert from "@/components/ui/alert";
+import Alert, { AlertDescription } from "@/components/ui/alert";
 import { ClientResponseError } from "pocketbase";
 import Loading from "@/components/Loading";
 import Footer from "@/components/Footer";
@@ -186,6 +186,7 @@ export default function Home() {
     const navigate = useNavigate();
     const [index, setIndex] = useState(0);
     const context = useSetupRegistrationForm({
+        persistData: true,
         extraFields: [
             {
                 group: "payment",
@@ -199,28 +200,35 @@ export default function Home() {
             }
         ],
         onSubmit: (data, onError) => {
-            const payment_data = data.payment_data as ((PaymentsRecord & { payment_method: string }) | null)
-
-            if (registrationRecord) {
-                initiatePayment(registrationRecord, payment_data!.payment_method)
-                    .catch(onError);
-                return;
-            }
+            // const payment_data = data.payment_data as ((PaymentsRecord & { payment_method: string }) | null)
+            // if (registrationRecord) {
+            //     initiatePayment(registrationRecord, payment_data!.payment_method)
+            //         .catch(onError);
+            //     return;
+            // }
 
             submitForm(data, {
                 onError,
-                onSuccess(record) {
-                    initiatePayment(record, payment_data!.payment_method)
-                        .catch(onError);
+                onSuccess() {
+                    // initiatePayment(record, payment_data!.payment_method)
+                    //     .catch(onError);
+
+                    context.removePersistedFormData();
+                    navigate(`/registration${routes.done}`, { state: { from: 'payments-done' } });
                 }
             });
+            // console.log(onError)
         },
     });
 
-    const { initiatePayment, intentStatus, isPaymentLoading } = usePayment(
-        () => navigate(`/registration${routes.done}`)
-    );
-    const { mutate: submitForm, data: registrationRecord, isError, error, isLoading: isRegistrationLoading } = useRegistrationMutation();
+    const isPaymentLoading = false;
+    // const { isPaymentLoading } = usePayment(
+    //     () => {
+    //         context.removePersistedFormData();
+    //         navigate(`/registration${routes.done}`, { state: { from: 'payments-done' } });
+    //     }
+    // );
+    const { mutate: submitForm, isError, error, isLoading: isRegistrationLoading } = useRegistrationMutation();
 
     const goToPrev = () => {
         if (index - 1 < 0) {
@@ -304,7 +312,7 @@ export default function Home() {
         <SubmissionProcessDialog
             isPaymentLoading={isPaymentLoading}
             isRegistrationLoading={isRegistrationLoading}
-            intentStatus={intentStatus} />
+            intentStatus={''} />
 
         <main className="flex flex-col w-full">
             <header
@@ -337,6 +345,25 @@ export default function Home() {
                                     variant="destructive"
                                     className="text-left mb-4"
                                     description={error instanceof ClientResponseError ? error.message : 'Oops! There seems to be an error with your registration form.'} />}
+
+                            {context.isLoadedFromPersistedData &&
+                                <Alert
+                                    icon="Info"
+                                    variant="info"
+                                    className="text-left mb-4">
+                                    <AlertDescription className="-my-2">
+                                        We have saved your form! Not your data?
+                                        <Button
+                                            variant="link"
+                                            className="px-3"
+                                            type="button"
+                                            onClick={() => {
+                                                context.resetFormToDefault();
+                                                navigate(`/registration${routes[groups[0]]}`);
+                                            }}>Reset your form.</Button>
+                                    </AlertDescription>
+                                </Alert>}
+
 
                             <Outlet />
 

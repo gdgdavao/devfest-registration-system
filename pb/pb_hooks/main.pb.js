@@ -185,24 +185,24 @@ routerAdd("POST", "/api/payments/initiate", (c) => {
 
 routerAdd("GET", "/api/payment-methods", (c) => {
     return c.json(200, [
-        {
-            id: "card",
-            label: "Credit Card",
-            processorRate: 0.035,
-            extraProcessorFee: 15
-        },
+        // {
+        //     id: "card",
+        //     label: "Credit Card",
+        //     processorRate: 0.035,
+        //     extraProcessorFee: 15
+        // },
         {
             id: "gcash",
             label: "GCash",
-            processorRate: 0.025,
+            processorRate: 0.0,
             extraProcessorFee: 0
         },
-        {
-            id: "paymaya",
-            label: "Maya",
-            processorRate: 0.02,
-            extraProcessorFee: 0
-        }
+        // {
+        //     id: "paymaya",
+        //     label: "Maya",
+        //     processorRate: 0.02,
+        //     extraProcessorFee: 0
+        // }
     ]);
 });
 
@@ -211,14 +211,17 @@ routerAdd("GET", "/assets/*", $apis.staticDirectoryHandler(`${__hooks}/assets`, 
 onRecordBeforeCreateRequest((e) => {
     const utils = require(`${__hooks}/utils.js`);
     const { profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
-    const data = $apis.requestInfo(e.httpContext).data;
+    const profile_data = JSON.parse(e.httpContext.formValueDefault(profileDataKey, "null"));
+    const addons_data = JSON.parse(e.httpContext.formValueDefault("addons_data", "[]"));
+    const payment_data = JSON.parse(e.httpContext.formValueDefault("payment_data", "null"));
+    const merch_sensing_data_data = JSON.parse(e.httpContext.formValueDefault("merch_sensing_data_data", "null"));
 
     try {
         // Validate
-        utils.validateRelationalData('addon_orders', data.addons_data);
-        utils.validateRelationalData('payments', data.payment_data);
-        utils.validateRelationalData(profileCollectionKey, data[profileDataKey]);
-        utils.validateRelationalData('merch_sensing_data', data.merch_sensing_data_data);
+        utils.validateRelationalData('addon_orders', addons_data);
+        utils.validateRelationalData('manual_payments', payment_data);
+        utils.validateRelationalData(profileCollectionKey, profile_data);
+        utils.validateRelationalData('merch_sensing_data', merch_sensing_data_data);
     } catch (e) {
         console.log(e);
         throw new BadRequestError("An error occurred while submitting the form.", e);
@@ -228,30 +231,40 @@ onRecordBeforeCreateRequest((e) => {
 onRecordAfterCreateRequest((e) => {
     const utils = require(`${__hooks}/utils.js`);
     const { profileKey, profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
-    const reqInfo = $apis.requestInfo(e.httpContext);
-    const data = reqInfo.data;
 
     try {
-        const addonOrders = data.addons_data ? data.addons_data.map(a => {
+        const profile_data = JSON.parse(e.httpContext.formValueDefault(profileDataKey, "null"))
+        const addons_data = JSON.parse(e.httpContext.formValueDefault("addons_data", "[]"));
+        // const payment_data = JSON.parse(e.httpContext.formValueDefault("payment_data", "null"));
+        const merch_sensing_data_data = JSON.parse(e.httpContext.formValueDefault("merch_sensing_data_data", "null"));
+
+        const addonOrders = addons_data ? addons_data.map(a => {
             const addonOrder = utils.saveRelationalData('addon_orders',
                 Object.assign({ registrant: e.record.id }, a));
             return addonOrder.id;
         }) : [];
         e.record.set('addons', addonOrders);
 
-        const paymentRecord = utils.saveRelationalData('payments',
-            Object.assign({
-                registrant: e.record.id, status: 'pending'
-            }, data.payment_data));
-        e.record.set('payment', paymentRecord.id);
+        /** @type {models.Record} */
+        // const paymentRecord = utils.saveRelationalData('manual_payments',
+        //     Object.assign({
+        //         registrant: e.record.id,
+        //         status: 'paid',
+        //     }, payment_data));
+
+        // const form = new RecordUpsertForm($app, paymentRecord);
+        // form.addFiles("receipt", e.httpContext.formFile("payment_data.receipt"));
+        // form.submit();
+
+        // e.record.set('payment', paymentRecord.id);
 
         const statusRecord = utils.saveRelationalData('registration_statuses', { registrant: e.record.id, status: 'pending' });
         e.record.set('status', statusRecord.id);
 
-        const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', Object.assign({ registrant: e.record.id }, data.merch_sensing_data_data));
+        const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', Object.assign({ registrant: e.record.id }, merch_sensing_data_data));
         e.record.set('merch_sensing_data', merchSensingDRecord.id);
 
-        utils.decodeAndSaveProfile(e.record, undefined, profileKey, profileCollectionKey, data[profileDataKey]);
+        utils.decodeAndSaveProfile(e.record, undefined, profileKey, profileCollectionKey, profile_data);
         $app.dao().saveRecord(e.record);
     } catch (e) {
         console.error(e);
@@ -262,12 +275,13 @@ onRecordAfterCreateRequest((e) => {
 onRecordBeforeUpdateRequest((e) => {
     const utils = require(`${__hooks}/utils.js`);
     const { profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
-    const data = $apis.requestInfo(e.httpContext).data;
+    const profile_data = JSON.parse(e.httpContext.formValueDefault(profileDataKey, "null"));
+    const merch_sensing_data_data = JSON.parse(e.httpContext.formValueDefault("merch_sensing_data_data", "null"));
 
     try {
         // Validate
-        utils.validateRelationalData(profileCollectionKey, data[profileDataKey]);
-        utils.validateRelationalData('merch_sensing_data', data.merch_sensing_data_data);
+        utils.validateRelationalData(profileCollectionKey, profile_data);
+        utils.validateRelationalData('merch_sensing_data', merch_sensing_data_data);
     } catch (e) {
         console.log(e);
         throw new BadRequestError("An error occurred while submitting the form.", e);
@@ -278,10 +292,11 @@ onRecordAfterUpdateRequest((e) => {
     const utils = require(`${__hooks}/utils.js`);
     const registrant = e.record.id;
     const { profileKey, profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
-    const data = $apis.requestInfo(e.httpContext).data;
+    const profile_data = JSON.parse(e.httpContext.formValueDefault(profileDataKey, "null"));
+    const merch_sensing_data_data = JSON.parse(e.httpContext.formValueDefault("merch_sensing_data_data", "null"));
 
     try {
-        if (data[profileDataKey] && Object.keys(data[profileDataKey]).length !== 0) {
+        if (profile_data && Object.keys(profile_data).length !== 0) {
             let oldProfileId = null;
 
             // Get opposite keys
@@ -306,13 +321,19 @@ onRecordAfterUpdateRequest((e) => {
             }
 
             // Create and save to record
-            utils.decodeAndSaveProfile(registrant, oldProfileId, profileKey, profileCollectionKey, data[profileDataKey]);
+            utils.decodeAndSaveProfile(registrant, oldProfileId, profileKey, profileCollectionKey, profile_data);
         }
 
-        const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', data.merch_sensing_data_data, e.record.getString('merch_sensing_data'));
+        const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', merch_sensing_data_data, e.record.getString('merch_sensing_data'));
         e.record.set('merch_sensing_data', merchSensingDRecord);
 
         $app.dao().saveRecord(e.record);
+
+        if (e.record.getString(profileKey).length != 0 && e.record.getString('payment').length != 0) {
+            const host = "http://" + e.httpContext.request().host;
+            // Send e-mail if it was not created from admin dashboard
+            utils.sendEmails('summary', `id = "${e.record.id}"`, host);
+        }
     } catch (e) {
         console.error(e);
         throw e;

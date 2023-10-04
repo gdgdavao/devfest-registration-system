@@ -48,6 +48,7 @@ export default function UserType({ id, image, title, description, value, classNa
 
             <CardFooter className="w-full flex justify-end md:justify-center">
                 <Button
+                    type="button"
                     variant={value === id ? 'secondary' : 'default'}
                     onClick={() => onChange(id)}
                     className="w-[50%] md:w-[70%] max-w-md">{value === id ? 'Selected' : 'Select'}</Button>

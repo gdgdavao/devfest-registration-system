@@ -1,8 +1,9 @@
 import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
-import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse, TopicInterestsResponse } from './pocketbase-types';
+import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse, TopicInterestsResponse, ManualPaymentsResponse, ManualPaymentsRecord } from './pocketbase-types';
 import { ErrorOption } from 'react-hook-form';
 import { CreatePaymentMethod, InitPaymentResult, PaymentIntent, PaymentMethod } from './payment-types';
+import jsonToFormData from 'json-form-data';
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -90,7 +91,8 @@ export type RegistrationsResponse = PBRegistrationsResponse<
         status: RegistrationStatusesResponse,
         student_profile?: StudentProfilesResponse,
         professional_profile?: ProfessionalProfilesResponse,
-        payment?: PaymentResponse,
+        // payment?: PaymentResponse,
+        payment?: ManualPaymentsResponse<{ transaction_id: string, mobile_number: string }>,
         addons: AddonOrdersResponse[],
         ticket: TicketTypesResponse
     }
@@ -100,7 +102,7 @@ const REGISTRATION_RESP_EXPAND = "status,student_profile,professional_profile,pa
 
 export interface RegistrationRecord extends RegistrationsRecord {
     addons_data?: AddonOrdersRecord[]
-    payment_data?: PaymentsRecord
+    payment_data?: ManualPaymentsRecord
     student_profile_data?: StudentProfilesRecord
     professional_profile_data?: ProfessionalProfilesRecord
     merch_sensing_data_data?: MerchSensingDataRecord
@@ -116,9 +118,52 @@ export interface RegistrationField {
 }
 
 export function useRegistrationMutation() {
-    return useMutation((record: RegistrationRecord) => {
-        return pb.collection(Collections.Registrations)
-            .create<RegistrationsResponse>(record);
+    return useMutation(async (record: RegistrationRecord) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const entryData: Record<string, any> = {
+            ...record,
+            payment_data: JSON.stringify({
+                expected_amount: record.payment_data?.expected_amount,
+                transaction_details: record.payment_data?.transaction_details,
+            }),
+            topic_interests: JSON.stringify(record.topic_interests),
+            addons_data: JSON.stringify(record.addons_data),
+            merch_sensing_data_data: JSON.stringify(record.merch_sensing_data_data),
+            student_profile_data: record.student_profile_data ? JSON.stringify(record.student_profile_data) : undefined,
+            professional_profile_data: record.professional_profile_data ? JSON.stringify(record.professional_profile_data) : undefined,
+        };
+
+        const fd = jsonToFormData(entryData);
+        const gotRecord = await pb.collection(Collections.Registrations).create<RegistrationsResponse>(fd);
+        const paymentRecord = await pb.collection(Collections.ManualPayments).create<ManualPaymentsResponse>(jsonToFormData({
+            registrant: gotRecord.id,
+            receipt: record.payment_data?.receipt,
+            expected_amount: record.payment_data?.expected_amount,
+            transaction_details: JSON.stringify(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                record.payment_data?.transaction_details as any,
+            )
+        }));
+
+        const extra: Record<string, string> = {};
+        if (record.student_profile_data) {
+            const profileRecord = await pb.collection(Collections.StudentProfiles).create<StudentProfilesResponse>(jsonToFormData({
+                registrant: gotRecord.id,
+                ...record.student_profile_data
+            }));
+
+            extra['student_profile'] = profileRecord.id;
+        } else if (record.professional_profile_data) {
+            const profileRecord = await pb.collection(Collections.ProfessionalProfiles).create<ProfessionalProfilesResponse>(jsonToFormData({
+                registrant: gotRecord.id,
+                ...record.professional_profile_data
+            }));
+
+            extra['professional_profile'] = profileRecord.id;
+        }
+
+        return await pb.collection(Collections.Registrations)
+            .update<RegistrationsResponse>(gotRecord.id, { payment: paymentRecord.id, ...extra });
     });
 }
 

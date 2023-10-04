@@ -21,6 +21,8 @@ interface RegistrationFormContextData {
     fields: ReturnType<typeof useRegistrationFieldsQuery>
     onFormSubmit: (data: RegistrationRecord) => void
     resetFormToDefault: () => void
+    removePersistedFormData: () => void
+    isLoadedFromPersistedData: boolean
 }
 
 const defaultValues = {
@@ -116,11 +118,23 @@ export function buildValidationSchema(fields: RegistrationField[], level = 0) {
             rawSchema[field.name] = Joi.any();
             continue;
         } else if (field.type === "number") {
-            const validator = Joi.number();
+            let validator = Joi.number();
+            if (field.options.required) {
+                validator = validator.required();
+            }
+
             rawSchema[field.name] = validator.messages(messages);
             continue;
         } else if (field.type === "bool") {
             const validator = Joi.bool();
+            rawSchema[field.name] = validator.messages(messages);
+            continue;
+        } else if (field.type === "file") {
+            let validator = Joi.any();
+            if (field.options.required) {
+                validator = validator.required();
+            }
+
             rawSchema[field.name] = validator.messages(messages);
             continue;
         }
@@ -149,14 +163,18 @@ export function buildValidationSchema(fields: RegistrationField[], level = 0) {
     return Joi.object(rawSchema);
 }
 
-export function useSetupRegistrationForm({ rename = {addons: 'addons_data'}, extraFields = [], onSubmit }: {
+const FORM_DATA_KEY = "_form_data_state";
+
+export function useSetupRegistrationForm({ rename = {addons: 'addons_data'}, extraFields = [], persistData = false, onSubmit }: {
     rename?: Record<string, string>;
     extraFields?: RegistrationField[];
+    persistData?: boolean;
     onSubmit?: (
         record: RegistrationRecord,
         onError: (err: unknown) => void
     ) => void;
 }): RegistrationFormContextData {
+    const [isLoadedFromPersistedData, setLoadedFromPersistedData] = useState(false);
     const [validationSchema, setValidationSchema] = useState(Joi.object());
     const form = useForm<RegistrationRecord>({
         resolver: joiResolver(validationSchema, {
@@ -168,7 +186,10 @@ export function useSetupRegistrationForm({ rename = {addons: 'addons_data'}, ext
     });
     const watchRegType = form.watch("type");
     const fieldsQuery = useRegistrationFieldsQuery({ participantType: watchRegType, rename, extraFields });
-    const resetFormToDefault = () => form.reset(defaultValues);
+    const resetFormToDefault = () => {
+        removePersistedFormData();
+        form.reset(defaultValues);
+    };
     const onFormSubmit = (data: RegistrationRecord) =>
         onSubmit?.(data, (err) =>
             handleFormServerSideError(err, (errors) => {
@@ -197,7 +218,17 @@ export function useSetupRegistrationForm({ rename = {addons: 'addons_data'}, ext
         }
     }
 
-    useEffect(loadForm, []);
+    const removePersistedFormData = () => localStorage.removeItem(FORM_DATA_KEY);
+
+    useEffect(() => {
+        const existingFormData = localStorage.getItem(FORM_DATA_KEY);
+        if (existingFormData) {
+            form.reset(JSON.parse(existingFormData));
+            setLoadedFromPersistedData(true);
+        }
+
+        loadForm();
+    }, []);
     useEffect(loadForm, [watchRegType, fieldsQuery.refetch]);
 
     useEffect(() => {
@@ -206,11 +237,30 @@ export function useSetupRegistrationForm({ rename = {addons: 'addons_data'}, ext
         }
     }, [fieldsQuery.data]);
 
+    useEffect(() => {
+        if (!persistData) return;
+        const subscription = form.watch((_, { type }) => {
+            if (type === "change") {
+                setLoadedFromPersistedData(s => {
+                    if (s) {
+                        return false;
+                    }
+                    return s;
+                });
+            }
+
+            localStorage.setItem(FORM_DATA_KEY, JSON.stringify(form.getValues()));
+        });
+        return () => subscription.unsubscribe();
+    }, [form]);
+
     return {
         form,
         fields: fieldsQuery,
         onFormSubmit,
-        resetFormToDefault
+        resetFormToDefault,
+        removePersistedFormData,
+        isLoadedFromPersistedData
     }
 }
 
