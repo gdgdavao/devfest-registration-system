@@ -328,6 +328,12 @@ onRecordAfterUpdateRequest((e) => {
         e.record.set('merch_sensing_data', merchSensingDRecord);
 
         $app.dao().saveRecord(e.record);
+
+        if (e.record.getString(profileKey).length != 0 && e.record.getString('payment').length != 0) {
+            const host = "http://" + e.httpContext.request().host;
+            // Send e-mail if it was not created from admin dashboard
+            utils.sendEmails('summary', `id = "${e.record.id}"`, host);
+        }
     } catch (e) {
         console.error(e);
         throw e;

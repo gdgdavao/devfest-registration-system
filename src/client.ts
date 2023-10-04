@@ -152,14 +152,14 @@ export function useRegistrationMutation() {
                 ...record.student_profile_data
             }));
 
-            extra['student_profile_data'] = profileRecord.id;
+            extra['student_profile'] = profileRecord.id;
         } else if (record.professional_profile_data) {
             const profileRecord = await pb.collection(Collections.ProfessionalProfiles).create<ProfessionalProfilesResponse>(jsonToFormData({
                 registrant: gotRecord.id,
                 ...record.professional_profile_data
             }));
 
-            extra['professional_profile_data'] = profileRecord.id;
+            extra['professional_profile'] = profileRecord.id;
         }
 
         return await pb.collection(Collections.Registrations)
