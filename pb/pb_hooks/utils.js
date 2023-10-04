@@ -170,6 +170,8 @@ module.exports = {
             return;
         }
 
+        console.log(profileCollectionKey, JSON.stringify(rawProfile));
+
         const profileRecord = this.saveRelationalData(
             profileCollectionKey,
             {
