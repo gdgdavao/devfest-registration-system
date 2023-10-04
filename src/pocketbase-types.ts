@@ -7,6 +7,7 @@ export enum Collections {
 	Addons = "addons",
 	FormDetails = "form_details",
 	FormGroups = "form_groups",
+	ManualPayments = "manual_payments",
 	MerchSensingData = "merch_sensing_data",
 	Payments = "payments",
 	ProfessionalProfiles = "professional_profiles",
@@ -87,6 +88,14 @@ export type FormGroupsRecord<Tcustom_content = unknown> = {
 	short_title?: string
 	show_in_stepper?: boolean
 	title: string
+}
+
+export type ManualPaymentsRecord<Ttransaction_details = unknown> = {
+	amount_paid?: number
+	expected_amount: number
+	receipt: string
+	registrant?: RecordIdString
+	transaction_details: null | Ttransaction_details
 }
 
 export enum MerchSensingDataMerchSpendingLimitOptions {
@@ -210,6 +219,7 @@ export type AddonOrdersResponse<Tpreferences = unknown, Texpand = unknown> = Req
 export type AddonsResponse<Tcustomization_options = unknown, Texpand = unknown> = Required<AddonsRecord<Tcustomization_options>> & BaseSystemFields<Texpand>
 export type FormDetailsResponse<Tcustom_options = unknown, Texpand = unknown> = Required<FormDetailsRecord<Tcustom_options>> & BaseSystemFields<Texpand>
 export type FormGroupsResponse<Tcustom_content = unknown, Texpand = unknown> = Required<FormGroupsRecord<Tcustom_content>> & BaseSystemFields<Texpand>
+export type ManualPaymentsResponse<Ttransaction_details = unknown, Texpand = unknown> = Required<ManualPaymentsRecord<Ttransaction_details>> & BaseSystemFields<Texpand>
 export type MerchSensingDataResponse<Tpreferred_offered_merch = unknown, Texpand = unknown> = Required<MerchSensingDataRecord<Tpreferred_offered_merch>> & BaseSystemFields<Texpand>
 export type PaymentsResponse<Texpand = unknown> = Required<PaymentsRecord> & BaseSystemFields<Texpand>
 export type ProfessionalProfilesResponse<Texpand = unknown> = Required<ProfessionalProfilesRecord> & BaseSystemFields<Texpand>
@@ -226,6 +236,7 @@ export type CollectionRecords = {
 	addons: AddonsRecord
 	form_details: FormDetailsRecord
 	form_groups: FormGroupsRecord
+	manual_payments: ManualPaymentsRecord
 	merch_sensing_data: MerchSensingDataRecord
 	payments: PaymentsRecord
 	professional_profiles: ProfessionalProfilesRecord
@@ -241,6 +252,7 @@ export type CollectionResponses = {
 	addons: AddonsResponse
 	form_details: FormDetailsResponse
 	form_groups: FormGroupsResponse
+	manual_payments: ManualPaymentsResponse
 	merch_sensing_data: MerchSensingDataResponse
 	payments: PaymentsResponse
 	professional_profiles: ProfessionalProfilesResponse
