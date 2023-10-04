@@ -19,7 +19,7 @@ export default function RegistrationSection({
 
     return (
         <div className="relative w-full flex flex-col items-center space-y-4">
-            {isLoading && <div className="bg-white/40 h-full w-full absolute inset-0 flex flex-col py-24">
+            {(typeof id != "undefined" && isLoading) && <div className="bg-white/40 h-full w-full absolute inset-0 flex flex-col py-24">
                 <Loading className="w-48 mx-auto" />
             </div>}
 
