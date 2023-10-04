@@ -125,6 +125,10 @@ export function buildValidationSchema(fields: RegistrationField[], level = 0) {
             const validator = Joi.bool();
             rawSchema[field.name] = validator.messages(messages);
             continue;
+        } else if (field.type === "file") {
+            const validator = Joi.any();
+            rawSchema[field.name] = validator.messages(messages);
+            continue;
         }
 
         let validator = Joi.string();

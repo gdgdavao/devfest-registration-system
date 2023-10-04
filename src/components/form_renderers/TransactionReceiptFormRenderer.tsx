@@ -35,7 +35,7 @@ export default function TransactionReceiptFormRenderer({ field }: FormFieldRende
                 <FormField
                     key={`${field.name}.${sfield.name}`}
                     control={form.control}
-                    name={`${field.name}_data.${sfield.name}`}
+                    name={`${field.name}.${sfield.name}`}
                     render={({ field: fieldProps }) => (
                         <FormItem>
                             <FormLabel className="font-medium">

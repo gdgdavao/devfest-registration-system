@@ -93,7 +93,7 @@ export type FormGroupsRecord<Tcustom_content = unknown> = {
 export type ManualPaymentsRecord<Ttransaction_details = unknown> = {
 	amount_paid?: number
 	expected_amount: number
-	receipt: string
+	receipt?: string
 	registrant?: RecordIdString
 	transaction_details: null | Ttransaction_details
 }

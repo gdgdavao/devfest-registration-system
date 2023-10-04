@@ -104,7 +104,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
                                             <FormFieldRenderer
                                                 field={{
                                                     ...sfield,
-                                                    name: `${registeredName}.${sfield.name}`,
+                                                    name: `${registeredName}_data.${sfield.name}`,
                                                 }}
                                                 customComponents={
                                                     customComponents

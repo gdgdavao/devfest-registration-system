@@ -215,8 +215,8 @@ export default function Payment() {
                 group="payment"
                 customComponents={{
                     "payment_data.payment_method": ManualPaymentMethodFormRenderer,
-                    "payment.expected_amount": ExpectedAmountFormRenderer,
-                    "payment.transaction_details": TransactionReceiptFormRenderer,
+                    "payment_data.expected_amount": ExpectedAmountFormRenderer,
+                    "payment_data.transaction_details": TransactionReceiptFormRenderer,
                 }} />
         </RegistrationSection>
     );

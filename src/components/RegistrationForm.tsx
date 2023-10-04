@@ -23,11 +23,13 @@ export default function RegistrationForm({
     data: existingData,
     group = "all",
     noLabel = false,
+    rename = {},
     customComponents = {},
 }: {
     data?: RegistrationRecord;
     asChild?: boolean;
     group?: FormGroup;
+    rename?: Record<string, string>;
     noLabel?: boolean | string[];
     children?: ReactNode;
     customComponents?: Partial<
@@ -85,12 +87,13 @@ export default function RegistrationForm({
                                     <FormFieldRenderer
                                         {...ofield}
                                         field={field}
+                                        rename={rename}
                                         customComponents={{
                                             contact_number: PhoneNumberFormRenderer,
                                             ticket: RichTicketFormRenderer,
-                                            "merch_sensing_data.preferred_offered_merch":
+                                            "merch_sensing_data_data.preferred_offered_merch":
                                                 JsonCheckboxFormRenderer,
-                                            "merch_sensing_data.merch_spending_limit":
+                                            "merch_sensing_data_data.merch_spending_limit":
                                                 JsonCheckboxFormRenderer,
                                             topic_interests:
                                                 TopicInterestFormRenderer,
