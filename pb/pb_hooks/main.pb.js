@@ -1,5 +1,68 @@
 /// <reference path="../pb_data/types.d.ts" />
 
+$app.rootCmd.addCommand(new Command({
+    use: "link-missing-profiles",
+    run: function() {
+        const utils = require(`${__hooks}/utils.js`);
+        const types = ["student", "professional"];
+
+        let count = 0;
+
+        for (const type of types) {
+            const { profileKey, profileCollectionKey } = utils.getProfileKeys(type);
+            let countInType = 0;
+
+            $app.dao().runInTransaction((txDao) => {
+                const result = arrayOf(new DynamicModel({
+                    'id': '',
+                    'registrant': ''
+                }));
+
+                txDao.db()
+                    .select('id', 'registrant')
+                    .from(profileCollectionKey)
+                    .all(result);
+
+                for (const profile of result) {
+                    const record = txDao.findRecordById('registrations', profile.registrant);
+                    if (record.getString(profileKey).length !== 0) {
+                        continue;
+                    }
+
+                    record.set(profileKey, profile.id);
+                    txDao.saveRecord(record);
+
+                    countInType++;
+                }
+            });
+
+            count += countInType;
+        }
+
+        console.log(`${count} were linked successfully.`);
+    }
+}));
+
+$app.rootCmd.addCommand(new Command({
+    use: "send-emails",
+    run: function(cmd, args) {
+        const filter = args[0];
+        if (typeof filter === "undefined") {
+            throw new Error("Filter is required!");
+        }
+
+        let type = args[1];
+        if (typeof type === 'undefined') {
+            type = 'summary';
+        }
+
+        const utils = require(`${__hooks}/utils.js`);
+        const host = $app.settings().meta.appUrl;
+        const numEmailsSent = utils.sendEmails(type, filter, host);
+        console.log(`${numEmailsSent} e-mails were sent successfully.`);
+    }
+}));
+
 onAfterBootstrap((e) => {
     const utils = require(`${__hooks}/utils.js`);
     utils.buildRegistrationFields();

@@ -6,13 +6,13 @@ import AdminLayout from "./components/layouts/Admin";
 
 // Pages
 import AdminLogin from "./pages/admin/Login";
-import Home from "./pages/Home";
-import Welcome from "./pages/Home/Welcome";
-import Profile from "./pages/Home/Profile";
-import Topic from "./pages/Home/Topic";
-import Addons from "./pages/Home/Addons";
-import Payment from "./pages/Home/Payment";
-import Done from "./pages/Home/Done";
+import Registration from "./pages/Registration";
+import Welcome from "./pages/Registration/Welcome";
+import Profile from "./pages/Registration/Profile";
+import Topic from "./pages/Registration/Topic";
+import Addons from "./pages/Registration/Addons";
+import Payment from "./pages/Registration/Payment/Payment";
+import Done from "./pages/Registration/Done";
 import AllRegistrations from "./pages/admin/registrations/All";
 import PendingRegistrations from "./pages/admin/registrations/Pending";
 import ApprovedRegistrations from "./pages/admin/registrations/Approved";
@@ -30,7 +30,7 @@ export const router = createBrowserRouter([
     },
     {
         path: "/registration",
-        element: <Home />,
+        element: <Registration />,
         children: [
             {
                 index: true,

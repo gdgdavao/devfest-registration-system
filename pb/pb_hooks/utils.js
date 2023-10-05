@@ -50,8 +50,9 @@ module.exports = {
             }));
         }
 
+        const mailClient = $app.newMailClient();
         for (const message of messages) {
-            $app.newMailClient().send(message);
+            mailClient.send(message);
         }
 
         return messages.length;
@@ -68,7 +69,7 @@ module.exports = {
         }
 
         if (!$app.cache().has(`registration_fields_${type}`)) {
-            utils.buildRegistrationFields();
+            this.buildRegistrationFields();
         }
 
         return $app.cache().get(`registration_fields_${type}`);
