@@ -26,32 +26,32 @@ function pull(pbPath) {
     console.log('Copying PB pb_hooks to repo pb_hooks...');
     fs.cpSync(path.join(pbPath, 'pb_hooks'), path.join(__dirname, 'pb', 'pb_hooks'), { force: true, recursive: true });
 
-    console.log('Copying PB data...');
+    // console.log('Copying PB data...');
 
-    const zipPath = path.join(__dirname, 'pb', 'backup.zip');
-    if (fs.existsSync(zipPath)) {
-        // Remove backup.zip first
-        fs.rmSync(zipPath);
-    }
+    // const zipPath = path.join(__dirname, 'pb', 'backup.zip');
+    // if (fs.existsSync(zipPath)) {
+    //     // Remove backup.zip first
+    //     fs.rmSync(zipPath);
+    // }
 
-    const output = fs.createWriteStream(zipPath);
-    const archive = archiver('zip', {
-        zlib: { level: 9 }
-    });
+    // const output = fs.createWriteStream(zipPath);
+    // const archive = archiver('zip', {
+    //     zlib: { level: 9 }
+    // });
 
-    const filesToCopy = ['data.db', 'data.db-shm', 'logs.db', 'logs.db-shm', 'logs.db-wal', 'types.d.ts'];
+    // const filesToCopy = ['data.db', 'data.db-shm', 'logs.db', 'logs.db-shm', 'logs.db-wal', 'types.d.ts'];
 
-    for (const fileName of filesToCopy) {
-        const filePath = path.join(pbPath, 'pb_data', fileName);
-        if (!fs.existsSync(filePath)) {
-            continue;
-        }
+    // for (const fileName of filesToCopy) {
+    //     const filePath = path.join(pbPath, 'pb_data', fileName);
+    //     if (!fs.existsSync(filePath)) {
+    //         continue;
+    //     }
 
-        archive.file(filePath, { name: fileName });
-    }
+    //     archive.file(filePath, { name: fileName });
+    // }
 
-    archive.finalize();
-    archive.pipe(output);
+    // archive.finalize();
+    // archive.pipe(output);
 
     console.log('SUCCESS. commit your changes to repo upstream')
 }
@@ -70,9 +70,9 @@ function push(pbPath) {
     console.log('Copying pb_hooks to PB directory');
     fs.cpSync(path.join(__dirname, 'pb', 'pb_hooks'), path.resolve(pbPath, 'pb_hooks'), { recursive: true, force: true });
 
-    console.log('Copying backup.zip data to PB directory.');
-    fs.createReadStream(path.join(__dirname, 'pb', 'backup.zip'))
-        .pipe(unzipper.Extract({ path: path.resolve(pbPath, 'pb_data'), forceStream: true }));
+    // console.log('Copying backup.zip data to PB directory.');
+    // fs.createReadStream(path.join(__dirname, 'pb', 'backup.zip'))
+    //     .pipe(unzipper.Extract({ path: path.resolve(pbPath, 'pb_data'), forceStream: true }));
 
     console.log('SUCCESS. Restart your running pocketbase instance.');
 }
