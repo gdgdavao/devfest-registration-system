@@ -50,8 +50,9 @@ module.exports = {
             }));
         }
 
+        const mailClient = $app.newMailClient();
         for (const message of messages) {
-            $app.newMailClient().send(message);
+            mailClient.send(message);
         }
 
         return messages.length;
