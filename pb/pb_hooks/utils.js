@@ -69,7 +69,7 @@ module.exports = {
         }
 
         if (!$app.cache().has(`registration_fields_${type}`)) {
-            utils.buildRegistrationFields();
+            this.buildRegistrationFields();
         }
 
         return $app.cache().get(`registration_fields_${type}`);
