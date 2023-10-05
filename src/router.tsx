@@ -11,7 +11,7 @@ import Welcome from "./pages/Home/Welcome";
 import Profile from "./pages/Home/Profile";
 import Topic from "./pages/Home/Topic";
 import Addons from "./pages/Home/Addons";
-import Payment from "./pages/Home/Payment";
+import Payment from "./pages/Home/Payment/Payment";
 import Done from "./pages/Home/Done";
 import AllRegistrations from "./pages/admin/registrations/All";
 import PendingRegistrations from "./pages/admin/registrations/Pending";
