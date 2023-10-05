@@ -1,5 +1,5 @@
 import { useFormGroupQuery } from "@/client";
-import Title from "@/pages/Home/Title";
+import Title from "@/pages/Registration/Title";
 import { FormGroupsKeyOptions } from "@/pocketbase-types";
 import { ReactNode } from "react";
 import Loading from "../Loading";

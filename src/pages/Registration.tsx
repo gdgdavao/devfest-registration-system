@@ -5,7 +5,7 @@ import {
 } from "@/registration-form";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import Stepper from "./Home/Stepper";
+import Stepper from "./Registration/Stepper";
 import { FormDetailsFormGroupOptions } from "@/pocketbase-types";
 import { RegistrationRecord, useRegistrationMutation } from "@/client";
 import { Form } from "@/components/ui/form";
