@@ -218,7 +218,10 @@ export function useSetupRegistrationForm({ rename = {addons: 'addons_data'}, ext
         }
     }
 
-    const removePersistedFormData = () => localStorage.removeItem(FORM_DATA_KEY);
+    const removePersistedFormData = () => {
+        localStorage.removeItem(FORM_DATA_KEY);
+        setLoadedFromPersistedData(false);
+    };
 
     useEffect(() => {
         const existingFormData = localStorage.getItem(FORM_DATA_KEY);
