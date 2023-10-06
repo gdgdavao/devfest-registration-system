@@ -11,7 +11,7 @@ export default function ApprovedRegistrations() {
         actions={() => (
             <div>
                 {/* TODO: change filter, add status */}
-                <SendMailDialog type="confirm" filter={`status.status = "approved"`}>
+                <SendMailDialog template="confirm" filter={`status.status = "approved"`}>
                     <Button>
                         <IconEmail className="mr-2" />
                         Send e-mail confirmation
