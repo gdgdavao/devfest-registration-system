@@ -93,12 +93,12 @@ export type RegistrationsResponse = PBRegistrationsResponse<
         professional_profile?: ProfessionalProfilesResponse,
         // payment?: PaymentResponse,
         payment?: ManualPaymentsResponse<{ transaction_id: string, mobile_number: string }>,
-        addons: AddonOrdersResponse,
+        addons: AddonOrdersResponse[],
         ticket: TicketTypesResponse
     }
 >
 
-const REGISTRATION_RESP_EXPAND = "status,student_profile,professional_profile,payment,addons,ticket";
+const REGISTRATION_RESP_EXPAND = "status,student_profile,professional_profile,payment,addons.addon,ticket";
 
 export interface RegistrationRecord extends RegistrationsRecord {
     addons_data?: AddonOrdersRecord[]
