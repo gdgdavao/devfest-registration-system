@@ -1,5 +1,6 @@
 module.exports = {
     summary: {
+        name: 'Form summary',
         path: `${__hooks}/views/emails/summary.html`,
         /**
          *
@@ -129,7 +130,9 @@ module.exports = {
         },
     },
     confirm: {
-        path: `${__hooks}/views/emails/confirm.html`,/**
+        name: 'Registration confirmation',
+        path: `${__hooks}/views/emails/confirm.html`,
+        /**
         *
         * @param {models.Record} record
         * @param {Record<string, any>} existingParams

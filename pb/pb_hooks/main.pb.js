@@ -120,16 +120,17 @@ routerAdd("GET", "/api/slot_counter", (c) => {
 
 routerAdd("POST", "/api/admin/send_emails", (c) => {
     try {
+        const emailTemplates = require(`${__hooks}/email_templates.js`);
         const params = new DynamicModel({
             filter: "",
-            type: "confirm", // confirm or summary
+            template: "confirm", // confirm or summary
             force: false
         });
 
         c.bind(params);
 
-        if (params.type !== "confirm" && params.type !== "summary") {
-            throw new BadRequestError("Type should be either `confirm` or `summary`.");
+        if (!emailTemplates[params.template]) {
+            throw new BadRequestError("Invalid e-mail template ID");
         } else if (params.filter.length === 0 && !params.force) {
             // to avoid accidental deliveries of email to all recipients unless force is true
             throw new BadRequestError("Filter should not be empty.");
@@ -137,7 +138,7 @@ routerAdd("POST", "/api/admin/send_emails", (c) => {
 
         const utils = require(`${__hooks}/utils.js`);
         const host = "http://" + c.request().host;
-        const numEmailsSent = utils.sendEmails(params.type, params.filter, host);
+        const numEmailsSent = utils.sendEmails(params.template, params.filter, host);
         return c.json(200, {"message": `Successfully sent to ${numEmailsSent} e-mails.`});
     } catch (e) {
         console.error(e);
@@ -268,6 +269,21 @@ routerAdd("GET", "/api/payment-methods", (c) => {
         // }
     ]);
 });
+
+routerAdd("GET", "/api/email_templates", (c) => {
+    const emailTemplates = require(`${__hooks}/email_templates.js`);
+    const templatesList = [];
+
+    for (const templateId in emailTemplates) {
+        const template = emailTemplates[templateId];
+        templatesList.push({
+            name: template.name ? template.name : templateId,
+            id: templateId
+        });
+    }
+
+    return c.json(200, templatesList);
+}, $apis.requireAdminAuth());
 
 routerAdd("GET", "/assets/*", $apis.staticDirectoryHandler(`${__hooks}/assets`, false));
 
