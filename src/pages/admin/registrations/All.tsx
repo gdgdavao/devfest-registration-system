@@ -12,10 +12,10 @@ export default function AllRegistrations() {
         actions={() => (
             <div className="flex flex-row space-x-2">
                 {/* TODO: change filter, add status */}
-                <SendMailDialog type="confirm" filter={`status.status != "pending"`}>
+                <SendMailDialog template="confirm" filter={`status.status != "pending"`}>
                     <Button>
                         <IconEmail className="mr-2" />
-                        Send e-mail confirmation
+                        Send e-mail
                     </Button>
                 </SendMailDialog>
 
