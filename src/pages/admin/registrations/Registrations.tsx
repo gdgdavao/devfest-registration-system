@@ -18,7 +18,7 @@ export default function RegistrationsPage({ title, status = "all", actions: Acti
     const [emailFilter, setEmailFilter] = useState('');
     const debouncedSetEmailFilter = useDebouncedCallback((v: string) => setEmailFilter(v), 1000);
     const { data, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useRegistrationsQuery({
-        filter: (emailFilter.length > 0 ? `email~"${emailFilter}" &&` : '') + (status != 'all' ? `status.status="${status}"` : ''),
+        filter: (emailFilter.length > 0 ? `email~"${emailFilter}"` : '') + (status != 'all' ? `&& status.status="${status}"` : ''),
     });
 
     return (
@@ -32,7 +32,7 @@ export default function RegistrationsPage({ title, status = "all", actions: Acti
                     defaultValue={emailFilter}
                     onChange={(ev) => debouncedSetEmailFilter(ev.target.value)}
                     className="w-1/2"
-                    placeholder="Filter by emails..." />
+                    placeholder="Filter by e-mail..." />
 
                 {Actions && <Actions />}
             </div>
