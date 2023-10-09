@@ -43,7 +43,7 @@ const inverse: Record<FilterOp, FilterOp> = {
     nlike: 'like',
 } as const;
 
-export type BaseFilterOp = keyof typeof inverse;
+type Falsey = null | undefined | 0 | "" | false;
 export type FilterOp = keyof typeof ops;
 export type OpValue = number | boolean | string | undefined | null;
 
@@ -70,7 +70,7 @@ function wrapValue(value: unknown): string | null {
     }
 }
 
-function groupExpr<T extends 'and' | 'or'>(ops: T, exprs: MaybeFilterExpr[]): MaybeFilterExpr<T> {
+function groupExpr<T extends 'and' | 'or'>(ops: T, exprs: MaybeMaybeFilterExpr[]): MaybeFilterExpr<T> {
     const filtered = exprs.filter(Boolean) as FilterExpr[];
     if (filtered.length === 0) return null;
     let expr: FilterExpr<T> = {op: ops};
@@ -98,11 +98,13 @@ function groupExpr<T extends 'and' | 'or'>(ops: T, exprs: MaybeFilterExpr[]): Ma
     return expr;
 }
 
-export function and(...exprs: MaybeFilterExpr[]) {
+type MaybeMaybeFilterExpr<T extends FilterOp = FilterOp> = MaybeFilterExpr<T> | Falsey;
+
+export function and(...exprs: MaybeMaybeFilterExpr[]) {
     return groupExpr('and', exprs);
 }
 
-export function or(...exprs: MaybeFilterExpr[]) {
+export function or(...exprs: MaybeMaybeFilterExpr[]) {
     return groupExpr('or', exprs);
 }
 
@@ -126,8 +128,8 @@ export function not<T extends keyof typeof inverse>(expr: MaybeFilterExpr<T> | s
     }
 }
 
-function wrapOp<T extends BaseFilterOp>(op: T) {
-    const closure = (collection: string, value: OpValue | OpValue[]): MaybeFilterExpr<T | 'or'> => {
+function wrapOp<T extends FilterOp>(op: T) {
+    const closure = (collection: string, value: OpValue | OpValue[]): MaybeFilterExpr<T | "or"> => {
         if (Array.isArray(value)) {
             return or(...value.map(v => closure(collection, v)));
         }
@@ -151,17 +153,24 @@ export const anylt = wrapOp('anylt');
 export const anylte = wrapOp('anylte');
 export const anylike = wrapOp('anylike');
 
-export function compileFilter<T extends FilterOp>(expr: MaybeFilterExpr<T> | string): string {
-    if (!expr) return '';
-    if (typeof expr === 'string') {
-        return expr;
+export function compileFilter(...exprs: MaybeMaybeFilterExpr[]): string {
+    const filtered = exprs.filter(Boolean) as FilterExpr[];
+    if (filtered.length > 1) {
+        return compileFilter(and(...filtered));
+    } else if (!filtered[0]) {
+        return '';
     }
+
+    const expr = filtered[0];
     switch (expr.op) {
     case 'par':
         if (!expr.rhs) return '';
         if (typeof expr.rhs === 'string') return expr.rhs;
         return `(${compileFilter(expr.rhs ?? null)})`;
-    default:
-        return `${compileFilter(expr.lhs!)} ${ops[expr.op]} ${compileFilter(expr.rhs!)}`;
+    default: {
+        const lhs = typeof expr.lhs === 'string' ? expr.lhs : compileFilter(expr.lhs!);
+        const rhs = typeof expr.rhs === 'string' ? expr.rhs : compileFilter(expr.rhs!);
+        return `${lhs} ${ops[expr.op]} ${rhs}`;
+    }
     }
 }
