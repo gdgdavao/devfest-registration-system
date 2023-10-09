@@ -116,15 +116,17 @@ export function par(expr: FilterExpr): MaybeFilterExpr<"par"> {
     return {op: 'par', rhs: expr};
 }
 
-export function not<T extends keyof typeof inverse>(expr: MaybeFilterExpr<T> | string): MaybeFilterExpr<typeof inverse[T]> | string {
-    if (!expr || typeof expr === 'string') {
+export function not<T extends keyof typeof inverse>(expr: MaybeFilterExpr<T>): MaybeFilterExpr<typeof inverse[T]> {
+    if (!expr) {
         return expr;
     }
 
+    const lhs = typeof expr.lhs === 'string' ? expr.lhs : not(expr.lhs!);
+    const rhs = typeof expr.rhs === 'string' ? expr.rhs : not(expr.rhs!);
     return {
-        lhs: not(expr.lhs ?? null) ?? undefined,
+        lhs: lhs ?? undefined,
         op: inverse[expr.op],
-        rhs: not(expr.rhs ?? null) ?? undefined
+        rhs: rhs ?? undefined
     }
 }
 
@@ -152,6 +154,7 @@ export const anygte = wrapOp('anygte');
 export const anylt = wrapOp('anylt');
 export const anylte = wrapOp('anylte');
 export const anylike = wrapOp('anylike');
+export const notEmpty = (column: string) => not(eq(column, ''));
 
 export function compileFilter(...exprs: MaybeMaybeFilterExpr[]): string {
     const filtered = exprs.filter(Boolean) as FilterExpr[];

@@ -74,27 +74,6 @@ function Sidebar({ className }: { className?: string }) {
                                 All Entries
                             </Link>
                         </Button>
-
-                        <Button variant="ghost" className="w-full justify-start" asChild>
-                            <Link to="/admin/payments/pending">
-                                <IconPending className="mr-2" />
-                                Pending
-                            </Link>
-                        </Button>
-
-                        <Button variant="ghost" className="w-full justify-start" asChild>
-                            <Link to="/admin/payments/paid">
-                                <IconApprove className="mr-2" />
-                                Paid
-                            </Link>
-                        </Button>
-
-                        <Button variant="ghost" className="w-full justify-start" asChild>
-                            <Link to="/admin/payments/unpaid">
-                                <IconReject className="mr-2" />
-                                Unpaid
-                            </Link>
-                        </Button>
                     </div>
                 </div>
 
