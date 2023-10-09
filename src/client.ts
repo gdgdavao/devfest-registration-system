@@ -231,12 +231,12 @@ export function useRegistrationFieldsQuery({ participantType = RegistrationsType
     });
 }
 
-export function useRegistrationQuery(id: RecordIdString) {
+export function useRegistrationQuery(id: RecordIdString, opts = { enabled: true }) {
     return useQuery([Collections.Registrations, id], () => {
         return pb.collection(Collections.Registrations).getOne<RegistrationsResponse>(id, {
             expand: REGISTRATION_RESP_EXPAND
         });
-    });
+    }, { enabled: opts.enabled });
 }
 
 // Registration Status
