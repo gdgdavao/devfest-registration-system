@@ -3,7 +3,7 @@ import { FC, useState } from "react";
 import { RegistrationStatusesStatusOptions } from "@/pocketbase-types";
 import { useDeleteRegistrationMutation, useRegistrationsQuery } from "@/client";
 
-import { compileFilter, eq, like } from "@/lib/pb_filters";
+import * as pbf from "@/lib/pb_filters";
 import AdminTable from "@/components/layouts/AdminTable";
 
 export default function RegistrationsPage({ title = "Registrations", status = "all", actions, rowActions: RowActions }: {
@@ -13,18 +13,24 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
     rowActions: FC<{ id: string, refetch: () => Promise<void>, onDelete: (id: string) => Promise<void> }>
 }) {
     const { mutateAsync: deleteMutation } = useDeleteRegistrationMutation();
-    const [emailFilter, setEmailFilter] = useState('');
+    const [filter, setFilter] = useState('');
     const { data, refetch, fetchNextPage, isFetchingNextPage, isLoading, hasNextPage } = useRegistrationsQuery({
         sort: '-created',
-        filter: compileFilter(
-            emailFilter.length > 0 && like('email', emailFilter),
-            status != 'all' && eq('status.status', status)),
+        filter: pbf.compileFilter(
+            filter.length > 0 && pbf.or(
+                pbf.like('email', filter),
+                pbf.like('first_name', filter),
+                pbf.like('last_name', filter)
+            ),
+            status != 'all' &&
+                pbf.eq('status.status', status)),
     });
 
     return <AdminTable
         title={title}
         status={status}
-        filter={emailFilter}
+        filter={filter}
+        filterPlaceholder={`Filter by e-mail, first name, or last name`}
         isLoading={isLoading}
         isFetchingNextPage={isFetchingNextPage}
         hasNextPage={hasNextPage}
@@ -58,5 +64,5 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
         onRefetch={refetch}
         onDelete={async (r) => { await deleteMutation(r.id); }}
         onFetchNextPage={fetchNextPage}
-        onFilterChange={setEmailFilter} />
+        onFilterChange={setFilter} />
 }
