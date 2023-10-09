@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebouncedCallback } from "use-debounce";
 import { PaymentResponse, usePaymentsQuery } from "@/client";
+import { compileFilter, eq, like } from "@/lib/pb_filters";
 
 export default function PaymentsTable({ title, status = "all", actions: Actions, rowActions: RowActions }: {
     title?: string
@@ -17,7 +18,9 @@ export default function PaymentsTable({ title, status = "all", actions: Actions,
     const [emailFilter, setEmailFilter] = useState('');
     const debouncedSetEmailFilter = useDebouncedCallback((v: string) => setEmailFilter(v), 1000);
     const { data, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = usePaymentsQuery({
-        filter: (emailFilter.length > 0 ? `registrant.email~"${emailFilter}" &&` : '') + (status != 'all' ? `status="${status}"` : ''),
+        filter: compileFilter(
+            emailFilter.length > 0 && like('registrant.email', emailFilter),
+            status != 'all' && eq('status', status))
     });
 
     return (
