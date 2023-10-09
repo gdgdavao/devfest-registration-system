@@ -273,6 +273,29 @@ const PAYMENT_RESP_EXPAND = "registrant";
 
 export type PaymentResponse = PaymentsResponse<{ registrant?: RegistrationRecord }>;
 
+export function useManualPaymentsQuery(options?: RecordListOptions) {
+    return useInfiniteQuery(
+        [Collections.ManualPayments, JSON.stringify(options)],
+        ({ pageParam = 1 }) => {
+            return pb.collection(Collections.ManualPayments)
+                .getList<PaymentResponse>(pageParam, undefined, {
+                    ...options,
+                    expand: PAYMENT_RESP_EXPAND
+                });
+        },
+        {
+            getNextPageParam(data) {
+                if (data.page + 1 > data.totalPages) return undefined;
+                return data.page + 1;
+            },
+            getPreviousPageParam(data) {
+                if (data.page + 1 < 0) return undefined;
+                return data.page - 1;
+            },
+        }
+    );
+}
+
 export function usePaymentsQuery(options?: RecordListOptions) {
     return useInfiniteQuery(
         [Collections.Payments, JSON.stringify(options)],
