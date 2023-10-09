@@ -1,15 +1,15 @@
 import { FC, useState } from "react";
 
 import { RegistrationStatusesStatusOptions } from "@/pocketbase-types";
-import { useDeleteRegistrationMutation, useRegistrationsQuery } from "@/client";
+import { RegistrationsResponse, useDeleteRegistrationMutation, useRegistrationsQuery } from "@/client";
 
 import * as pbf from "@/lib/pb_filters";
 import AdminTable from "@/components/layouts/AdminTable";
 
-export default function RegistrationsPage({ title = "Registrations", status = "all", actions, rowActions: RowActions }: {
+export default function RegistrationsPage({ title = "Registrations", status = "all", actions: Actions, rowActions: RowActions }: {
     title?: string
     status: 'all' | `${RegistrationStatusesStatusOptions}`
-    actions?: FC,
+    actions?: FC<{ selected: RegistrationsResponse[], onDelete: () => Promise<void> }>,
     rowActions: FC<{ id: string, refetch: () => Promise<void>, onDelete: (id: string) => Promise<void> }>
 }) {
     const { mutateAsync: deleteMutation } = useDeleteRegistrationMutation();
@@ -35,7 +35,19 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
         isFetchingNextPage={isFetchingNextPage}
         hasNextPage={hasNextPage}
         data={data}
-        actions={actions}
+        actions={({ selected }) => {
+            if (!Actions) {
+                return <div></div>;
+            }
+
+            return <Actions
+                selected={selected}
+                onDelete={async () => {
+                    await Promise.all(
+                        selected.map(item => deleteMutation(item.id)));
+                    await refetch();
+                }} />
+        }}
         rowActions={({ record, refetch, onDelete }) => (
             <RowActions id={record.id} refetch={refetch} onDelete={onDelete} />
         )}

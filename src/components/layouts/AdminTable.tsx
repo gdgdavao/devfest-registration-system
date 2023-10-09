@@ -17,7 +17,7 @@ interface RowActionsProps<R> {
     onDelete: (id: string) => Promise<void>
 }
 
-interface AdminTableProps<R, S extends string> {
+export interface AdminTableProps<R, S extends string> {
     // Data
     data: InfiniteData<ListResult<R>> | undefined
     onRefetch: () => void
@@ -61,11 +61,12 @@ export default function AdminTable<R, S extends string>(props: AdminTableProps<R
             </div>
 
             <div className="pb-4 flex items-center justify-between space-x-2">
-                <Input
-                    className="w-1/2"
-                    defaultValue={searchFilter}
-                    onChange={(ev) => debouncedSetSearchFilter(ev.target.value)}
-                    placeholder={filterPlaceholder ?? "Filter by e-mail..."} />
+                {selected.length === 0 &&
+                    <Input
+                        className="w-1/2"
+                        defaultValue={searchFilter}
+                        onChange={(ev) => debouncedSetSearchFilter(ev.target.value)}
+                        placeholder={filterPlaceholder ?? "Filter by e-mail..."} />}
 
                 {Actions && <Actions selected={selected} />}
             </div>
