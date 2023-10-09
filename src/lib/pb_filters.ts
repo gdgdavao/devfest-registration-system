@@ -75,20 +75,26 @@ function groupExpr<T extends 'and' | 'or'>(ops: T, exprs: MaybeMaybeFilterExpr[]
     if (filtered.length === 0) return null;
     let expr: FilterExpr<T> = {op: ops};
 
-    for (let i = 0; i < filtered.length - 2; i++) {
+    for (let i = 0; i < filtered.length - 1; i++) {
         const fExpr = filtered[i];
         if (fExpr.op === 'and' || fExpr.op === 'or') {
             expr = {
                 lhs: par({
-                    lhs: par(fExpr)!,
+                    lhs: i === 1 ? expr.rhs : expr,
                     op: ops,
-                    rhs: expr
+                    rhs: par(fExpr)!
                 })!,
                 op: ops,
-            }
+            };
+        } else if (i === 0) {
+            expr.rhs = fExpr;
         } else {
             expr = {
-                lhs: expr,
+                lhs: {
+                    lhs: i === 1 ? expr.rhs : expr,
+                    op: ops,
+                    rhs: fExpr
+                },
                 op: ops
             }
         }
