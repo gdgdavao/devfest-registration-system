@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
 import { useDebouncedCallback } from "use-debounce";
+import { compileFilter, eq, like } from "@/lib/pb_filters";
 
 export default function RegistrationsPage({ title, status = "all", actions: Actions, rowActions: RowActions }: {
     title?: string
@@ -18,13 +19,13 @@ export default function RegistrationsPage({ title, status = "all", actions: Acti
     const [emailFilter, setEmailFilter] = useState('');
     const debouncedSetEmailFilter = useDebouncedCallback((v: string) => setEmailFilter(v), 1000);
     const { data, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useRegistrationsQuery({
-        filter: (emailFilter.length > 0 ? `email~"${emailFilter}"` : '') + (status != 'all' ? `&& status.status="${status}"` : ''),
+        filter: compileFilter(emailFilter.length && like('email', emailFilter), status != 'all' && eq('status.status', status)),
     });
 
     return (
         <div className="max-w-5xl mx-auto pt-12 flex flex-col">
             <h2 className="text-4xl font-bold mb-8">
-                { title ?? 'Registrations' } {data?.pages[Math.max((data?.pages.length ?? 0) - 1, 0)].totalPages}
+                { title ?? 'Registrations' } {data?.pages[Math.max((data?.pages.length ?? 0) - 1, 0)].totalItems}
             </h2>
 
             <div className="pb-4 flex items-center justify-between space-x-2">
