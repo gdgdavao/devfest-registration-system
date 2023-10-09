@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { useRegistrationQuery, pb, useUpdateRegistrationStatusMutation } from "@/client";
 import { RegistrationStatusesStatusOptions } from "@/pocketbase-types";
 import { Button } from "@/components/ui/button";
@@ -6,11 +6,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 
 // TODO: better interface
 export default function ScreenRegistrantDialog({ id, children }: { id: string, children: ReactNode }) {
+    const [open, setIsOpen] = useState(false);
     const { mutate: markRegistrant } = useUpdateRegistrationStatusMutation();
-    const { data: registrant } = useRegistrationQuery(id);
+    const { data: registrant } = useRegistrationQuery(id, { enabled: open });
     // const { data: fields } = useRegistrationFieldsQuery(registrantData?.type);
 
-    return <Dialog>
+    return <Dialog open={open} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="lg:max-w-screen-md overflow-y-scroll max-h-[calc(100vh-2rem)]">
             <DialogHeader>

@@ -75,20 +75,26 @@ function groupExpr<T extends 'and' | 'or'>(ops: T, exprs: MaybeMaybeFilterExpr[]
     if (filtered.length === 0) return null;
     let expr: FilterExpr<T> = {op: ops};
 
-    for (let i = 0; i < filtered.length - 2; i++) {
+    for (let i = 0; i < filtered.length - 1; i++) {
         const fExpr = filtered[i];
         if (fExpr.op === 'and' || fExpr.op === 'or') {
             expr = {
                 lhs: par({
-                    lhs: par(fExpr)!,
+                    lhs: i === 1 ? expr.rhs : expr,
                     op: ops,
-                    rhs: expr
+                    rhs: par(fExpr)!
                 })!,
                 op: ops,
-            }
+            };
+        } else if (i === 0) {
+            expr.rhs = fExpr;
         } else {
             expr = {
-                lhs: expr,
+                lhs: {
+                    lhs: i === 1 ? expr.rhs : expr,
+                    op: ops,
+                    rhs: fExpr
+                },
                 op: ops
             }
         }
@@ -116,15 +122,17 @@ export function par(expr: FilterExpr): MaybeFilterExpr<"par"> {
     return {op: 'par', rhs: expr};
 }
 
-export function not<T extends keyof typeof inverse>(expr: MaybeFilterExpr<T> | string): MaybeFilterExpr<typeof inverse[T]> | string {
-    if (!expr || typeof expr === 'string') {
+export function not<T extends keyof typeof inverse>(expr: MaybeFilterExpr<T>): MaybeFilterExpr<typeof inverse[T]> {
+    if (!expr) {
         return expr;
     }
 
+    const lhs = typeof expr.lhs === 'string' ? expr.lhs : not(expr.lhs!);
+    const rhs = typeof expr.rhs === 'string' ? expr.rhs : not(expr.rhs!);
     return {
-        lhs: not(expr.lhs ?? null) ?? undefined,
+        lhs: lhs ?? undefined,
         op: inverse[expr.op],
-        rhs: not(expr.rhs ?? null) ?? undefined
+        rhs: rhs ?? undefined
     }
 }
 
@@ -152,6 +160,7 @@ export const anygte = wrapOp('anygte');
 export const anylt = wrapOp('anylt');
 export const anylte = wrapOp('anylte');
 export const anylike = wrapOp('anylike');
+export const notEmpty = (column: string) => not(eq(column, ''));
 
 export function compileFilter(...exprs: MaybeMaybeFilterExpr[]): string {
     const filtered = exprs.filter(Boolean) as FilterExpr[];

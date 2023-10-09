@@ -1,8 +1,7 @@
-import { Tooltip, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 
 import IconCheck from '~icons/material-symbols/check-small';
-import { TooltipContent } from "@radix-ui/react-tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { PaymentResponse, useUpdatePaymentMutation } from "@/client";
 import { PaymentsStatusOptions } from "@/pocketbase-types";

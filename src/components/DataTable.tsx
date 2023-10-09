@@ -2,6 +2,7 @@
 
 import {
   ColumnDef,
+  RowModel,
   flexRender,
   getCoreRowModel,
   useReactTable,
@@ -15,21 +16,36 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useEffect, useState } from "react"
+import Loading from "./Loading"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  isLoading?: boolean
+  onRowSelected?: (rows: RowModel<TData>) => void
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  onRowSelected,
+  isLoading = false,
 }: DataTableProps<TData, TValue>) {
+  const [rowSelection, setRowSelection] = useState({});
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    onRowSelectionChange: setRowSelection,
+    state: {
+      rowSelection
+    }
   })
+
+  useEffect(() => {
+    onRowSelected?.(table.getFilteredSelectedRowModel());
+  }, [rowSelection]);
 
   return (
     <div className="rounded-md border">
@@ -66,6 +82,14 @@ export function DataTable<TData, TValue>({
                 ))}
               </TableRow>
             ))
+          ) : isLoading ? (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                <div className="flex justify-center items-center w-full">
+                  <Loading className="w-1/6 h-full" />
+                </div>
+              </TableCell>
+            </TableRow>
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
