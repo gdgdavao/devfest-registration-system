@@ -22,7 +22,6 @@ export default function PaymentsTable({ title = "Payments", status = "all", acti
 
     return <AdminTable
         title={title}
-        status={status}
         filter={emailFilter}
         isLoading={isLoading}
         isFetchingNextPage={isFetchingNextPage}
