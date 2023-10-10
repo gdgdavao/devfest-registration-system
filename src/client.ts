@@ -1,6 +1,6 @@
 import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
-import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse, TopicInterestsResponse, ManualPaymentsResponse, ManualPaymentsRecord, AddonsRecord } from './pocketbase-types';
+import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse, TopicInterestsResponse, ManualPaymentsResponse, ManualPaymentsRecord, AddonsRecord, MerchSensingDataResponse } from './pocketbase-types';
 import { ErrorOption } from 'react-hook-form';
 import { CreatePaymentMethod, InitPaymentResult, PaymentIntent, PaymentMethod } from './payment-types';
 import jsonToFormData from 'json-form-data';
@@ -165,6 +165,29 @@ export function useRegistrationMutation() {
         return await pb.collection(Collections.Registrations)
             .update<RegistrationsResponse>(gotRecord.id, { payment: paymentRecord.id, ...extra });
     });
+}
+
+export function useMerchSensingDataQuery(options?: RecordListOptions) {
+    return useInfiniteQuery(
+        [Collections.MerchSensingData, JSON.stringify(options)],
+        ({ pageParam = 1 }) => {
+            return pb.collection(Collections.MerchSensingData)
+                .getList<MerchSensingDataResponse<string[], { registrant: PBRegistrationsResponse }>>(pageParam, undefined, {
+                    ...options,
+                    expand: 'registrant'
+                });
+        },
+        {
+            getNextPageParam(data) {
+                if (data.page + 1 > data.totalPages) return undefined;
+                return data.page + 1;
+            },
+            getPreviousPageParam(data) {
+                if (data.page + 1 < 0) return undefined;
+                return data.page - 1;
+            },
+        }
+    );
 }
 
 export function useDeleteRegistrationMutation() {
