@@ -1,6 +1,39 @@
 /// <reference path="../pb_data/types.d.ts" />
 
 $app.rootCmd.addCommand(new Command({
+    use: "link-missing-merch_sensing_data",
+    run: function() {
+        let count = 0;
+
+        $app.dao().runInTransaction((txDao) => {
+            const result = arrayOf(new DynamicModel({
+                'id': '',
+                'registrant': ''
+            }));
+
+            txDao.db()
+                .select('id', 'registrant')
+                .from('merch_sensing_data')
+                .all(result);
+
+            for (const msd of result) {
+                const record = txDao.findRecordById('registrations', msd.registrant);
+                if (record.getString('merch_sensing_data').length !== 0) {
+                    continue;
+                }
+
+                record.set('merch_sensing_data', msd.id);
+                txDao.saveRecord(record);
+
+                count++;
+            }
+        });
+
+        console.log(`${count} were linked successfully.`);
+    }
+}));
+
+$app.rootCmd.addCommand(new Command({
     use: "link-missing-profiles",
     run: function() {
         const utils = require(`${__hooks}/utils.js`);
@@ -404,7 +437,7 @@ onRecordAfterUpdateRequest((e) => {
         }
 
         const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', merch_sensing_data_data, e.record.getString('merch_sensing_data'));
-        e.record.set('merch_sensing_data', merchSensingDRecord);
+        e.record.set('merch_sensing_data', merchSensingDRecord.id);
 
         $app.dao().saveRecord(e.record);
 
