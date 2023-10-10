@@ -1,6 +1,6 @@
 import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
-import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse, TopicInterestsResponse, ManualPaymentsResponse, ManualPaymentsRecord, AddonsRecord } from './pocketbase-types';
+import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse, TopicInterestsResponse, ManualPaymentsResponse, ManualPaymentsRecord, AddonsRecord, MerchSensingDataResponse } from './pocketbase-types';
 import { ErrorOption } from 'react-hook-form';
 import { CreatePaymentMethod, InitPaymentResult, PaymentIntent, PaymentMethod } from './payment-types';
 import jsonToFormData from 'json-form-data';
@@ -88,17 +88,18 @@ export function useFormGroupsQuery() {
 export type RegistrationsResponse = PBRegistrationsResponse<
     Record<string, string>,
     {
-        status: RegistrationStatusesResponse,
-        student_profile?: StudentProfilesResponse,
-        professional_profile?: ProfessionalProfilesResponse,
+        status: RegistrationStatusesResponse
+        student_profile?: StudentProfilesResponse
+        professional_profile?: ProfessionalProfilesResponse
         // payment?: PaymentResponse,
-        payment?: ManualPaymentsResponse<{ transaction_id: string, mobile_number: string }>,
-        addons: AddonOrdersResponse<unknown, { addon: AddonsRecord }>[],
+        payment?: ManualPaymentsResponse<{ transaction_id: string, mobile_number: string }>
+        addons: AddonOrdersResponse<unknown, { addon: AddonsRecord }>[]
         ticket: TicketTypesResponse
+        merch_sensing_data: MerchSensingDataResponse
     }
 >
 
-const REGISTRATION_RESP_EXPAND = "status,student_profile,professional_profile,payment,addons.addon,ticket";
+const REGISTRATION_RESP_EXPAND = "status,student_profile,professional_profile,payment,addons.addon,ticket,merch_sensing_data";
 
 export interface RegistrationRecord extends RegistrationsRecord {
     addons_data?: AddonOrdersRecord[]
