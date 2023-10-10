@@ -1,7 +1,8 @@
 import { useFormGroupQuery } from "@/client";
-import Title from "@/pages/Home/Title";
+import Title from "@/pages/Registration/Title";
 import { FormGroupsKeyOptions } from "@/pocketbase-types";
 import { ReactNode } from "react";
+import Loading from "../Loading";
 
 export default function RegistrationSection({
     id,
@@ -14,10 +15,14 @@ export default function RegistrationSection({
     description?: string;
     children: ReactNode;
 }) {
-    const { data } = useFormGroupQuery(id);
+    const { data, isLoading } = useFormGroupQuery(id);
 
     return (
-        <div className="w-full flex flex-col items-center space-y-4">
+        <div className="relative w-full flex flex-col items-center space-y-4 min-h-[30rem]">
+            {(typeof id != "undefined" && isLoading) && <div className="bg-white/40 h-full w-full absolute inset-0 flex flex-col py-24">
+                <Loading className="w-48 mx-auto" />
+            </div>}
+
             {(id || title || description) && (
                 <Title
                     title={data?.title ?? title ?? ""}

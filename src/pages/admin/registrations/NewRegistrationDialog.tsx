@@ -1,10 +1,10 @@
-import { useRegistrationMutation } from "@/client";
+// import { useRegistrationMutation } from "@/client";
 import RegistrationForm from "@/components/RegistrationForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ReactNode } from "react";
 
 export default function NewRegistrationDialog({ children }: { children: ReactNode }) {
-    const { mutate: submitForm } = useRegistrationMutation();
+    // const { mutate: submitForm } = useRegistrationMutation();
 
     return <Dialog>
         <DialogTrigger asChild>{children}</DialogTrigger>
@@ -12,10 +12,7 @@ export default function NewRegistrationDialog({ children }: { children: ReactNod
             <DialogHeader>
                 <DialogTitle>Register new person</DialogTitle>
 
-                <RegistrationForm
-                    onSubmit={(record, onError) => {
-                        submitForm(record, { onError });
-                    }} />
+                <RegistrationForm />
             </DialogHeader>
         </DialogContent>
     </Dialog>

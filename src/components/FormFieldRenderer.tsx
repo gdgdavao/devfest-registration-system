@@ -15,8 +15,9 @@ import {
     FieldValues,
     useFormContext,
 } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel } from "./ui/form";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import ComboBox from "./ComboBox";
+import FileFormRenderer from "./form_renderers/FileFormRenderer";
 
 export type FormFieldRendererProps<T extends FieldValues = FieldValues> = {
     field: RegistrationField;
@@ -35,6 +36,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
     const name = field.name;
     const registeredName = rename?.[name] ?? name;
     const form = useFormContext();
+    const placeholder = (field.options.placeholder as string | undefined) ?? '';
 
     if (customComponents && customComponents[name]) {
         const CustomFormRenderer = customComponents[name];
@@ -81,7 +83,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
     if (field.type === "relation") {
         if (field.options.fields) {
             return (
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col space-y-4">
                     {(field.options.fields as RegistrationField[]).map(
                         (sfield) => (
                             <FormField
@@ -93,11 +95,16 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
                                         <FormLabel className="font-medium">
                                             {sfield.title}
                                         </FormLabel>
+                                        {sfield.description && (
+                                            <FormDescription>
+                                                {sfield.description}
+                                            </FormDescription>
+                                        )}
                                         <FormControl>
                                             <FormFieldRenderer
                                                 field={{
                                                     ...sfield,
-                                                    name: `${registeredName}.${sfield.name}`,
+                                                    name: `${registeredName}_data.${sfield.name}`,
                                                 }}
                                                 customComponents={
                                                     customComponents
@@ -105,6 +112,7 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
                                                 {...fieldProps}
                                             />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -116,13 +124,14 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
     }
 
     if (field.type === "email") {
-        return <Input type="email" {...props} />;
+        return <Input type="email" placeholder={placeholder} defaultValue={props.value} {...props} />;
     }
 
     if (field.type === "bool") {
         return (
             <div className="flex items-center space-x-2">
                 <Checkbox
+                    defaultChecked={props.value}
                     checked={props.value}
                     onCheckedChange={props.onChange}
                     id={name}
@@ -137,5 +146,9 @@ export default function FormFieldRenderer<T extends FieldValues = FieldValues>({
         );
     }
 
-    return <Input type="text" {...props} />;
+    if (field.type === "file") {
+        return <FileFormRenderer field={field} {...props} />
+    }
+
+    return <Input type="text" placeholder={placeholder} defaultValue={props.value} {...props} />;
 }

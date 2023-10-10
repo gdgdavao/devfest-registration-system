@@ -11,7 +11,7 @@ export default function RejectedRegistrations() {
         actions={() => (
             <div>
                 {/* TODO: change filter, add status */}
-                <SendMailDialog type="confirm" filter={`status.status = "rejected"`}>
+                <SendMailDialog template="confirm" filter={`status.status = "rejected"`}>
                     <Button>
                         <IconEmail className="mr-2" />
                         Send e-mail confirmation

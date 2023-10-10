@@ -11,21 +11,25 @@ interface SliderWithPopupProps {
     value?: string
 }
 
+const MAX_NUMBER = 100;
+
 const LikertSlider = forwardRef<
     ElementRef<typeof SliderPrimitive.Root>,
     SliderWithPopupProps
->(({ className, onChange, values }, ref) => {
-    const [nValue, setNValue] = useState([50]);
+>(({ className, onChange, values, value }, ref) => {
     const [open, setOpen] = useState(false);
-    const steps = useMemo(() => Math.abs(Math.floor(100 / (values.length - 1))), [values]);
-    const valueIdx = useMemo(() => {
-        const idx = nValue[0] / steps;
-        return idx % values.length;
-    }, [nValue, steps, values]);
+    const steps = useMemo(() => Math.abs(Math.floor(MAX_NUMBER / (values.length - 1))), [values]);
+    const nValue = useMemo(() => [Math.max(values.indexOf(value ?? values[0]), 0) * steps], [values, value, steps]);
+    const valueIdx = useMemo(() => nValue[0] / steps, [nValue, steps]);
 
     useEffect(() => {
-        onChange(values[valueIdx]);
+        if (!value) {
+            onChange(values[0]);
+            return;
+        }
+    }, [value, values]);
 
+    useEffect(() => {
         setOpen(true);
         const timer = setTimeout(() => {
             setOpen(false);
@@ -44,10 +48,10 @@ const LikertSlider = forwardRef<
                     "relative flex w-full touch-none select-none items-center",
                     className
                 )}
-                max={100}
+                max={MAX_NUMBER}
                 step={steps}
                 value={nValue}
-                onValueChange={setNValue}
+                onValueChange={(val) => onChange(values[val[0] / steps])}
             >
                 <SliderPrimitive.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-primary/20">
                     <SliderPrimitive.Range className={cn("absolute h-full bg-primary", {

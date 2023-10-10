@@ -1,43 +1,24 @@
 import FormFieldRenderer, { FormFieldRendererProps } from "../FormFieldRenderer";
-import { RegistrationField, pb, useAddonsQuery, useTicketTypeQuery } from "@/client";
+import { RegistrationField, pb, useAddonsQuery } from "@/client";
 import parseHtml, { domToReact, Element } from 'html-react-parser';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { AspectRatio } from "../ui/aspect-ratio";
 import { useFormContext } from "react-hook-form";
-import { useMemo } from "react";
 import { FormControl, FormField, FormItem, FormLabel } from "../ui/form";
 import { AddonOrdersRecord, AddonsResponse } from "@/pocketbase-types";
+import { currencyFormatter } from "@/lib/utils";
+import { useSubtotal } from "@/registration-form";
 
-const currentFormatter = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' });
-
-function SubtotalDisplay({ value }: { value: AddonOrdersRecord[] }) {
-    const { data: addOns } = useAddonsQuery();
-    const form = useFormContext();
-    const { data: selectedTicket } = useTicketTypeQuery(form.getValues('ticket'));
-
-    const total = useMemo(() => {
-        let total = 0;
-        if (selectedTicket) {
-            total += selectedTicket.price;
-        }
-
-        if (addOns) {
-            const totalAddonPrices = addOns
-                .filter(a => value.findIndex(o => o.addon === a.id) !== -1)
-                .reduce((pv, cv) => pv + cv.price, 0) ?? 0;
-            total += totalAddonPrices;
-        }
-        return total;
-    }, [value, selectedTicket, addOns]);
-
+function SubtotalDisplay() {
+    const { subtotal } = useSubtotal();
     return (
         <Card className="sticky bottom-[80px] mt-4 mb-8">
             <CardContent>
                 <div className="flex items-center pt-6 justify-between">
                     <p className="text-xl text-gray-600">Subtotal</p>
-                    <p className="text-2xl font-semibold">{currentFormatter.format(total)}</p>
+                    <p className="text-2xl font-semibold">{currencyFormatter.format(subtotal)}</p>
                 </div>
             </CardContent>
         </Card>
@@ -117,7 +98,7 @@ export default function RichAddonsFormRenderer({ onChange, value = [], field }: 
                             <CardFooter className="mt-auto flex flex-col">
                                 <div className="w-full pb-4">
                                     <p className="text-sm text-gray-400">Price</p>
-                                    <p className="text-lg font-semibold">{currentFormatter.format(addon.price)}</p>
+                                    <p className="text-lg font-semibold">{currencyFormatter.format(addon.price)}</p>
                                 </div>
 
                                 <Button
@@ -133,7 +114,7 @@ export default function RichAddonsFormRenderer({ onChange, value = [], field }: 
                 ))}
             </div>
 
-            <SubtotalDisplay value={value} />
+            <SubtotalDisplay />
         </div>
     )
 }

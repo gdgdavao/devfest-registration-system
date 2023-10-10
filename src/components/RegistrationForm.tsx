@@ -6,6 +6,7 @@ import {
     FormField,
     FormItem,
     FormLabel,
+    FormMessage,
 } from "./ui/form";
 import FormFieldRenderer, { FormFieldRendererProps } from "./FormFieldRenderer";
 import TopicInterestFormRenderer from "./form_renderers/TopicInterestFormRenderer";
@@ -14,6 +15,7 @@ import { ReactNode, useEffect, useRef } from "react";
 import JsonCheckboxFormRenderer from "./form_renderers/JsonCheckboxFormRenderer";
 import RichTicketFormRenderer from "./form_renderers/RichTicketsFormRenderer";
 import { FormDetailsFormGroupOptions } from "@/pocketbase-types";
+import PhoneNumberFormRenderer from "./form_renderers/PhoneNumberFormRenderer";
 
 export type FormGroup = "all" | `${FormDetailsFormGroupOptions}`;
 
@@ -21,16 +23,15 @@ export default function RegistrationForm({
     data: existingData,
     group = "all",
     noLabel = false,
-    customComponents = {},
     rename = {},
-    children,
+    customComponents = {},
 }: {
     data?: RegistrationRecord;
     asChild?: boolean;
     group?: FormGroup;
-    noLabel?: boolean;
-    children?: ReactNode;
     rename?: Record<string, string>;
+    noLabel?: boolean | string[];
+    children?: ReactNode;
     customComponents?: Partial<
         Record<
             keyof RegistrationRecord | string,
@@ -68,11 +69,11 @@ export default function RegistrationForm({
                 .map((field) => (
                     <FormField
                         control={form.control}
-                        name={(rename[field.name] ?? field.name) as never}
+                        name={field.name as never}
                         key={`registration_${field.name}`}
                         render={({ field: ofield }) => (
                             <FormItem>
-                                {!noLabel && (
+                                {((typeof noLabel === "boolean" && !noLabel) || (Array.isArray(noLabel) && !noLabel.includes(field.name))) && (
                                     <FormLabel className="text-md">
                                         {field.title}
                                     </FormLabel>
@@ -88,10 +89,11 @@ export default function RegistrationForm({
                                         field={field}
                                         rename={rename}
                                         customComponents={{
+                                            contact_number: PhoneNumberFormRenderer,
                                             ticket: RichTicketFormRenderer,
-                                            "merch_sensing_data.preferred_offered_merch":
+                                            "merch_sensing_data_data.preferred_offered_merch":
                                                 JsonCheckboxFormRenderer,
-                                            "merch_sensing_data.merch_spending_limit":
+                                            "merch_sensing_data_data.merch_spending_limit":
                                                 JsonCheckboxFormRenderer,
                                             topic_interests:
                                                 TopicInterestFormRenderer,
@@ -100,12 +102,11 @@ export default function RegistrationForm({
                                         }}
                                     />
                                 </FormControl>
+                                <FormMessage />
                             </FormItem>
                         )}
                     />
                 ))}
-
-            {children}
         </div>
     );
 }

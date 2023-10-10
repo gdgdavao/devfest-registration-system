@@ -7,6 +7,7 @@ export enum Collections {
 	Addons = "addons",
 	FormDetails = "form_details",
 	FormGroups = "form_groups",
+	ManualPayments = "manual_payments",
 	MerchSensingData = "merch_sensing_data",
 	Payments = "payments",
 	ProfessionalProfiles = "professional_profiles",
@@ -79,12 +80,22 @@ export enum FormGroupsKeyOptions {
 	"payment" = "payment",
 	"done" = "done",
 }
-export type FormGroupsRecord = {
+export type FormGroupsRecord<Tcustom_content = unknown> = {
+	custom_content?: null | Tcustom_content
 	description?: string
 	key: FormGroupsKeyOptions
 	route_key: string
 	short_title?: string
+	show_in_stepper?: boolean
 	title: string
+}
+
+export type ManualPaymentsRecord<Ttransaction_details = unknown> = {
+	amount_paid?: number
+	expected_amount: number
+	receipt?: string
+	registrant?: RecordIdString
+	transaction_details: null | Ttransaction_details
 }
 
 export enum MerchSensingDataMerchSpendingLimitOptions {
@@ -106,12 +117,10 @@ export enum PaymentsStatusOptions {
 	"paid" = "paid",
 }
 export type PaymentsRecord = {
-	amount_paid: number
 	expected_amount?: number
-	payment_method: string
-	registrant: RecordIdString
+	payment_intent_id?: string
+	registrant?: RecordIdString
 	status?: PaymentsStatusOptions
-	transaction_id?: string
 }
 
 export type ProfessionalProfilesRecord = {
@@ -146,7 +155,8 @@ export enum RegistrationsAgeRangeOptions {
 	"18-20" = "18-20",
 	"21-24" = "21-24",
 	"25-30" = "25-30",
-	"31-34-35-40" = "31-34-35-40",
+	"31-34" = "31-34",
+	"35-40" = "35-40",
 	"41-50" = "41-50",
 	"50+" = "50+",
 }
@@ -174,7 +184,7 @@ export type RegistrationsRecord<Ttopic_interests = unknown> = {
 	student_profile?: RecordIdString
 	ticket: RecordIdString
 	topic_interests: null | Ttopic_interests
-	type?: RegistrationsTypeOptions
+	type: RegistrationsTypeOptions
 	years_tech_exp: RegistrationsYearsTechExpOptions
 }
 
@@ -199,6 +209,7 @@ export type TicketTypesRecord = {
 }
 
 export type TopicInterestsRecord = {
+	icon?: string
 	key: string
 	topic_name: string
 }
@@ -207,7 +218,8 @@ export type TopicInterestsRecord = {
 export type AddonOrdersResponse<Tpreferences = unknown, Texpand = unknown> = Required<AddonOrdersRecord<Tpreferences>> & BaseSystemFields<Texpand>
 export type AddonsResponse<Tcustomization_options = unknown, Texpand = unknown> = Required<AddonsRecord<Tcustomization_options>> & BaseSystemFields<Texpand>
 export type FormDetailsResponse<Tcustom_options = unknown, Texpand = unknown> = Required<FormDetailsRecord<Tcustom_options>> & BaseSystemFields<Texpand>
-export type FormGroupsResponse<Texpand = unknown> = Required<FormGroupsRecord> & BaseSystemFields<Texpand>
+export type FormGroupsResponse<Tcustom_content = unknown, Texpand = unknown> = Required<FormGroupsRecord<Tcustom_content>> & BaseSystemFields<Texpand>
+export type ManualPaymentsResponse<Ttransaction_details = unknown, Texpand = unknown> = Required<ManualPaymentsRecord<Ttransaction_details>> & BaseSystemFields<Texpand>
 export type MerchSensingDataResponse<Tpreferred_offered_merch = unknown, Texpand = unknown> = Required<MerchSensingDataRecord<Tpreferred_offered_merch>> & BaseSystemFields<Texpand>
 export type PaymentsResponse<Texpand = unknown> = Required<PaymentsRecord> & BaseSystemFields<Texpand>
 export type ProfessionalProfilesResponse<Texpand = unknown> = Required<ProfessionalProfilesRecord> & BaseSystemFields<Texpand>
@@ -224,6 +236,7 @@ export type CollectionRecords = {
 	addons: AddonsRecord
 	form_details: FormDetailsRecord
 	form_groups: FormGroupsRecord
+	manual_payments: ManualPaymentsRecord
 	merch_sensing_data: MerchSensingDataRecord
 	payments: PaymentsRecord
 	professional_profiles: ProfessionalProfilesRecord
@@ -239,6 +252,7 @@ export type CollectionResponses = {
 	addons: AddonsResponse
 	form_details: FormDetailsResponse
 	form_groups: FormGroupsResponse
+	manual_payments: ManualPaymentsResponse
 	merch_sensing_data: MerchSensingDataResponse
 	payments: PaymentsResponse
 	professional_profiles: ProfessionalProfilesResponse

@@ -1,4 +1,4 @@
-import { Tooltip, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ScreenRegistrantDialog from "./ScreenRegistrantDialog";
 import { Button } from "@/components/ui/button";
 
@@ -6,7 +6,6 @@ import IconEdit from '~icons/material-symbols/edit-outline';
 import IconDelete from '~icons/material-symbols/delete-outline';
 import IconScreen from '~icons/material-symbols/thumbs-up-down-outline';
 import { RecordIdString } from "@/pocketbase-types";
-import { TooltipContent } from "@radix-ui/react-tooltip";
 import EditRegistrationDialog from "./EditRegistrationDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import IconEmail from '~icons/material-symbols/stacked-email-rounded';
@@ -48,7 +47,7 @@ export function RegistrationRowActions({ id, onDelete }: {
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger>
-                    <SendMailDialog type="confirm" filter={`id = ${id}`}>
+                    <SendMailDialog template="confirm" filter={`id = "${id}"`}>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                             <IconEmail />
                         </Button>
