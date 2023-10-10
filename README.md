@@ -25,10 +25,11 @@ A custom-built registration system for the upcoming GDG Davao DevFest 2023.
 ### Installation / Setup
 #### Backend
 1. Download PocketBase, and follow the [setup instructions](https://pocketbase.io/docs/).
-2. Execute `npm install` and copy `.env.example` into `.env` file. Fill the `PB_PATH` with the location of your PocketBase instance.
+2. Back to your repo, run `npm install` and copy `.env.example` into `.env` file. Fill the `PB_PATH` with the location of your PocketBase instance.
    - > [!IMPORTANT] do not move .env.example!
-3. Execute `npm install` (if not installed) then `npm run pb-sync push`. This will sync the repo's `pb` folder to your PocketBase instance.
-4. Restart/start PocketBase, go to [`http://localhost:8090/_`](http://localhost:8090/_) (observe the `_`), and login.
+3. On your PocketBase dashboard, go to `Settings > Backups`, click the little upload icon and select the `backup.zip` from the pb folder. Once loaded, click the Restore button.
+4. Run `npm run pb-sync push`. This will sync the repo's `pb` folder to your PocketBase instance.
+5. Restart/start PocketBase, go to [`http://localhost:8090/_`](http://localhost:8090/_) (observe the `_`), and login.
    - If not registered, use `example@example.com` and `1234567890` as e-mail and password when registering.
 
 > [!NOTE]
@@ -62,13 +63,6 @@ For flexibility, form fields are not "hard-coded" into the frontend app but are 
 Once received, data is then fed into `FormFieldRenderer` component which will render the appropriate form input component based on the given field name and type. You may also provide and render custom form components by field. (See [TopicInterestFormRenderer](/src/components/form_renderers/TopicInterestFormRenderer.tsx))
 
 ## PocketBase Notes
-### Environment Variables
-The following environment variables must be set up or some of the endpoints won't work:
-- `PAYMENT_INTENT_API_URL` - URL/endpoint for generating payment intent
-- `PAYMONGO_TOKEN` - Public PayMongo API token
-
-To run with the following env variables, do: `PAYMENT_INTENT_API_URL=<url> PAYMONGO_TOKEN=<token> ./pocketbase serve`
-
 ### Custom backend API Endpoints
 We utilize PocketBase's server hooks feature to create custom API endpoints similar to Firebase's custom functions.
 
@@ -78,6 +72,28 @@ Currently we only use it for getting registration fields list and registration s
 When updating the database schema or related to PocketBase, be sure to update PB-related and `pb/pb_schema.json` files:
 1. Run `npm run pb-sync pull`.
 2. Update `pb_schema.json` by copying the JSON text in `Settings -> Export Collection` and paste it into `pb/pb_schema.json`.
+
+## Deploying to Production
+### Backend
+#### Via Fly.io
+A `fly.toml` file and a `Dockerfile` were already been setup for backend deployment. To deploy, be sure to do `npm run pb-sync push` first
+and on your PocketBase folder execute `fly launch` and `fly deploy` afterwards.
+
+#### Manually
+When deploying to other hosting providers such as DigitalOcean, see [Going to Production](https://pocketbase.io/docs/going-to-production/) page of the PocketBase docs.
+
+### Frontend
+#### Via Vercel
+A `vercel.json` has already been setup for this project. Simply run `vercel --prod` to deploy the app.
+
+#### Manually
+Deploying the frontend to other services may require you to build the app in advance. To build the app, you need to create a separate 
+`.env.production` file first for production-related environment variables. The content is as follows:
+```
+VITE_APP_URL=<deployed pocketbase URL>
+```
+Once the file is created and saved, you may now execute `npm run build` and copy or reference the `dist` folder as the directory to
+be uploaded to the desired hosting service.
 
 ## Resources
 - [PocketBase Documentation](https://pocketbase.io/docs)
