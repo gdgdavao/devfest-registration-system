@@ -17,7 +17,7 @@ interface RowActionsProps<R> {
     onDelete: (id: string) => Promise<void>
 }
 
-export interface AdminTableProps<R, S extends string> {
+export interface AdminTableProps<R> {
     // Data
     data: InfiniteData<ListResult<R>> | undefined
     onRefetch: () => void
@@ -30,9 +30,6 @@ export interface AdminTableProps<R, S extends string> {
     title: string | ReactNode
     actions?: FC<{ selected: R[] }>
 
-    status: 'all' | `${S}`
-    onStatusChange?: (s: 'all' | S) => void
-
     // Data Table
     rowActions?: FC<RowActionsProps<R>>
     columns: ColumnDef<R, unknown>[]
@@ -44,7 +41,7 @@ export interface AdminTableProps<R, S extends string> {
     onFilterChange: (s: string) => void
 }
 
-export default function AdminTable<R, S extends string>(props: AdminTableProps<R, S>) {
+export default function AdminTable<R>(props: AdminTableProps<R>) {
     const { data, onRefetch: refetch, onFetchNextPage: fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = props;
     const { title, actions: Actions, filter: searchFilter, filterPlaceholder, onFilterChange: setSearchFilter } = props;
     const { columns, rowActions: RowActions, onDelete } = props;
