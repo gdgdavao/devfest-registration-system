@@ -48,6 +48,7 @@ export default function AllRegistrations() {
                 </div>
             }
 
+            return <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
                 <Button onClick={() => {
                     exportCsv({
                         collection: Collections.Registrations,

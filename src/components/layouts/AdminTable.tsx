@@ -57,10 +57,10 @@ export default function AdminTable<R>(props: AdminTableProps<R>) {
                 <Badge variant="secondary" className="text-lg">{data?.pages[Math.max((data?.pages.length ?? 0) - 1, 0)].totalItems ?? 0}</Badge>
             </div>
 
-            <div className="pb-4 flex items-center justify-between space-x-2">
+            <div className="pb-4 flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0 md:space-x-2">
                 {selected.length === 0 &&
                     <Input
-                        className="w-1/2"
+                        className="w-full md:w-1/2"
                         defaultValue={searchFilter}
                         onChange={(ev) => debouncedSetSearchFilter(ev.target.value)}
                         placeholder={filterPlaceholder ?? "Filter by e-mail..."} />}
