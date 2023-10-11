@@ -323,10 +323,10 @@ routerAdd("GET", "/assets/*", $apis.staticDirectoryHandler(`${__hooks}/assets`, 
 onRecordBeforeCreateRequest((e) => {
     const utils = require(`${__hooks}/utils.js`);
     const { profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
-    const profile_data = JSON.parse(e.httpContext.formValueDefault(profileDataKey, "null"));
-    const addons_data = JSON.parse(e.httpContext.formValueDefault("addons_data", "[]"));
-    const payment_data = JSON.parse(e.httpContext.formValueDefault("payment_data", "null"));
-    const merch_sensing_data_data = JSON.parse(e.httpContext.formValueDefault("merch_sensing_data_data", "null"));
+    const profile_data = utils.getJsonData(e.httpContext, profileDataKey);
+    const addons_data = utils.getJsonData(e.httpContext, "addons_data", []);
+    const payment_data = utils.getJsonData(e.httpContext, "payment_data");
+    const merch_sensing_data_data = utils.getJsonData(e.httpContext, "merch_sensing_data_data");
 
     try {
         // Validate
@@ -345,39 +345,43 @@ onRecordAfterCreateRequest((e) => {
     const { profileKey, profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
 
     try {
-        const profile_data = JSON.parse(e.httpContext.formValueDefault(profileDataKey, "null"))
-        const addons_data = JSON.parse(e.httpContext.formValueDefault("addons_data", "[]"));
-        // const payment_data = JSON.parse(e.httpContext.formValueDefault("payment_data", "null"));
-        const merch_sensing_data_data = JSON.parse(e.httpContext.formValueDefault("merch_sensing_data_data", "null"));
+        const profile_data = utils.getJsonData(e.httpContext, profileDataKey)
+        const addons_data = utils.getJsonData(e.httpContext, "addons_data", []);
+        // const payment_data = utils.getJsonData(e.httpContext, "payment_data");
+        const merch_sensing_data_data = utils.getJsonData(e.httpContext, "merch_sensing_data_data");
 
-        const addonOrders = addons_data ? addons_data.map(a => {
-            const addonOrder = utils.saveRelationalData('addon_orders',
-                Object.assign({ registrant: e.record.id }, a));
-            return addonOrder.id;
-        }) : [];
-        e.record.set('addons', addonOrders);
+        $app.dao().runInTransaction((txDao) => {
+            const addonOrders = addons_data ? addons_data.map(a => {
+                const addonOrder = utils.saveRelationalData('addon_orders',
+                    Object.assign({ registrant: e.record.id }, a), undefined, txDao);
+                return addonOrder.id;
+            }) : [];
+            e.record.set('addons', addonOrders);
 
-        /** @type {models.Record} */
-        // const paymentRecord = utils.saveRelationalData('manual_payments',
-        //     Object.assign({
-        //         registrant: e.record.id,
-        //         status: 'paid',
-        //     }, payment_data));
+            /** @type {models.Record} */
+            // const paymentRecord = utils.saveRelationalData('manual_payments',
+            //     Object.assign({
+            //         registrant: e.record.id,
+            //         status: 'paid',
+            //     }, payment_data), undefined, txDao);
 
-        // const form = new RecordUpsertForm($app, paymentRecord);
-        // form.addFiles("receipt", e.httpContext.formFile("payment_data.receipt"));
-        // form.submit();
+            // const form = new RecordUpsertForm($app, paymentRecord);
+            // form.addFiles("receipt", e.httpContext.formFile("payment_data.receipt"));
+            // form.submit();
 
-        // e.record.set('payment', paymentRecord.id);
+            // e.record.set('payment', paymentRecord.id);
 
-        const statusRecord = utils.saveRelationalData('registration_statuses', { registrant: e.record.id, status: 'pending' });
-        e.record.set('status', statusRecord.id);
+            const statusRecord = utils.saveRelationalData('registration_statuses', { registrant: e.record.id, status: 'pending' }, undefined, txDao);
+            e.record.set('status', statusRecord.id);
 
-        const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', Object.assign({ registrant: e.record.id }, merch_sensing_data_data));
-        e.record.set('merch_sensing_data', merchSensingDRecord.id);
+            if (merch_sensing_data_data) {
+                const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', Object.assign({ registrant: e.record.id }, merch_sensing_data_data), undefined, txDao);
+                e.record.set('merch_sensing_data', merchSensingDRecord.id);
+            }
 
-        utils.decodeAndSaveProfile(e.record, undefined, profileKey, profileCollectionKey, profile_data);
-        $app.dao().saveRecord(e.record);
+            utils.decodeAndSaveProfile(e.record, undefined, profileKey, profileCollectionKey, profile_data, txDao);
+            txDao.saveRecord(e.record);
+        });
     } catch (e) {
         console.error(e);
         throw e;
@@ -387,8 +391,8 @@ onRecordAfterCreateRequest((e) => {
 onRecordBeforeUpdateRequest((e) => {
     const utils = require(`${__hooks}/utils.js`);
     const { profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
-    const profile_data = JSON.parse(e.httpContext.formValueDefault(profileDataKey, "null"));
-    const merch_sensing_data_data = JSON.parse(e.httpContext.formValueDefault("merch_sensing_data_data", "null"));
+    const profile_data = utils.getJsonData(e.httpContext, profileDataKey);
+    const merch_sensing_data_data = utils.getJsonData(e.httpContext, "merch_sensing_data_data");
 
     try {
         // Validate
@@ -404,42 +408,46 @@ onRecordAfterUpdateRequest((e) => {
     const utils = require(`${__hooks}/utils.js`);
     const registrant = e.record.id;
     const { profileKey, profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
-    const profile_data = JSON.parse(e.httpContext.formValueDefault(profileDataKey, "null"));
-    const merch_sensing_data_data = JSON.parse(e.httpContext.formValueDefault("merch_sensing_data_data", "null"));
+    const profile_data = utils.getJsonData(e.httpContext, profileDataKey);
+    const merch_sensing_data_data = utils.getJsonData(e.httpContext, "merch_sensing_data_data");
 
     try {
-        if (profile_data && Object.keys(profile_data).length !== 0) {
-            let oldProfileId = null;
+        $app.dao().runInTransaction((txDao) => {
+            if (profile_data && Object.keys(profile_data).length !== 0) {
+                let oldProfileId = null;
 
-            // Get opposite keys
-            let { profileKey: oppositeProfileKey, profileCollectionKey: oppositeProfileCKey } =
-                utils.getProfileKeys(e.record.getString('type') === 'student' ? 'professional' : 'student');
+                // Get opposite keys
+                let { profileKey: oppositeProfileKey, profileCollectionKey: oppositeProfileCKey } =
+                    utils.getProfileKeys(e.record.getString('type') === 'student' ? 'professional' : 'student');
 
-            // If a user mistakenly selects $type but is a $oppositeType, delete existing record of it
-            const oppositeProfileId = e.record.getString(oppositeProfileKey);
-            if (oppositeProfileId.length !== 0) {
-                e.record.set(oppositeProfileKey, null);
-                $app.dao().saveRecord(e.record);
+                // If a user mistakenly selects $type but is a $oppositeType, delete existing record of it
+                const oppositeProfileId = e.record.getString(oppositeProfileKey);
+                if (oppositeProfileId.length !== 0) {
+                    e.record.set(oppositeProfileKey, null);
+                    txDao.saveRecord(e.record);
 
-                const oldProfile = $app.dao().findRecordById(oppositeProfileCKey, oppositeProfileId);
-                $app.dao().deleteRecord(oldProfile);
-            } else {
-                oldProfileId = e.record.getString(profileKey);
+                    const oldProfile = txDao.findRecordById(oppositeProfileCKey, oppositeProfileId);
+                    txDao.deleteRecord(oldProfile);
+                } else {
+                    oldProfileId = e.record.getString(profileKey);
 
-                // If oldProfile is still empty, make it null again
-                if (oldProfileId && oldProfileId.length === 0) {
-                    oldProfileId = null;
+                    // If oldProfile is still empty, make it null again
+                    if (oldProfileId && oldProfileId.length === 0) {
+                        oldProfileId = null;
+                    }
                 }
+
+                // Create and save to record
+                utils.decodeAndSaveProfile(registrant, oldProfileId, profileKey, profileCollectionKey, profile_data);
             }
 
-            // Create and save to record
-            utils.decodeAndSaveProfile(registrant, oldProfileId, profileKey, profileCollectionKey, profile_data);
-        }
+            if (merch_sensing_data_data) {
+                const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', merch_sensing_data_data, e.record.getString('merch_sensing_data'), txDao);
+                e.record.set('merch_sensing_data', merchSensingDRecord.id);
+            }
 
-        const merchSensingDRecord = utils.saveRelationalData('merch_sensing_data', merch_sensing_data_data, e.record.getString('merch_sensing_data'));
-        e.record.set('merch_sensing_data', merchSensingDRecord.id);
-
-        $app.dao().saveRecord(e.record);
+            txDao.saveRecord(e.record);
+        });
 
         if (e.record.getString(profileKey).length != 0 && e.record.getString('payment').length != 0) {
             const host = "http://" + e.httpContext.request().host;
