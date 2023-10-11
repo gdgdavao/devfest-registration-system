@@ -318,6 +318,56 @@ routerAdd("GET", "/api/email_templates", (c) => {
     return c.json(200, templatesList);
 }, $apis.requireAdminAuth());
 
+routerAdd("POST", "/csv/import", (c) => {
+    const collection = c.formValue("collection");
+    if (!collection) {
+        throw new BadRequestError("Collection ID or name must be provided.");
+    }
+
+    let rawMappings = c.formValue("mappings");
+    if (rawMappings.length === 0) {
+        rawMappings = '{}';
+    }
+
+    const mappings = JSON.parse(rawMappings);
+    if (typeof mappings !== 'object') {
+        throw new BadRequestError("Mappings must be an object of strings.");
+    }
+
+    const rawCsvFile = c.formFile("csv");
+    if (rawCsvFile.header.get("Content-Type") != "text/csv") {
+        throw new BadRequestError("Invalid file type. Must be a file with CSV format.");
+    }
+
+    const csvFile = $filesystem.fileFromMultipart(rawCsvFile);
+    const csvData = readerToString(csvFile.reader.open());
+    const utils = require(`${__hooks}/utils.js`);
+    const n = utils.importCsv(collection, csvData, mappings)
+    return c.json(200, `${n} records were added successfully.`);
+});
+
+routerAdd("GET", "/csv/export", (c) => {
+    try {
+        const collection = c.queryParam("collection");
+        if (!collection) {
+            throw new BadRequestError('Collection name or ID must be provided.');
+        }
+
+        const utils = require(`${__hooks}/utils.js`);
+        const filter = c.queryParam("filter");
+        const expand = c.queryParam("expand").split(",").filter(Boolean);
+        const output = utils.exportToCsv(collection, expand, filter);
+
+        c.response().header().set("Content-Type", "text/csv");
+        c.response().header().set("Content-Disposition", `attachment; filename=${collection}-${(new Date).getTime()}.csv`);
+        c.response().write(output);
+        return null;
+    } catch(e) {
+        console.error(e);
+        throw e;
+    }
+});
+
 routerAdd("GET", "/assets/*", $apis.staticDirectoryHandler(`${__hooks}/assets`, false));
 
 onRecordBeforeCreateRequest((e) => {
