@@ -99,7 +99,7 @@ export type RegistrationsResponse = PBRegistrationsResponse<
     }
 >
 
-const REGISTRATION_RESP_EXPAND = "status,student_profile,professional_profile,payment,addons.addon,ticket,merch_sensing_data";
+export const REGISTRATION_RESP_EXPAND = "status,student_profile,professional_profile,payment,addons.addon,ticket,merch_sensing_data";
 
 export interface RegistrationRecord extends RegistrationsRecord {
     addons_data?: AddonOrdersRecord[]
@@ -450,5 +450,34 @@ export function usePaymentIntentQuery(paymentIntentEndpoint?: string, apiKey?: s
         enabled: false,
         refetchOnWindowFocus: false,
         refetchInterval: false,
+    });
+}
+
+// Import / export CSV
+export function useExportCsvMutation() {
+    return useMutation(async ({ collection, expand = [], filter }: { collection: Collections, expand?: string[], filter?: string }) => {
+        const params = (new URLSearchParams({
+            collection,
+            filter: filter ?? '',
+            expand: expand.join(',')
+        })).toString();
+
+        const resp = await fetch(pb.buildUrl(`/csv/export?${params}`));
+        if (!resp.ok) {
+            const json = await resp.json();
+            throw new ClientResponseError(json);
+        }
+
+        const contentDisposition = resp.headers.get('Content-Disposition') ?? `attachment; filename=${collection}-${(new Date).getTime()}.csv`;
+        const filenamePortion = 'filename=';
+        const filenameIdx = contentDisposition.indexOf(filenamePortion);
+        const filename =  contentDisposition.substring(filenameIdx + filenamePortion.length);
+        const blob = await resp.blob();
+        const url = window.URL.createObjectURL(blob);
+        const virtualDlBtn = document.createElement('a');
+        virtualDlBtn.href = url;
+        virtualDlBtn.download = filename;
+        virtualDlBtn.click();
+        return url;
     });
 }

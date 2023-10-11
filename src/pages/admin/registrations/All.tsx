@@ -7,8 +7,13 @@ import { RegistrationRowActions } from "./RegistrationRowActions";
 import SendMailDialog from "./SendMailDialog";
 import IconDelete from '~icons/material-symbols/delete-outline';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Download } from "lucide-react";
+import { REGISTRATION_RESP_EXPAND, useExportCsvMutation } from "@/client";
+import { Collections } from "@/pocketbase-types";
 
 export default function AllRegistrations() {
+    const { mutate: exportCsv } = useExportCsvMutation();
+
     return <RegistrationsPage
         status="all"
         actions={({ selected, onDelete }) => {
@@ -43,7 +48,16 @@ export default function AllRegistrations() {
                 </div>
             }
 
-            return <div className="flex flex-row space-x-2">
+                <Button onClick={() => {
+                    exportCsv({
+                        collection: Collections.Registrations,
+                        expand: REGISTRATION_RESP_EXPAND.split(',')
+                    });
+                }}>
+                    <Download className="mr-2" />
+                    Export
+                </Button>
+
                 {/* TODO: change filter, add status */}
                 <SendMailDialog template="confirm" filter={`status.status != "pending"`}>
                     <Button>
