@@ -1,6 +1,6 @@
 import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
-import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse, TopicInterestsResponse, ManualPaymentsResponse, ManualPaymentsRecord, AddonsRecord, MerchSensingDataResponse } from './pocketbase-types';
+import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse, TopicInterestsResponse, ManualPaymentsResponse, ManualPaymentsRecord, AddonsRecord, MerchSensingDataResponse, CsvImportsResponse } from './pocketbase-types';
 import { ErrorOption } from 'react-hook-form';
 import { CreatePaymentMethod, InitPaymentResult, PaymentIntent, PaymentMethod } from './payment-types';
 import jsonToFormData from 'json-form-data';
@@ -472,12 +472,10 @@ export function useImportCsvMutation() {
 
 export function useInitialImportCsvMutation() {
     return useMutation((csv: File) => {
-        console.log(csv);
-
         const fd = new FormData();
         fd.set('csv', csv);
 
-        return pb.send<{ message: string }>('/csv/initial-import', {
+        return pb.send<CsvImportsResponse<string[]>>('/csv/initial-import', {
             method: 'POST',
             body: fd
         });
