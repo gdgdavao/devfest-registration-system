@@ -2,6 +2,87 @@
 /// <reference path="./hooks.d.ts" />
 
 module.exports = {
+    generateMerchSensingData() {
+        const results = $app.dao().findRecordsByExpr('merch_sensing_data');
+
+        const preferred_offered_merch = {
+            id: 'preferred_offered_merch',
+            title: 'Preferred offered merch',
+            total: 0,
+            share: {}
+        }
+
+        const other_preferred_offered_merch = {
+            id: 'other_preferred_offered_merch',
+            title: 'Other preferred offered merch',
+            total: 0,
+            share: {}
+        }
+
+        const merch_spending_limit = {
+            id: 'merch_spending_limit',
+            title: 'Merch spending limit',
+            total: 0,
+            share: {}
+        }
+
+        for (const result of results) {
+            // preferred_offered_merch
+            const rawPom = result.getString('preferred_offered_merch');
+            if (rawPom) {
+                const pom = JSON.parse(rawPom);
+                for (const merch of pom) {
+                    if (!(merch in preferred_offered_merch.share)) {
+                        preferred_offered_merch.share[merch] = 0;
+                    }
+                    preferred_offered_merch.share[merch]++;
+                }
+                preferred_offered_merch.total++;
+            }
+
+            // other_preferred_offered_merch
+            const opm = result.getString('other_preferred_offered_merch');
+            if (opm) {
+                const splitted_other_preferred_merch = opm.split(',');
+                let hasShare = false;
+                for (const raw_other_merch of splitted_other_preferred_merch) {
+                    const other_merch = raw_other_merch.trim();
+                    if (!other_merch || other_merch === 'none') {
+                        continue;
+                    }
+
+                    hasShare = true;
+                    if (!(other_merch in other_preferred_offered_merch.share)) {
+                        other_preferred_offered_merch.share[other_merch] = 0;
+                    }
+                    other_preferred_offered_merch.share[other_merch]++;
+                }
+
+                if (hasShare) {
+                    other_preferred_offered_merch.total++;
+                }
+            }
+
+            // merch_spending_limit
+            const msl = result.getString('merch_spending_limit');
+            if (!(msl in merch_spending_limit.share)) {
+                merch_spending_limit.share[msl] = 0;
+            }
+
+            merch_spending_limit.share[msl]++;
+            merch_spending_limit.total++;
+        }
+
+        return {
+            total: results.length,
+            insights: [
+                preferred_offered_merch,
+                other_preferred_offered_merch,
+                merch_spending_limit
+            ]
+        }
+    },
+
     /**
      *
      * @param {echo.Context} c

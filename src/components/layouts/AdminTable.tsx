@@ -31,6 +31,7 @@ export interface AdminTableProps<R> {
     actions?: FC<{ selected: R[] }>
 
     // Data Table
+    selectable?: boolean
     rowActions?: FC<RowActionsProps<R>>
     columns: ColumnDef<R, unknown>[]
     onDelete: (record: R) => Promise<void>
@@ -45,6 +46,7 @@ export default function AdminTable<R>(props: AdminTableProps<R>) {
     const { data, onRefetch: refetch, onFetchNextPage: fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = props;
     const { title, actions: Actions, filter: searchFilter, filterPlaceholder, onFilterChange: setSearchFilter } = props;
     const { columns, rowActions: RowActions, onDelete } = props;
+    const selectable = props.selectable ?? true;
 
     // TODO:
     const [selected, setSelected]= useState<R[]>([]);
@@ -75,7 +77,7 @@ export default function AdminTable<R>(props: AdminTableProps<R>) {
                     setSelected(rows.map(r => r.original));
                 }}
                 columns={[
-                    {
+                    ...(selectable ? [{
                         id: "select",
                         header: ({ table }) => (
                             <Checkbox
@@ -93,7 +95,7 @@ export default function AdminTable<R>(props: AdminTableProps<R>) {
                         ),
                         enableSorting: false,
                         enableHiding: false,
-                    },
+                    } as ColumnDef<R, unknown>] : []),
                     ...columns,
                     ...(RowActions ? [
                         {

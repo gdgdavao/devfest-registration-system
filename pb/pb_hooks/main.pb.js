@@ -320,6 +320,33 @@ routerAdd("GET", "/api/email_templates", (c) => {
 
 routerAdd("GET", "/assets/*", $apis.staticDirectoryHandler(`${__hooks}/assets`, false));
 
+// Merch sensing
+routerAdd("GET", "/api/merch-sensing/summary", (c) => {
+    const utils = require(`${__hooks}/utils.js`);
+    const results = utils.generateMerchSensingData();
+    return c.json(200, results);
+});
+
+// NOTE: this is insecure i think but should be protected by an admin api key in the future
+routerAdd("GET", "/merch-sensing/summary/export", (c) => {
+    const utils = require(`${__hooks}/utils.js`);
+    const results = utils.generateMerchSensingData();
+    const output = results.insights.map(i => {
+        const sorted = Object.entries(i.share)
+            .sort((a, b) => a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1);
+        return `
+${i.title},
+${sorted.map(([entry, count]) => `"${entry}",${count}`).join('\n')}
+,
+    `.trim();
+    }).join('\n');
+
+    c.response().header().set("Content-Type", "text/csv");
+    c.response().header().set("Content-Disposition", `attachment; filename=merch_sensing_data-${(new Date).getTime()}.csv`);
+    c.response().write(output);
+    return null;
+});
+
 onRecordBeforeCreateRequest((e) => {
     const utils = require(`${__hooks}/utils.js`);
     const { profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));

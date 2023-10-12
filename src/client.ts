@@ -168,6 +168,29 @@ export function useRegistrationMutation() {
     });
 }
 
+export function useMerchSensingDataQuery(options?: RecordListOptions) {
+    return useInfiniteQuery(
+        [Collections.MerchSensingData, JSON.stringify(options)],
+        ({ pageParam = 1 }) => {
+            return pb.collection(Collections.MerchSensingData)
+                .getList<MerchSensingDataResponse<string[], { registrant: PBRegistrationsResponse }>>(pageParam, undefined, {
+                    ...options,
+                    expand: 'registrant'
+                });
+        },
+        {
+            getNextPageParam(data) {
+                if (data.page + 1 > data.totalPages) return undefined;
+                return data.page + 1;
+            },
+            getPreviousPageParam(data) {
+                if (data.page + 1 < 0) return undefined;
+                return data.page - 1;
+            },
+        }
+    );
+}
+
 export function useDeleteRegistrationMutation() {
     return useMutation((id: RecordIdString) => {
         return pb.collection(Collections.Registrations).delete(id);

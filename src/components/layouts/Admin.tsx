@@ -84,6 +84,13 @@ function Sidebar({ className }: { className?: string }) {
 
                     <div className="space-y-1">
                         <Button variant="ghost" className="w-full justify-start" asChild>
+                            <Link to="/admin/merch_sensing">
+                                <IconAll className="mr-2" />
+                                All Entries
+                            </Link>
+                        </Button>
+
+                        <Button variant="ghost" className="w-full justify-start" asChild>
                             <Link to="/admin/merch_sensing/summary">
                                 <IconSummary className="mr-2" />
                                 Summary
