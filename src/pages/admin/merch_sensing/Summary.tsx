@@ -1,4 +1,5 @@
 import { pb } from "@/client";
+import Loading from "@/components/Loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -6,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 
 export default function MerchSensingSummary() {
-    const { data } = useQuery(['merch_sensing', 'summary'], () => {
+    const { data, isLoading, isFetched } = useQuery(['merch_sensing', 'summary'], () => {
         return pb.send<{
             total: number
             insights: {
@@ -35,6 +36,14 @@ export default function MerchSensingSummary() {
                     </Button>
                 </div>
             </div>
+
+            {(isLoading && !isFetched) && <div className="flex flex-col items-center">
+                <Loading className="w-48" />
+            </div>}
+
+            {(isFetched && !data) && <div className="flex flex-col items-center">
+                <p className="text-3xl text-muted-foreground">No data found.</p>
+            </div>}
 
             {data?.insights.map(insight => (
                 <section key={`insight_${insight.id}`} className="pb-8">
