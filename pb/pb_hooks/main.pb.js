@@ -322,84 +322,29 @@ routerAdd("GET", "/assets/*", $apis.staticDirectoryHandler(`${__hooks}/assets`, 
 
 // Merch sensing
 routerAdd("GET", "/api/merch-sensing/summary", (c) => {
-    const results = $app.dao().findRecordsByExpr('merch_sensing_data');
+    const utils = require(`${__hooks}/utils.js`);
+    const results = utils.generateMerchSensingData();
+    return c.json(200, results);
+});
 
-    const preferred_offered_merch = {
-        id: 'preferred_offered_merch',
-        title: 'Preferred offered merch',
-        total: 0,
-        share: {}
-    }
+// NOTE: this is insecure i think but should be protected by an admin api key in the future
+routerAdd("GET", "/merch-sensing/summary/export", (c) => {
+    const utils = require(`${__hooks}/utils.js`);
+    const results = utils.generateMerchSensingData();
+    const output = results.insights.map(i => {
+        const sorted = Object.entries(i.share)
+            .sort((a, b) => a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1);
+        return `
+${i.title},
+${sorted.map(([entry, count]) => `"${entry}",${count}`).join('\n')}
+,
+    `.trim();
+    }).join('\n');
 
-    const other_preferred_offered_merch = {
-        id: 'other_preferred_offered_merch',
-        title: 'Other preferred offered merch',
-        total: 0,
-        share: {}
-    }
-
-    const merch_spending_limit = {
-        id: 'merch_spending_limit',
-        title: 'Merch spending limit',
-        total: 0,
-        share: {}
-    }
-
-    for (const result of results) {
-        // preferred_offered_merch
-        const rawPom = result.getString('preferred_offered_merch');
-        if (rawPom) {
-            const pom = JSON.parse(rawPom);
-            for (const merch of pom) {
-                if (!(merch in preferred_offered_merch.share)) {
-                    preferred_offered_merch.share[merch] = 0;
-                }
-                preferred_offered_merch.share[merch]++;
-            }
-            preferred_offered_merch.total++;
-        }
-
-        // other_preferred_offered_merch
-        const opm = result.getString('other_preferred_offered_merch');
-        if (opm) {
-            const splitted_other_preferred_merch = opm.split(',');
-            let hasShare = false;
-            for (const raw_other_merch of splitted_other_preferred_merch) {
-                const other_merch = raw_other_merch.trim();
-                if (!other_merch || other_merch === 'none') {
-                    continue;
-                }
-
-                hasShare = true;
-                if (!(other_merch in other_preferred_offered_merch.share)) {
-                    other_preferred_offered_merch.share[other_merch] = 0;
-                }
-                other_preferred_offered_merch.share[other_merch]++;
-            }
-
-            if (hasShare) {
-                other_preferred_offered_merch.total++;
-            }
-        }
-
-        // merch_spending_limit
-        const msl = result.getString('merch_spending_limit');
-        if (!(msl in merch_spending_limit.share)) {
-            merch_spending_limit.share[msl] = 0;
-        }
-
-        merch_spending_limit.share[msl]++;
-        merch_spending_limit.total++;
-    }
-
-    return c.json(200, {
-        total: results.length,
-        insights: [
-            preferred_offered_merch,
-            other_preferred_offered_merch,
-            merch_spending_limit
-        ]
-    });
+    c.response().header().set("Content-Type", "text/csv");
+    c.response().header().set("Content-Disposition", `attachment; filename=merch_sensing_data-${(new Date).getTime()}.csv`);
+    c.response().write(output);
+    return null;
 });
 
 onRecordBeforeCreateRequest((e) => {

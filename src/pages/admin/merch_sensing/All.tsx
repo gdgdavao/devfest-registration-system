@@ -1,9 +1,11 @@
 import { useState } from "react";
 
-import { useMerchSensingDataQuery } from "@/client";
+import { pb, useMerchSensingDataQuery } from "@/client";
 
 import * as pbf from "@/lib/pb_filters";
 import AdminTable from "@/components/layouts/AdminTable";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 export default function AllPage() {
     const [filter, setFilter] = useState('');
@@ -26,6 +28,16 @@ export default function AllPage() {
         isFetchingNextPage={isFetchingNextPage}
         hasNextPage={hasNextPage}
         data={data}
+        actions={() => (
+            <div>
+                <Button asChild>
+                    <a href={pb.buildUrl(`/merch-sensing/summary/export`)} download>
+                        <Download className="mr-2" />
+                        Export data
+                    </a>
+                </Button>
+            </div>
+        )}
         columns={[
             {
                 accessorKey: 'expand.registrant.email',
