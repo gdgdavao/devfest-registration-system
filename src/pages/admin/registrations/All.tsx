@@ -7,9 +7,10 @@ import { RegistrationRowActions } from "./RegistrationRowActions";
 import SendMailDialog from "./SendMailDialog";
 import IconDelete from '~icons/material-symbols/delete-outline';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Download } from "lucide-react";
+import { Download, Upload } from "lucide-react";
 import { REGISTRATION_RESP_EXPAND, useExportCsvMutation } from "@/client";
 import { Collections } from "@/pocketbase-types";
+import ImportCsvDialog from "./ImportCsvDialog";
 
 export default function AllRegistrations() {
     const { mutate: exportCsv } = useExportCsvMutation();
@@ -49,6 +50,13 @@ export default function AllRegistrations() {
             }
 
             return <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
+                <ImportCsvDialog>
+                    <Button>
+                        <Upload className="mr-2" />
+                        Import
+                    </Button>
+                </ImportCsvDialog>
+
                 <Button onClick={() => {
                     exportCsv({
                         collection: Collections.Registrations,

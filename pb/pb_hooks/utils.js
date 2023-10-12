@@ -155,7 +155,6 @@ module.exports = {
 
         const flattened = records.map((r) => {
             const raw = JSON.parse(JSON.stringify(r));
-            console.log(JSON.stringify(r));
             const rExpand = raw.expand ? raw.expand : {};
             const fields = Object.assign(raw, {});
             if (raw.expand) {

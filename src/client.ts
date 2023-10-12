@@ -454,6 +454,36 @@ export function usePaymentIntentQuery(paymentIntentEndpoint?: string, apiKey?: s
 }
 
 // Import / export CSV
+export function useImportCsvMutation() {
+    return useMutation((payload: {
+        import_id: string
+        collection: Collections
+        mappings?: Record<string, string>
+    }) => {
+        return pb.send<{ message: string }>('/csv/import', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+    });
+}
+
+export function useInitialImportCsvMutation() {
+    return useMutation((csv: File) => {
+        console.log(csv);
+
+        const fd = new FormData();
+        fd.set('csv', csv);
+
+        return pb.send<{ message: string }>('/csv/initial-import', {
+            method: 'POST',
+            body: fd
+        });
+    });
+}
+
 export function useExportCsvMutation() {
     return useMutation(async ({ collection, expand = [], filter }: { collection: Collections, expand?: string[], filter?: string }) => {
         const params = (new URLSearchParams({

@@ -5,6 +5,7 @@
 export enum Collections {
 	AddonOrders = "addon_orders",
 	Addons = "addons",
+	CsvImports = "csv_imports",
 	FormDetails = "form_details",
 	FormGroups = "form_groups",
 	ManualPayments = "manual_payments",
@@ -54,6 +55,11 @@ export type AddonsRecord<Tcustomization_options = unknown> = {
 	description?: HTMLString
 	price?: number
 	title?: string
+}
+
+export type CsvImportsRecord<Tcolumns = unknown> = {
+	columns: null | Tcolumns
+	file: string
 }
 
 export enum FormDetailsFormGroupOptions {
@@ -217,6 +223,7 @@ export type TopicInterestsRecord = {
 // Response types include system fields and match responses from the PocketBase API
 export type AddonOrdersResponse<Tpreferences = unknown, Texpand = unknown> = Required<AddonOrdersRecord<Tpreferences>> & BaseSystemFields<Texpand>
 export type AddonsResponse<Tcustomization_options = unknown, Texpand = unknown> = Required<AddonsRecord<Tcustomization_options>> & BaseSystemFields<Texpand>
+export type CsvImportsResponse<Tcolumns = unknown, Texpand = unknown> = Required<CsvImportsRecord<Tcolumns>> & BaseSystemFields<Texpand>
 export type FormDetailsResponse<Tcustom_options = unknown, Texpand = unknown> = Required<FormDetailsRecord<Tcustom_options>> & BaseSystemFields<Texpand>
 export type FormGroupsResponse<Tcustom_content = unknown, Texpand = unknown> = Required<FormGroupsRecord<Tcustom_content>> & BaseSystemFields<Texpand>
 export type ManualPaymentsResponse<Ttransaction_details = unknown, Texpand = unknown> = Required<ManualPaymentsRecord<Ttransaction_details>> & BaseSystemFields<Texpand>
@@ -234,6 +241,7 @@ export type TopicInterestsResponse<Texpand = unknown> = Required<TopicInterestsR
 export type CollectionRecords = {
 	addon_orders: AddonOrdersRecord
 	addons: AddonsRecord
+	csv_imports: CsvImportsRecord
 	form_details: FormDetailsRecord
 	form_groups: FormGroupsRecord
 	manual_payments: ManualPaymentsRecord
@@ -250,6 +258,7 @@ export type CollectionRecords = {
 export type CollectionResponses = {
 	addon_orders: AddonOrdersResponse
 	addons: AddonsResponse
+	csv_imports: CsvImportsResponse
 	form_details: FormDetailsResponse
 	form_groups: FormGroupsResponse
 	manual_payments: ManualPaymentsResponse
