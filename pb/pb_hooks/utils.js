@@ -3,6 +3,20 @@
 
 module.exports = {
     /**
+     *
+     * @param {echo.Context} c
+     * @param {string} name
+     * @param {any} defaultValue
+     * @returns {any}
+     */
+    getJsonData(c, name, defaultValue = null) {
+        const data = $apis.requestInfo(c).data;
+        if (name in data && typeof data[name] === 'string') {
+            return JSON.parse(data[name]);
+        }
+        return defaultValue;
+    },
+    /**
      * @param {string} type
      * @param {string} filter
      * @param {string} host
@@ -79,9 +93,10 @@ module.exports = {
      * @param {string} collectionKey Collection name/ID of the relational data
      * @param {any} rawData JSON representation of the raw relational data
      * @param {string | undefined} oldId ID of the old record if present
+     * @param {daos.Dao} dao
      * @returns {models.Record} Record of the newly created/updated relational data
      */
-    saveRelationalData(collectionKey, rawData, oldId) {
+    saveRelationalData(collectionKey, rawData, oldId, dao = $app.dao()) {
         if (!rawData || Object.keys(rawData).length === 0) {
             return;
         }
@@ -91,10 +106,10 @@ module.exports = {
         let relRecord;
 
         if (oldId) {
-            relRecord = $app.dao().findRecordById(collectionKey, oldId);
+            relRecord = dao.findRecordById(collectionKey, oldId);
             relRecord.load(rawData);
         } else {
-            const collection = $app.dao().findCollectionByNameOrId(collectionKey);
+            const collection = dao.findCollectionByNameOrId(collectionKey);
 
             // TODO: use the "Create new record with validations"
             // https://pocketbase.io/docs/js-records/#create-new-record-with-data-validations
@@ -102,7 +117,7 @@ module.exports = {
         }
 
         // The rest is on you kid ;)
-        $app.dao().saveRecord(relRecord);
+        dao.saveRecord(relRecord);
         return relRecord;
     },
 
@@ -164,14 +179,13 @@ module.exports = {
      * @param {string} profileKey
      * @param {string} profileCollectionKey Collection key to use for the profile
      * @param {Record<string, any>} rawProfile raw JSON profile string
+     * @param {daos.Dao} dao
      * @returns {string}
      */
-    decodeAndSaveProfile(registrant, oldProfileId, profileKey, profileCollectionKey, rawProfile) {
+    decodeAndSaveProfile(registrant, oldProfileId, profileKey, profileCollectionKey, rawProfile, dao = $app.dao()) {
         if (!rawProfile || Object.keys(rawProfile).length !== 0) {
             return;
         }
-
-        console.log(profileCollectionKey, JSON.stringify(rawProfile));
 
         const profileRecord = this.saveRelationalData(
             profileCollectionKey,
@@ -179,7 +193,8 @@ module.exports = {
                 registrant: registrant.id,
                 ...rawProfile,
             },
-            oldProfileId
+            oldProfileId,
+            dao
         );
 
         registrant.set(profileKey, profileRecord.id);

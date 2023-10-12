@@ -2,8 +2,9 @@ import { FormFieldRendererProps } from "../FormFieldRenderer";
 import { FormControl, FormItem, FormLabel } from "../ui/form";
 import { Checkbox } from "../ui/checkbox";
 
-export default function JsonCheckboxFormRenderer({ name, value = [], field, onChange }: FormFieldRendererProps) {
+export default function JsonCheckboxFormRenderer({ name, field, onChange, ...props }: FormFieldRendererProps) {
     const values = field.options.values as string[];
+    const value = props.value ?? [];
 
     return <>
         {(values ?? []).map((v) => (
@@ -17,7 +18,7 @@ export default function JsonCheckboxFormRenderer({ name, value = [], field, onCh
                                 if (field.options.maxSelect === 1) {
                                     return onChange(v);
                                 }
-                                
+
                                 return checked
                                     ? onChange(value.concat(v))
                                     : onChange(value.filter((val: string) => val !== v))

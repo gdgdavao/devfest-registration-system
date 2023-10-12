@@ -72,7 +72,7 @@ module.exports = {
                                     name: subfield.name,
                                     title: subfield.title,
                                     type: subfield.type,
-                                    value: JSON.parse(record.getString(subfield.name)),
+                                    value: JSON.parse(relRecord.getString(subfield.name)),
                                     options: subfield.options
                                 });
                             } else {

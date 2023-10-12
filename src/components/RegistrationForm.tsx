@@ -1,4 +1,4 @@
-import { RegistrationRecord } from "@/client";
+import { RegistrationRecord, RegistrationsResponse } from "@/client";
 import { useRegistrationForm } from "@/registration-form";
 import {
     FormControl,
@@ -26,7 +26,7 @@ export default function RegistrationForm({
     rename = {},
     customComponents = {},
 }: {
-    data?: RegistrationRecord;
+    data?: RegistrationsResponse;
     asChild?: boolean;
     group?: FormGroup;
     rename?: Record<string, string>;
@@ -53,7 +53,14 @@ export default function RegistrationForm({
         }
 
         if (existingData) {
-            form.reset(existingData);
+            form.reset({
+                ...existingData,
+                student_profile_data: existingData.expand?.student_profile ?? (existingData as RegistrationRecord).student_profile_data,
+                professional_profile_data: existingData.expand?.professional_profile ?? (existingData as RegistrationRecord).professional_profile_data,
+                addons_data:  existingData.expand?.addons ?? (existingData as RegistrationRecord).addons_data,
+                payment_data: existingData.expand?.payment ?? (existingData as RegistrationRecord).payment_data,
+                merch_sensing_data_data: existingData.expand?.merch_sensing_data ?? (existingData as RegistrationRecord).merch_sensing_data_data,
+            });
         } else {
             resetFormToDefault();
         }

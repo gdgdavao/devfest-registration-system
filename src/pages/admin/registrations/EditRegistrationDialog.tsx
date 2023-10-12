@@ -1,4 +1,4 @@
-import { useRegistrationMutation, useRegistrationQuery } from "@/client";
+import { useRegistrationQuery, useUpdateRegistrationMutation } from "@/client";
 import RegistrationForm from "@/components/RegistrationForm";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -8,11 +8,11 @@ import { ReactNode, useState } from "react";
 
 export default function EditRegistrationDialog({ id, children }: { id: string, children: ReactNode }) {
     const [open, setIsOpen] = useState(false);
-    const { mutate: submitForm } = useRegistrationMutation();
+    const { mutate: submitForm } = useUpdateRegistrationMutation();
     const { data } = useRegistrationQuery(id, { enabled: open });
     const context = useSetupRegistrationForm({
         onSubmit: (record, onError) => {
-            submitForm(record, { onError });
+            submitForm({ id, record }, { onError });
         }
     });
 
