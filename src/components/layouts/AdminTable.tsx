@@ -53,7 +53,7 @@ export default function AdminTable<R>(props: AdminTableProps<R>) {
     const debouncedSetSearchFilter = useDebouncedCallback(setSearchFilter, 1000);
 
     return (
-        <div className="max-w-5xl mx-auto pt-12 pb-8 flex flex-col">
+        <div className="flex flex-col">
             <div className="flex items-center space-x-2 mb-8">
                 <h2 className="text-4xl font-bold">{ title }</h2>
                 <Badge variant="secondary" className="text-lg">{data?.pages[Math.max((data?.pages.length ?? 0) - 1, 0)].totalItems ?? 0}</Badge>
