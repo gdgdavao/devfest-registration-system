@@ -153,13 +153,33 @@ module.exports = {
             }
         }
 
+        const excludeFieldNames = ['expand', 'collectionId', 'collectionName', 'id'];
+
         const flattened = records.map((r) => {
             const raw = JSON.parse(JSON.stringify(r));
             const rExpand = raw.expand ? raw.expand : {};
             const fields = Object.assign(raw, {});
-            if (raw.expand) {
-                delete raw.expand;
+
+            for (const name in fields) {
+                if (excludeFieldNames.indexOf(name) !== -1) {
+                    delete fields[name];
+                } else if (Array.isArray(fields[name])) {
+                    for (let i = 0; i < fields[name].length; i++) {
+                        for (const nname in fields[name][i]) {
+                            if (excludeFieldNames.indexOf(nname) !== -1) {
+                                delete fields[name][i][nname];
+                            }
+                        }
+                    }
+                } else if (typeof fields[name] === 'object') {
+                    for (const nname in fields[name]) {
+                        if (excludeFieldNames.indexOf(nname) !== -1) {
+                            delete fields[name][nname];
+                        }
+                    }
+                }
             }
+
             return this.flattenJson(Object.assign(fields, rExpand));
         });
 
