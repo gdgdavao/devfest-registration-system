@@ -4,13 +4,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { Collections } from "@/pocketbase-types";
 import { ReactNode, useState } from "react";
 import { useForm } from "react-hook-form";
 
 export default function ImportCsvDialog({ children }: { children: ReactNode }) {
     const [open, setIsOpen] = useState(false);
-    // TODO: create a separate collection for csv imports
     const [importState, setImportState] = useState<'uploading' | 'mapping' | 'importing'>('uploading');
     const { data: initialImportData, mutate: initialImportCsv } = useInitialImportCsvMutation();
     const { mutate: importCsv } = useImportCsvMutation();
@@ -19,7 +19,7 @@ export default function ImportCsvDialog({ children }: { children: ReactNode }) {
 
     return <Dialog open={open} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="lg:max-w-screen-lg overflow-y-scroll max-h-[calc(100vh-2rem)]">
+        <DialogContent className={cn([importState === 'mapping' ? 'lg:max-w-screen-lg': 'lg:max-w-screen-sm'], 'overflow-y-scroll max-h-[calc(100vh-2rem)]')}>
             <DialogHeader>
                 <DialogTitle>Import CSV</DialogTitle>
 
