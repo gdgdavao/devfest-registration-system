@@ -320,7 +320,55 @@ routerAdd("GET", "/api/email_templates", (c) => {
 
 routerAdd("GET", "/assets/*", $apis.staticDirectoryHandler(`${__hooks}/assets`, false));
 
-// Merch sensing
+// Summary API
+routerAdd("GET", "/api/summary", (c) => {
+    const collectionId = c.queryParam("collection");
+    if (!collectionId) {
+        throw new BadRequestError("Collection ID or name is required.");
+    }
+
+    const filter = c.queryParam("filter");
+    const exceptColumns = c.queryParam("except").split(",").filter(Boolean);
+    const collection = $app.dao().findCollectionByNameOrId(collectionId);
+
+    // include filtering system columns
+    const systemColumns = collection.schema.fields().filter(f => f.system).map(f => f.name);
+    for (const col of systemColumns) {
+        exceptColumns.push(col);
+    }
+
+    const records = filter.length > 0 ?
+        $app.dao().findRecordsByFilter(collectionId, filter) :
+        $app.dao().findRecordsByExpr(collectionId);
+
+    let results = {};
+    let total = 0;
+
+    for (const rawRecord of records) {
+        const record = JSON.parse(rawRecord.marshalJSON());
+
+        for (const col in record) {
+            if (!(col in results)) {
+                const formGroup = $app.dao().findRecordsByExpr()
+
+                results[col] = {
+                    id: 'other_preferred_offered_merch',
+                    title: 'Other preferred offered merch',
+                    total: 0,
+                    share: {}
+                }
+            }
+
+
+        }
+    }
+
+    return c.json(200, {
+        total,
+        insights: Object.values(results)
+    });
+});
+
 routerAdd("GET", "/api/merch-sensing/summary", (c) => {
     const utils = require(`${__hooks}/utils.js`);
     const results = utils.generateMerchSensingData();
