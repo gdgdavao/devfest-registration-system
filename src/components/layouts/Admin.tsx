@@ -1,4 +1,4 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import AuthOnly from "../AuthOnly";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -8,8 +8,13 @@ import IconPending from '~icons/material-symbols/pending-outline';
 import IconApprove from '~icons/material-symbols/check-circle-outline';
 import IconReject from '~icons/material-symbols/cancel-outline';
 import IconSummary from '~icons/material-symbols/browse-activity-outline-rounded';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { pb } from "@/client";
+import { AdminModel } from "pocketbase";
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import useTailwindBreakpoint from "@/lib/tailwind_breakpoint";
 
 interface NavSection {
     name: string
@@ -27,7 +32,7 @@ const navSections: NavSection[] = [
         name: 'Registration',
         entries: [
             {
-                path: '/registration',
+                path: '/registrations',
                 icon: IconAll,
                 label: 'All Entries'
             },
@@ -81,17 +86,20 @@ const navSections: NavSection[] = [
 ];
 
 function Sidebar({ className }: { className?: string }) {
+    const currentUser = pb.authStore.model as AdminModel;
+    const navigate = useNavigate();
+
     return (
         <div className={cn("bg-white border-r pb-12", className)}>
-            <div className="space-y-4 py-4">
-                <div className="px-3 py-2">
+            <div className="h-full flex flex-col">
+                <div className="px-3 pt-6 pb-4">
                     <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
                         DevFest Registration System
                     </h2>
                 </div>
 
                 {navSections.map(section => (
-                    <div key={`nav_section_${section.name}`} className="px-3 py-2">
+                    <div key={`nav_section_${section.name}`} className="px-3 py-4">
                         <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
                             {section.name}
                         </h2>
@@ -111,25 +119,55 @@ function Sidebar({ className }: { className?: string }) {
                         </div>
                     </div>
                 ))}
+
+                <div className="mt-auto px-3">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className="w-full cursor-pointer hover:bg-secondary transition-colors px-2 py-2">
+                            <div className="flex items-center space-x-2">
+                                <Avatar>
+                                    <AvatarFallback>{currentUser.email[0] + currentUser.email[1]}</AvatarFallback>
+                                </Avatar>
+                                <p className="text-sm">{currentUser.email}</p>
+                            </div>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => {
+                                pb.authStore.clear();
+                                navigate('/admin/login');
+                            }}>Logout</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
         </div>
     )
 }
 
 export default function AdminLayout() {
+    const breakpoint = useTailwindBreakpoint();
     const [isOpen, setIsOpen] = useState(true);
+
+    useEffect(() => {
+        if (!breakpoint) return;
+
+        if (['xs', 'sm', 'md'].includes(breakpoint)) {
+            setIsOpen(false);
+        } else if ((breakpoint === 'lg' || breakpoint.endsWith('xl'))) {
+            setIsOpen(true);
+        }
+    }, [breakpoint]);
 
     return (
         <AuthOnly>
-            <div className={cn('fixed left-0 inset-y-0 z-50 h-screen transition-transform', [!isOpen ? '-translate-x-64' : 'translate-x-0'])}>
-                <Sidebar className="h-screen w-64" />
+            <div className={cn('fixed left-0 inset-y-0 z-50 h-screen transition-transform', [!isOpen ? '-translate-x-80 md:-translate-x-64' : 'translate-x-0'])}>
+                <Sidebar className="h-screen w-80 md:w-64" />
 
-                <Button variant="secondary" onClick={() => setIsOpen(o => !o)} className="absolute top-0 left-64 m-4 w-36">
-                    {isOpen ? <X className="mr-2" /> : <Menu className="mr-2" />}
-                    {isOpen ? 'Close' : 'Open Menu'}
+                <Button variant="secondary" onClick={() => setIsOpen(o => !o)} className="absolute top-0 left-80 md:left-64 m-4">
+                    {isOpen ? <X /> : <Menu />}
                 </Button>
             </div>
-            <div className={cn("relative pt-20 pb-48 px-4 transition-[margin]", [isOpen ? 'md:ml-64' : 'md:ml-0'])}>
+            <div className={cn("relative pt-20 pb-48 px-4 transition-[margin]", [isOpen ? 'lg:ml-64' : 'lg:ml-0'])}>
                 <div className="w-full max-w-5xl mx-auto">
                     <Outlet />
                 </div>
