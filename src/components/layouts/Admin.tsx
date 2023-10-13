@@ -79,13 +79,13 @@ const navSections: NavSection[] = [
             {
                 path: '/merch_sensing/summary',
                 icon: IconSummary,
-                label: 'All Entries'
+                label: 'Summary'
             },
         ]
     },
 ];
 
-function Sidebar({ className }: { className?: string }) {
+function Sidebar({ className, onClick }: { className?: string, onClick?: () => void }) {
     const currentUser = pb.authStore.model as AdminModel;
     const navigate = useNavigate();
 
@@ -110,7 +110,7 @@ function Sidebar({ className }: { className?: string }) {
                                     key={`nav_${section.name}_${idx}`}
                                     variant="ghost"
                                     className="w-full justify-start" asChild>
-                                    <Link to={"/admin" + e.path}>
+                                    <Link onClick={() => onClick?.()} to={"/admin" + e.path}>
                                         <span className="inline-block mr-2"><e.icon /></span>
                                         {e.label}
                                     </Link>
@@ -161,7 +161,7 @@ export default function AdminLayout() {
     return (
         <AuthOnly>
             <div className={cn('fixed left-0 inset-y-0 z-50 h-screen transition-transform', [!isOpen ? '-translate-x-80 md:-translate-x-64' : 'translate-x-0'])}>
-                <Sidebar className="h-screen w-80 md:w-64" />
+                <Sidebar onClick={() => setIsOpen(false)} className="h-screen w-80 md:w-64" />
 
                 <Button variant="secondary" onClick={() => setIsOpen(o => !o)} className="absolute top-0 left-80 md:left-64 m-4">
                     {isOpen ? <X /> : <Menu />}
