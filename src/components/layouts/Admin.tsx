@@ -147,21 +147,24 @@ function Sidebar({ className, onClick }: { className?: string, onClick?: () => v
 export default function AdminLayout() {
     const breakpoint = useTailwindBreakpoint();
     const [isOpen, setIsOpen] = useState(true);
+    const [shouldMenuClose, setMenuClose] = useState(false);
 
     useEffect(() => {
         if (!breakpoint) return;
 
-        if (['xs', 'sm', 'md'].includes(breakpoint)) {
-            setIsOpen(false);
-        } else if ((breakpoint === 'lg' || breakpoint.endsWith('xl'))) {
+        if ((breakpoint === 'md' || breakpoint.endsWith('xl'))) {
             setIsOpen(true);
+            setMenuClose(false);
+        } else if (['xs', 'sm', 'md'].includes(breakpoint)) {
+            setIsOpen(false);
+            setMenuClose(true);
         }
     }, [breakpoint]);
 
     return (
         <AuthOnly>
             <div className={cn('fixed left-0 inset-y-0 z-50 h-screen transition-transform', [!isOpen ? '-translate-x-80 md:-translate-x-64' : 'translate-x-0'])}>
-                <Sidebar onClick={() => setIsOpen(false)} className="h-screen w-80 md:w-64" />
+                <Sidebar onClick={() => setIsOpen(!shouldMenuClose)} className="h-screen w-80 md:w-64" />
 
                 <Button variant="secondary" onClick={() => setIsOpen(o => !o)} className="absolute top-0 left-80 md:left-64 m-4">
                     {isOpen ? <X /> : <Menu />}
