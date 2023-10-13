@@ -20,7 +20,7 @@ export default function MerchSensingSummary() {
     });
 
     return (
-        <div className="max-w-5xl mx-auto pt-12 flex flex-col pb-48">
+        <div className="flex flex-col">
             <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:justify-between pb-4">
                 <div className="flex items-center space-x-2 pb-8">
                     <h2>Merch Sensing Summary</h2>
