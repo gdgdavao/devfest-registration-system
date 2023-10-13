@@ -123,19 +123,15 @@ export function useRegistrationMutation() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const entryData: Record<string, any> = {
             ...record,
-            payment_data: JSON.stringify({
-                expected_amount: record.payment_data?.expected_amount,
-                transaction_details: record.payment_data?.transaction_details,
-            }),
+            payment_data: null,
             topic_interests: JSON.stringify(record.topic_interests),
-            addons_data: JSON.stringify(record.addons_data),
+            addons_data: JSON.stringify(record.addons_data ?? []),
             merch_sensing_data_data: JSON.stringify(record.merch_sensing_data_data),
             student_profile_data: record.student_profile_data ? JSON.stringify(record.student_profile_data) : undefined,
             professional_profile_data: record.professional_profile_data ? JSON.stringify(record.professional_profile_data) : undefined,
         };
 
-        const fd = jsonToFormData(entryData);
-        const gotRecord = await pb.collection(Collections.Registrations).create<RegistrationsResponse>(fd);
+        const gotRecord = await pb.collection(Collections.Registrations).create<RegistrationsResponse>(entryData);
         const paymentRecord = await pb.collection(Collections.ManualPayments).create<ManualPaymentsResponse>(jsonToFormData({
             registrant: gotRecord.id,
             receipt: record.payment_data?.receipt,
