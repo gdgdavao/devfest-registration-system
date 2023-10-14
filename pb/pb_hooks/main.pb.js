@@ -322,6 +322,15 @@ routerAdd("GET", "/assets/*", $apis.staticDirectoryHandler(`${__hooks}/assets`, 
 
 // Summary API
 routerAdd("GET", "/api/summary", (c) => {
+    let format = c.queryParam("format");
+    if (!format) {
+        format = 'json';
+    }
+
+    if (format !== 'json' && format !== 'csv') {
+        throw new BadRequestError('Format should be json or csv');
+    }
+
     const collectionId = c.queryParam("collection");
     if (!collectionId) {
         throw new BadRequestError("Collection ID or name is required.");
@@ -329,70 +338,37 @@ routerAdd("GET", "/api/summary", (c) => {
 
     const filter = c.queryParam("filter");
     const exceptColumns = c.queryParam("except").split(",").filter(Boolean);
-    const collection = $app.dao().findCollectionByNameOrId(collectionId);
+    const splittableColumns = c.queryParam("splittable").split(",").filter(Boolean);
 
-    // include filtering system columns
-    const systemColumns = collection.schema.fields().filter(f => f.system).map(f => f.name);
-    for (const col of systemColumns) {
-        exceptColumns.push(col);
+    const utils = require(`${__hooks}/utils.js`);
+    const results = utils.generateSummary(collectionId, filter, exceptColumns, splittableColumns);
+
+    if (format === 'csv') {
+        const output = results.insights.map(i => {
+            const sorted = Object.entries(i.share)
+                .sort((a, b) => a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1);
+            return `
+    ${i.title},\n${sorted.map(([entry, count]) => `"${entry}",${count}`).join('\n')}
+    ,
+        `.trim();
+        }).join('\n');
+
+        c.response().header().set("Content-Type", "text/csv");
+        c.response().header().set("Content-Disposition", `attachment; filename=merch_sensing_data-${(new Date).getTime()}.csv`);
+        c.response().write(output);
+        return null;
     }
 
-    const records = filter.length > 0 ?
-        $app.dao().findRecordsByFilter(collectionId, filter) :
-        $app.dao().findRecordsByExpr(collectionId);
+    // Generate csv export URL
+    c.queryParams().set('format', 'csv');
+    const exportCsvEndpoint = '/api/summary?' + c.queryParams().encode();
 
-    let results = {};
-    let total = 0;
-
-    for (const rawRecord of records) {
-        const record = JSON.parse(rawRecord.marshalJSON());
-
-        for (const col in record) {
-            if (!(col in results)) {
-                const formGroup = $app.dao().findRecordsByExpr()
-
-                results[col] = {
-                    id: 'other_preferred_offered_merch',
-                    title: 'Other preferred offered merch',
-                    total: 0,
-                    share: {}
-                }
-            }
-
-
+    return c.json(200, Object.assign(
+        results,
+        {
+            csv_endpoint: exportCsvEndpoint
         }
-    }
-
-    return c.json(200, {
-        total,
-        insights: Object.values(results)
-    });
-});
-
-routerAdd("GET", "/api/merch-sensing/summary", (c) => {
-    const utils = require(`${__hooks}/utils.js`);
-    const results = utils.generateMerchSensingData();
-    return c.json(200, results);
-});
-
-// NOTE: this is insecure i think but should be protected by an admin api key in the future
-routerAdd("GET", "/merch-sensing/summary/export", (c) => {
-    const utils = require(`${__hooks}/utils.js`);
-    const results = utils.generateMerchSensingData();
-    const output = results.insights.map(i => {
-        const sorted = Object.entries(i.share)
-            .sort((a, b) => a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1);
-        return `
-${i.title},
-${sorted.map(([entry, count]) => `"${entry}",${count}`).join('\n')}
-,
-    `.trim();
-    }).join('\n');
-
-    c.response().header().set("Content-Type", "text/csv");
-    c.response().header().set("Content-Disposition", `attachment; filename=merch_sensing_data-${(new Date).getTime()}.csv`);
-    c.response().write(output);
-    return null;
+    ));
 });
 
 onRecordBeforeCreateRequest((e) => {
