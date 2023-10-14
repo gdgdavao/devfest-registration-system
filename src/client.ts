@@ -473,6 +473,18 @@ export function usePaymentIntentQuery(paymentIntentEndpoint?: string, apiKey?: s
 }
 
 // Summary
+type SummaryEntry = SummaryShare | SummarySubentries;
+
+interface SummaryShare {
+    value: string
+    count: number
+}
+
+interface SummarySubentries {
+    value: string
+    entries: SummaryEntry[]
+}
+
 export interface CollectionSummary {
     total: number
     csv_endpoint: string
@@ -480,7 +492,7 @@ export interface CollectionSummary {
         id: string
         title: string
         total: number
-        share: Record<string, number>
+        share: SummaryEntry[]
     }[]
 }
 
