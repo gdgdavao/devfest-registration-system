@@ -288,12 +288,12 @@ export default function RegistrationPage() {
                     <img src={ImgClosed} alt="Done" className="max-w-[23rem] h-full mb-8" />
 
                     <h1 className="mb-4">{context.fields.error.data.data.title}</h1>
-                    <div className="text-xl space-y-3">
+                    <div className="font-mono text-gray-500 space-y-3">
                         {parseHtml(context.fields.error.data.data.subtitle)}
                     </div>
                 </>) : (<>
                     <h1 className="mb-4">Something went wrong.</h1>
-                    <p className="text-xl">There might be a problem on our side. Please try again in a few minutes.</p>
+                    <p className="font-mono text-gray-500">There might be a problem on our side. Please try again in a few minutes.</p>
                 </>)}
             </div>
         ) : (
