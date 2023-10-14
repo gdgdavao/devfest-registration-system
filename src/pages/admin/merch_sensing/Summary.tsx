@@ -1,39 +1,32 @@
-import { pb } from "@/client";
+import { pb, useSummaryQuery } from "@/client";
 import Loading from "@/components/Loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useQuery } from "@tanstack/react-query";
+import { Collections } from "@/pocketbase-types";
 import { Download } from "lucide-react";
 
 export default function MerchSensingSummary() {
-    const { data, isLoading, isFetched } = useQuery(['merch_sensing', 'summary'], () => {
-        return pb.send<{
-            total: number
-            insights: {
-                id: string
-                title: string
-                total: number
-                share: Record<string, number>
-            }[]
-        }>('/api/merch-sensing/summary', {});
+    const { data, isLoading, isFetched } = useSummaryQuery(Collections.MerchSensingData, {
+        splittable: ['other_preferred_offered_merch'],
+        except: ['registrant']
     });
 
     return (
         <div className="flex flex-col">
             <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:justify-between pb-4">
-                <div className="flex items-center space-x-2 pb-8">
+                <div className="flex items-center space-x-2 pb-4">
                     <h2>Merch Sensing Summary</h2>
                     <Badge>{data?.total ?? 0}</Badge>
                 </div>
 
                 <div className="space-x-2">
-                    <Button asChild>
-                        <a href={pb.buildUrl(`/merch-sensing/summary/export`)} download>
+                    {data?.csv_endpoint && <Button asChild>
+                        <a href={pb.buildUrl(data.csv_endpoint)} download>
                             <Download className="mr-2" />
                             Export data
                         </a>
-                    </Button>
+                    </Button>}
                 </div>
             </div>
 
@@ -47,7 +40,7 @@ export default function MerchSensingSummary() {
 
             {data?.insights.map(insight => (
                 <section key={`insight_${insight.id}`} className="pb-8">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 mb-4">
                         <h3>{insight.title}</h3>
                         <Badge>{insight.total}</Badge>
                     </div>

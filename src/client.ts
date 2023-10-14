@@ -471,3 +471,34 @@ export function usePaymentIntentQuery(paymentIntentEndpoint?: string, apiKey?: s
         refetchInterval: false,
     });
 }
+
+// Summary
+export interface CollectionSummary {
+    total: number
+    csv_endpoint: string
+    insights: {
+        id: string
+        title: string
+        total: number
+        share: Record<string, number>
+    }[]
+}
+
+export function useSummaryQuery(collection: Collections, { filter, except = [], splittable = [] }: {
+    filter?: string
+    except?: string[]
+    splittable?: string[]
+}) {
+    return useQuery(['summary', collection, filter, except, splittable], () => {
+        const params = new URLSearchParams({
+            collection,
+            filter: filter ?? '',
+            except: except.join(','),
+            splittable: except.join(',')
+        });
+
+        return pb.send<CollectionSummary>(`/api/summary?${params.toString()}`, {
+            method: 'GET'
+        });
+    });
+}
