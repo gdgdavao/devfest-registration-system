@@ -2,6 +2,10 @@
 /// <reference path="./hooks.d.ts" />
 
 module.exports = {
+    sortSummary(a, b) {
+        return a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1;
+    },
+
     /**
      * Returns a summary data of a given collection
      * @param {models.Collection} collection Collection name or ID
@@ -58,13 +62,13 @@ module.exports = {
         const expandableResults = {};
         const expandedCollections = {};
 
-        const tallyValue = function(idx, rawV) {
+        const tallyValue = function(result, rawV) {
             const value = typeof rawV === 'string' ? rawV.trim() : rawV;
             if (!value) return 0;
-            if (!(value in results[idx].share)) {
-                results[idx].share[value] = 0;
+            if (!(value in result.share)) {
+                result.share[value] = 0;
             }
-            results[idx].share[value]++;
+            result.share[value]++;
             return 1;
         }
 
@@ -113,16 +117,24 @@ module.exports = {
                     const value = JSON.parse(rawRecord.getString(col));
                     if (Array.isArray(value)) {
                         for (const v of value) {
-                            added += tallyValue(i, v);
+                            added += tallyValue(results[i], v);
+                        }
+                    } else if (typeof value === 'object') {
+                        for (const key in value) {
+                            if (!results[i].share[key]) {
+                                results[i].share[key] = { share: {} };
+                            }
+                            const v = value[key];
+                            added += tallyValue(results[i].share[key], v);
                         }
                     }
                 } else if (splittableColumns.includes(col) && typeof value === 'string') {
                     const values = value.split(',');
                     for (const v of values) {
-                        added += tallyValue(i, v.trim());
+                        added += tallyValue(results[i], v.trim());
                     }
                 } else {
-                    added += tallyValue(i, value);
+                    added += tallyValue(results[i], value);
                 }
 
                 if (added > 0) {
@@ -157,9 +169,25 @@ module.exports = {
         // Convert the "share" dict to array
         if (!options.insights || !options.insights.length === 0) {
             for (let i = 0; i < results.length; i++) {
-                results[i].share = Object.entries(results[i].share)
-                    .sort((a, b) => a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1)
-                    .map((e) => ({ value: e[0], count: e[1] }));
+                const entries = Object.entries(results[i].share);
+                if (entries.length === 0) {
+                    continue;
+                }
+
+                if (typeof entries[0][1] === 'number') {
+                    results[i].share = entries.sort(this.sortSummary)
+                        .map((e) => ({ value: e[0], count: e[1] }));;
+                } else if (typeof entries[0][1] === 'object') {
+                    // For nested data, it should go here
+                    results[i].share = entries.map((e) => {
+                        return {
+                            value: e[0],
+                            entries: Object.entries(e[1].share)
+                                .sort(this.sortSummary)
+                                .map(ee => ({ value: ee[0], count: ee[1] }))
+                        };
+                    });
+                }
             }
         }
 
