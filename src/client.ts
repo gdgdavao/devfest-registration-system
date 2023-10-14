@@ -528,14 +528,14 @@ export function useSummaryQuery(collection: Collections, { filter, except = [], 
 export function useSettingQuery<T = unknown>(key: string) {
     return useQuery([Collections.CustomSettings, key], () => {
         return pb.collection(Collections.CustomSettings)
-            .getFirstListItem<CustomSettingsResponse<T>>(
-                compileFilter(eq('key', key)));
+            .getFirstListItem<CustomSettingsResponse<T>>(compileFilter(eq('key', key)));
     });
 }
 
 export function useUpdateSettingMutation() {
-    return useMutation(({ key: id, value }: { key: string, value: unknown }) => {
-        return pb.collection(Collections.CustomSettings)
-            .update<CustomSettingsResponse>(id, { value });
+    return useMutation(async ({ key, value }: { key: string, value: unknown }) => {
+        const collection = pb.collection(Collections.CustomSettings);
+        const setting = await collection.getFirstListItem(compileFilter(eq('key', key)));
+        return collection.update<CustomSettingsResponse>(setting.id, { value });
     });
 }
