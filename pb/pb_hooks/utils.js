@@ -2,84 +2,87 @@
 /// <reference path="./hooks.d.ts" />
 
 module.exports = {
-    generateMerchSensingData() {
-        const results = $app.dao().findRecordsByExpr('merch_sensing_data');
+    /**
+     * Returns a summary data of a given summary
+     * @param {string} collectionId Collection name or ID
+     * @param {string} filter Record filter
+     * @param {string[]} exceptColumns Columns to be excluded
+     * @param {string[]} splittableColumns String columns that can are separated by comma
+     * @returns
+     */
+    generateSummary(collectionId, filter = '', exceptColumns = [], splittableColumns = []) {
+        const collection = $app.dao().findCollectionByNameOrId(collectionId);
+        const fields = collection.schema.fields();
 
-        const preferred_offered_merch = {
-            id: 'preferred_offered_merch',
-            title: 'Preferred offered merch',
-            total: 0,
-            share: {}
+        // include filtering system columns
+        const systemColumns = fields.filter(f => f.system).map(f => f.name);
+        for (const col of systemColumns) {
+            exceptColumns.push(col);
         }
 
-        const other_preferred_offered_merch = {
-            id: 'other_preferred_offered_merch',
-            title: 'Other preferred offered merch',
+        const records = filter.length > 0 ?
+            $app.dao().findRecordsByFilter(collectionId, filter) :
+            $app.dao().findRecordsByExpr(collectionId);
+
+        let total = 0;
+        const results = fields.filter(f => !exceptColumns.includes(f.name)).map(col => ({
+            id: col.name,
+            title: col.name,
             total: 0,
             share: {}
+        }));
+
+        const tallyValue = function(idx, rawV) {
+            const value = typeof rawV === 'string' ? rawV.trim() : rawV;
+            if (!value) return 0;
+            if (!(value in results[idx].share)) {
+                results[idx].share[value] = 0;
+            }
+            results[idx].share[value]++;
+            return 1;
         }
 
-        const merch_spending_limit = {
-            id: 'merch_spending_limit',
-            title: 'Merch spending limit',
-            total: 0,
-            share: {}
-        }
-
-        for (const result of results) {
-            // preferred_offered_merch
-            const rawPom = result.getString('preferred_offered_merch');
-            if (rawPom) {
-                const pom = JSON.parse(rawPom);
-                for (const merch of pom) {
-                    if (!(merch in preferred_offered_merch.share)) {
-                        preferred_offered_merch.share[merch] = 0;
-                    }
-                    preferred_offered_merch.share[merch]++;
-                }
-                preferred_offered_merch.total++;
-            }
-
-            // other_preferred_offered_merch
-            const opm = result.getString('other_preferred_offered_merch');
-            if (opm) {
-                const splitted_other_preferred_merch = opm.split(',');
-                let hasShare = false;
-                for (const raw_other_merch of splitted_other_preferred_merch) {
-                    const other_merch = raw_other_merch.trim();
-                    if (!other_merch || other_merch === 'none') {
-                        continue;
-                    }
-
-                    hasShare = true;
-                    if (!(other_merch in other_preferred_offered_merch.share)) {
-                        other_preferred_offered_merch.share[other_merch] = 0;
-                    }
-                    other_preferred_offered_merch.share[other_merch]++;
+        for (const rawRecord of records) {
+            for (let i = 0; i < results.length; i++) {
+                const col = results[i].id;
+                const value = rawRecord.getString(col);
+                if (!value) {
+                    continue;
                 }
 
-                if (hasShare) {
-                    other_preferred_offered_merch.total++;
+                const schemaField = fields.find(f => f.name === col);
+                if (!schemaField) {
+                    continue;
+                }
+
+                let added = 0;
+                if (schemaField.type === 'json') {
+                    const value = JSON.parse(rawRecord.getString(col));
+                    if (Array.isArray(value)) {
+                        for (const v of value) {
+                            added += tallyValue(i, v);
+                        }
+                    }
+                } else if (splittableColumns.includes(col) && typeof value === 'string') {
+                    const values = value.split(',');
+                    for (const v of values) {
+                        added += tallyValue(i, v.trim());
+                    }
+                } else {
+                    added += tallyValue(i, value);
+                }
+
+                if (added > 0) {
+                    results[i].total++;
                 }
             }
 
-            // merch_spending_limit
-            const msl = result.getString('merch_spending_limit');
-            if (!(msl in merch_spending_limit.share)) {
-                merch_spending_limit.share[msl] = 0;
-            }
-
-            merch_spending_limit.share[msl]++;
-            merch_spending_limit.total++;
+            total++;
         }
 
         return {
-            total: results.length,
-            insights: [
-                preferred_offered_merch,
-                other_preferred_offered_merch,
-                merch_spending_limit
-            ]
+            total,
+            insights: results
         }
     },
 

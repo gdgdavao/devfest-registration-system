@@ -320,31 +320,55 @@ routerAdd("GET", "/api/email_templates", (c) => {
 
 routerAdd("GET", "/assets/*", $apis.staticDirectoryHandler(`${__hooks}/assets`, false));
 
-// Merch sensing
-routerAdd("GET", "/api/merch-sensing/summary", (c) => {
-    const utils = require(`${__hooks}/utils.js`);
-    const results = utils.generateMerchSensingData();
-    return c.json(200, results);
-});
+// Summary API
+routerAdd("GET", "/api/summary", (c) => {
+    let format = c.queryParam("format");
+    if (!format) {
+        format = 'json';
+    }
 
-// NOTE: this is insecure i think but should be protected by an admin api key in the future
-routerAdd("GET", "/merch-sensing/summary/export", (c) => {
-    const utils = require(`${__hooks}/utils.js`);
-    const results = utils.generateMerchSensingData();
-    const output = results.insights.map(i => {
-        const sorted = Object.entries(i.share)
-            .sort((a, b) => a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1);
-        return `
-${i.title},
-${sorted.map(([entry, count]) => `"${entry}",${count}`).join('\n')}
-,
-    `.trim();
-    }).join('\n');
+    if (format !== 'json' && format !== 'csv') {
+        throw new BadRequestError('Format should be json or csv');
+    }
 
-    c.response().header().set("Content-Type", "text/csv");
-    c.response().header().set("Content-Disposition", `attachment; filename=merch_sensing_data-${(new Date).getTime()}.csv`);
-    c.response().write(output);
-    return null;
+    const collectionId = c.queryParam("collection");
+    if (!collectionId) {
+        throw new BadRequestError("Collection ID or name is required.");
+    }
+
+    const filter = c.queryParam("filter");
+    const exceptColumns = c.queryParam("except").split(",").filter(Boolean);
+    const splittableColumns = c.queryParam("splittable").split(",").filter(Boolean);
+
+    const utils = require(`${__hooks}/utils.js`);
+    const results = utils.generateSummary(collectionId, filter, exceptColumns, splittableColumns);
+
+    if (format === 'csv') {
+        const output = results.insights.map(i => {
+            const sorted = Object.entries(i.share)
+                .sort((a, b) => a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1);
+            return `
+    ${i.title},\n${sorted.map(([entry, count]) => `"${entry}",${count}`).join('\n')}
+    ,
+        `.trim();
+        }).join('\n');
+
+        c.response().header().set("Content-Type", "text/csv");
+        c.response().header().set("Content-Disposition", `attachment; filename=merch_sensing_data-${(new Date).getTime()}.csv`);
+        c.response().write(output);
+        return null;
+    }
+
+    // Generate csv export URL
+    c.queryParams().set('format', 'csv');
+    const exportCsvEndpoint = '/api/summary?' + c.queryParams().encode();
+
+    return c.json(200, Object.assign(
+        results,
+        {
+            csv_endpoint: exportCsvEndpoint
+        }
+    ));
 });
 
 onRecordBeforeCreateRequest((e) => {
