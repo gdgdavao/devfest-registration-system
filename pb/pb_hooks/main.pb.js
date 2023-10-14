@@ -443,7 +443,7 @@ routerAdd("GET", "/api/summary", (c) => {
 
 onRecordBeforeCreateRequest((e) => {
     const settings = require(`${__hooks}/settings.js`);
-    if (!$apis.requestInfo(c).admin && settings.getRegistrationStatus() !== 'open') {
+    if (!$apis.requestInfo(e.httpContext).admin && settings.getRegistrationStatus() !== 'open') {
         throw new ForbiddenError('Registration is closed.');
     }
 
