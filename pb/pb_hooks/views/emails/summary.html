@@ -26,26 +26,25 @@
                 <li><b>{{index $entry.options.labels $topic}}</b>: {{$value}}</li>
                 {{end}}
             </ul>
-        {{else if eq $entry.type "relation" }}
-            {{if $entry.entries}}
-                {{range $subentry := $entry.entries}}
-                    {{if $subentry.fields}}
-                        {{range $subentryField := $subentry.fields}}
-                            <div style="font-family: Arial, Helvetica, sans-serif; border-bottom: 1px solid #bebebe; padding-top:12px; padding-bottom:12px;">
-                                <p style="font-size: 10pt; font-weight: bold; margin-bottom: 4px;">{{ $subentryField.title }}</p>
+        {{else if and (eq $entry.type "relation") $entry.entries }}
+            {{range $subentry := $entry.entries}}
+
+                {{if $subentry.fields}}
+                    {{range $subentryField := $subentry.fields}}
+                        <div style="font-family: Arial, Helvetica, sans-serif; border-bottom: 1px solid #bebebe; padding-top:12px; padding-bottom:12px;">
+                            <p style="font-size: 10pt; font-weight: bold; margin-bottom: 4px;">{{ $subentryField.title }}</p>
+                            {{if ne (len $subentryField.value) 0}}
                                 <p>{{ $subentryField.value }}</p>
-                            </div>
-                        {{end}}
-                    {{else if ne (len $subentry.value) 0}}
-                        <p>{{ $subentry.value }}</p>
-                    {{else}}
-                        <p><i>&lt;empty&gt;</i></p>
+                            {{else}}
+                                <p><i>&lt;empty&gt;</i></p>
+                            {{end}}
+                        </div>
                     {{end}}
+                {{else if ne (len $subentry.value) 0}}
+                    <p>{{ $subentry.value }}</p>
+                {{else}}
+                    <p><i>&lt;empty&gt;</i></p>
                 {{end}}
-            {{else if ne (len $entry.value) 0}}
-                <p>{{ $entry.value }}</p>
-            {{else}}
-                <p><i>&lt;empty&gt;</i></p>
             {{end}}
         {{else if ne (len $entry.value) 0}}
             <p>{{ $entry.value }}</p>

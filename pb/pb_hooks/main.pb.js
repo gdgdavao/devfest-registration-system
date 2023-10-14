@@ -524,10 +524,16 @@ onRecordAfterUpdateRequest((e) => {
             txDao.saveRecord(e.record);
         });
 
-        if (e.record.getString(profileKey).length != 0 && e.record.getString('payment').length != 0) {
-            const host = "http://" + e.httpContext.request().host;
-            // Send e-mail if it was not created from admin dashboard
-            utils.sendEmails('summary', `id = "${e.record.id}"`, host);
+        try {
+            console.error('ERROR SENDING E-MAIL');
+
+            if (e.record.getString(profileKey).length != 0 && e.record.getString('payment').length != 0) {
+                const host = "http://" + e.httpContext.request().host;
+                // Send e-mail if it was not created from admin dashboard
+                utils.sendEmails('summary', `id = "${e.record.id}"`, host);
+            }
+        } catch (e) {
+            console.error(e);
         }
     } catch (e) {
         console.error(e);

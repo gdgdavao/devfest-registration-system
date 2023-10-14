@@ -68,11 +68,12 @@ module.exports = {
                             }
 
                             if (subfield.type === "json") {
+                                const value = JSON.parse(relRecord.getString(subfield.name));
                                 subdata.push({
                                     name: subfield.name,
                                     title: subfield.title,
                                     type: subfield.type,
-                                    value: JSON.parse(relRecord.getString(subfield.name)),
+                                    value: Array.isArray(value) ? value.join(', ') : value,
                                     options: subfield.options
                                 });
                             } else {
