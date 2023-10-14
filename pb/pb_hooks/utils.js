@@ -3,16 +3,41 @@
 
 module.exports = {
     /**
-     * Returns a summary data of a given summary
-     * @param {string} collectionId Collection name or ID
-     * @param {string} filter Record filter
-     * @param {string[]} exceptColumns Columns to be excluded
-     * @param {string[]} splittableColumns String columns that can are separated by comma
-     * @returns
+     * Returns a summary data of a given collection
+     * @param {models.Collection} collection Collection name or ID
+     * @param {(models.Record | undefined)[]} records List of records
+     * @param {Record<string, unknown>} options Summary generation options
+     * @param {string[]} options.parentCollectionIds Parent collection ID;
+     * @param {string[]} options.exceptColumns Columns to be excluded
+     * @param {string[]} options.splittableColumns String columns that can are separated by comma
+     * @param {string[]} options.expand Columns to be expanded
+     * @param {{total: number, insights: any[]}[]} options.insights Existing insights data from summary
+     * @returns {{total: number, insights: any[]}}
      */
-    generateSummary(collectionId, filter = '', exceptColumns = [], splittableColumns = []) {
-        const collection = $app.dao().findCollectionByNameOrId(collectionId);
-        const fields = collection.schema.fields();
+    generateSummary(collection, records, options = { exceptColumns: [], splittableColumns: [], expand: [] }) {
+        /** @type {string[]} */
+        const exceptColumns = options.exceptColumns ? options.exceptColumns : [];
+        /** @type {string[]} */
+        const splittableColumns = options.splittableColumns ? options.splittableColumns : [];
+        /** @type {string[]} */
+        const expand = options.expand ? options.expand : [];
+
+        const fields = collection.schema.fields().filter(f => {
+            if (f.type !== 'relation') {
+                return true;
+            }
+
+            if (options.parentCollectionIds && options.parentCollectionIds.includes(f.options.collectionId)) {
+                return false;
+            }
+
+            return expand.includes(f.name);
+        }).map(f => ({
+            system: f.system,
+            name: f.name,
+            type: f.type,
+            options: f.options
+        }));
 
         // include filtering system columns
         const systemColumns = fields.filter(f => f.system).map(f => f.name);
@@ -20,17 +45,18 @@ module.exports = {
             exceptColumns.push(col);
         }
 
-        const records = filter.length > 0 ?
-            $app.dao().findRecordsByFilter(collectionId, filter) :
-            $app.dao().findRecordsByExpr(collectionId);
-
         let total = 0;
-        const results = fields.filter(f => !exceptColumns.includes(f.name)).map(col => ({
-            id: col.name,
-            title: col.name,
-            total: 0,
-            share: {}
-        }));
+        /** @type {{id: string, title: string, total: number, insights: any[]}[]} */
+        let results = options.insights && options.insights.length !== 0 ? options.insights : fields
+            .filter(f => !exceptColumns.includes(f.name)).map(col => ({
+                id: col.name,
+                title: col.name,
+                total: 0,
+                share: {}
+            }));
+
+        const expandableResults = {};
+        const expandedCollections = {};
 
         const tallyValue = function(idx, rawV) {
             const value = typeof rawV === 'string' ? rawV.trim() : rawV;
@@ -56,7 +82,34 @@ module.exports = {
                 }
 
                 let added = 0;
-                if (schemaField.type === 'json') {
+                if (schemaField.type === 'relation' && expand.includes(col) && rawRecord.expandedOne(col)) {
+                    if (!(col in expandedCollections)) {
+                        expandedCollections[col] = $app.dao().findCollectionByNameOrId(schemaField.options.collectionId);
+                    }
+
+                    const expanded = rawRecord.expandedOne(col);
+                    const expandedResults = this.generateSummary(
+                        expandedCollections[col],
+                        [expanded],
+                        {
+                            parentCollectionIds: !options.parentCollectionIds ? [collection.id] : options.parentCollectionIds.concat(collection.id),
+                            exceptColumns: exceptColumns
+                                .filter(c => c.indexOf(`${schemaField.name}.`) === 0)
+                                .map(c => c.substring(`${schemaField.name}.`.length)),
+                            splittableColumns: splittableColumns
+                                .filter(c => c.indexOf(`${schemaField.name}.`) === 0)
+                                .map(c => c.substring(`${schemaField.name}.`.length)),
+                            expand: expand
+                                .filter(c => c.indexOf(`${schemaField.name}.`) === 0)
+                                .map(c => c.substring(`${schemaField.name}.`.length)),
+                            insights: expandableResults[schemaField.name] ? expandableResults[schemaField.name] : []
+                        }
+                    );
+
+                    if (!(schemaField.name in expandableResults)) {
+                        expandableResults[schemaField.name] = expandedResults.insights;
+                    }
+                } else if (schemaField.type === 'json') {
                     const value = JSON.parse(rawRecord.getString(col));
                     if (Array.isArray(value)) {
                         for (const v of value) {
@@ -78,6 +131,36 @@ module.exports = {
             }
 
             total++;
+        }
+
+        // Insert the summary data of expanded fields
+        if (expand.length > 0) {
+            for (let i = 0; i < results.length; i++) {
+                const col = results[i].id;
+                if (!(col in expandableResults)) {
+                    continue;
+                }
+
+                const rightSide = results.slice(i + 1);
+                const final = expandableResults[col]
+                    .map(i => Object.assign(i, {
+                        id: `${col}.${i.id}`,
+                        title: `${col}.${i.title}`
+                    }));
+
+                results = results.slice(0, i - 1)
+                    .concat(...final)
+                    .concat(...rightSide);
+            }
+        }
+
+        // Convert the "share" dict to array
+        if (!options.insights || !options.insights.length === 0) {
+            for (let i = 0; i < results.length; i++) {
+                results[i].share = Object.entries(results[i].share)
+                    .sort((a, b) => a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1)
+                    .map((e) => ({ value: e[0], count: e[1] }));
+            }
         }
 
         return {

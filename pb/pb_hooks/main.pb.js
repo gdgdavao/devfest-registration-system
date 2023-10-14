@@ -336,12 +336,28 @@ routerAdd("GET", "/api/summary", (c) => {
         throw new BadRequestError("Collection ID or name is required.");
     }
 
-    const filter = c.queryParam("filter");
+    const collection = $app.dao().findCollectionByNameOrId(collectionId);
     const exceptColumns = c.queryParam("except").split(",").filter(Boolean);
     const splittableColumns = c.queryParam("splittable").split(",").filter(Boolean);
 
+    const filter = c.queryParam("filter");
+    const expand = c.queryParam("expand").split(",").filter(Boolean);
+
+    const records = filter.length > 0 ?
+        $app.dao().findRecordsByFilter(collectionId, filter) :
+        $app.dao().findRecordsByExpr(collectionId);
+
+    if (expand.length > 0) {
+        $app.dao().expandRecords(records, expand, null);
+    }
+
     const utils = require(`${__hooks}/utils.js`);
-    const results = utils.generateSummary(collectionId, filter, exceptColumns, splittableColumns);
+    const results = utils.generateSummary(collection, records, {
+        filter,
+        exceptColumns,
+        splittableColumns,
+        expand
+    });
 
     if (format === 'csv') {
         const output = results.insights.map(i => {
