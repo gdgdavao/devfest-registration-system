@@ -97,6 +97,35 @@ $app.rootCmd.addCommand(new Command({
 }));
 
 onAfterBootstrap((e) => {
+    // Initialize custom settings
+    if (e.app.dao().isCollectionNameUnique('custom_settings')) {
+        const collection = new Collection({
+            name: 'custom_settings',
+            type: 'base',
+            schema: [
+                {
+                    name: 'key',
+                    type: 'text',
+                    required: true
+                },
+                {
+                    name: 'value',
+                    type: 'json',
+                    required: true
+                }
+            ],
+            viewRule: ''
+        });
+
+        e.app.dao().saveCollection(collection);
+
+        // Load default settings
+        e.app.dao().saveRecord(new Record(collection, {
+            key: 'registration_status',
+            value: 'open'
+        }));
+    }
+
     const utils = require(`${__hooks}/utils.js`);
     utils.buildRegistrationFields();
 
@@ -110,6 +139,31 @@ onAfterBootstrap((e) => {
 });
 
 routerAdd("GET", "/api/registration_fields", (c) => {
+    const settings = require(`${__hooks}/settings.js`);
+
+    // Check registration status
+    const requestInfo = $apis.requestInfo(c);
+
+    if (!requestInfo.admin) {
+        const registrationStatus = settings.getRegistrationStatus();
+        if (registrationStatus !== 'open') {
+            const registrationStatusTemplate = settings.getSetting('registration_status_templates', {
+                closed: {
+                    title: 'Registration is closed',
+                    subtitle: ''
+                }
+            });
+
+            return c.json(403, {
+                code: 403,
+                message: registrationStatusTemplate.closed.title,
+                data: Object.assign(registrationStatusTemplate.closed, {
+                    type: 'registration_status_' + registrationStatus
+                }),
+            });
+        }
+    }
+
     const utils = require(`${__hooks}/utils.js`);
     const registrationType = c.queryParamDefault("type", "student");
     const formGroup = c.queryParamDefault("group", "all");
@@ -388,6 +442,11 @@ routerAdd("GET", "/api/summary", (c) => {
 });
 
 onRecordBeforeCreateRequest((e) => {
+    const settings = require(`${__hooks}/settings.js`);
+    if (!$apis.requestInfo(c).admin && settings.getRegistrationStatus() !== 'open') {
+        throw new ForbiddenError('Registration is closed.');
+    }
+
     const utils = require(`${__hooks}/utils.js`);
     const { profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
     const profile_data = utils.getJsonData(e.httpContext, profileDataKey);
