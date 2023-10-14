@@ -1,13 +1,11 @@
 import { FC, useState } from "react";
 
-import { PaymentsStatusOptions } from "@/pocketbase-types";
 import { PaymentResponse, useManualPaymentsQuery } from "@/client";
 import * as pbf from "@/lib/pb_filters";
 import AdminTable from "@/components/layouts/AdminTable";
 
-export default function PaymentsTable({ title = "Payments", status = "all", actions, rowActions: RowActions }: {
+export default function PaymentsTable({ title = "Payments", actions, rowActions: RowActions }: {
     title?: string
-    status: 'all' | `${PaymentsStatusOptions}`
     actions?: FC,
     rowActions: FC<{ record: PaymentResponse, refetch: () => Promise<void> }>
 }) {
@@ -16,8 +14,7 @@ export default function PaymentsTable({ title = "Payments", status = "all", acti
         sort: '-created',
         filter: pbf.compileFilter(
             pbf.notEmpty('registrant'),
-            emailFilter.length > 0 && pbf.like('registrant.email', emailFilter),
-            status != 'all' && pbf.eq('status', status))
+            emailFilter.length > 0 && pbf.like('registrant.email', emailFilter))
     });
 
     return <AdminTable
