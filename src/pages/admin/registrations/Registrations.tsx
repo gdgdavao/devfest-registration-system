@@ -1,10 +1,15 @@
 import { FC, useState } from "react";
 
-import { RegistrationStatusesStatusOptions } from "@/pocketbase-types";
-import { RegistrationsResponse, useDeleteRegistrationMutation, useRegistrationsQuery } from "@/client";
+import { Collections, RegistrationStatusesStatusOptions } from "@/pocketbase-types";
+import { RegistrationsResponse, useDeleteRegistrationMutation, useRegistrationsQuery, useSettingQuery, useUpdateSettingMutation } from "@/client";
 
 import * as pbf from "@/lib/pb_filters";
 import AdminTable from "@/components/layouts/AdminTable";
+import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function RegistrationsPage({ title = "Registrations", status = "all", actions: Actions, rowActions: RowActions }: {
     title?: string
@@ -12,6 +17,10 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
     actions?: FC<{ selected: RegistrationsResponse[], onDelete: () => Promise<void> }>,
     rowActions: FC<{ id: string, refetch: () => Promise<void>, onDelete: (id: string) => Promise<void> }>
 }) {
+    const queryClient = useQueryClient();
+    const { data: registrationStatus } = useSettingQuery<'open' | 'closed'>('registration_status');
+    const { mutate: updateSetting } = useUpdateSettingMutation();
+
     const { mutateAsync: deleteMutation } = useDeleteRegistrationMutation();
     const [filter, setFilter] = useState('');
     const { data, refetch, fetchNextPage, isFetchingNextPage, isLoading, hasNextPage } = useRegistrationsQuery({
@@ -34,6 +43,41 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
         isFetchingNextPage={isFetchingNextPage}
         hasNextPage={hasNextPage}
         data={data}
+        belowTitle={() => (
+            <Card>
+                <CardContent className="pt-3 pb-3">
+                    <div className="flex flex-row items-center justify-between">
+                        <div className="space-y-0.5">
+                            <Label className="text-base">
+                                Registration is
+                                <span className={cn({
+                                    'text-green-600': registrationStatus?.value === 'open',
+                                    'text-red-600': registrationStatus?.value === 'closed'
+                                })}> {registrationStatus?.value}</span>
+                            </Label>
+                            <p className={cn("text-sm text-muted-foreground")}>
+                                {registrationStatus?.value === 'open' && "You will be receiving any incoming registrations."}
+                                {registrationStatus?.value === 'closed' && "You will not be receiving any incoming registrations."}
+                            </p>
+                        </div>
+                        <Switch
+                            checked={registrationStatus?.value === 'open' ?? false}
+                            onCheckedChange={(state) => {
+                                updateSetting({
+                                    key: 'registration_status',
+                                    value: state ? 'open' : 'closed',
+                                }, {
+                                    onSuccess(data, variables) {
+                                        queryClient.setQueryData(
+                                            [Collections.CustomSettings, variables.key],
+                                            data)
+                                    },
+                                });
+                            }} />
+                    </div>
+                </CardContent>
+            </Card>
+        )}
         actions={({ selected }) => {
             if (!Actions) {
                 return <div></div>;

@@ -1,6 +1,6 @@
 import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
-import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse, TopicInterestsResponse, ManualPaymentsResponse, ManualPaymentsRecord, AddonsRecord, MerchSensingDataResponse } from './pocketbase-types';
+import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse, TopicInterestsResponse, ManualPaymentsResponse, ManualPaymentsRecord, AddonsRecord, MerchSensingDataResponse, CustomSettingsResponse } from './pocketbase-types';
 import { ErrorOption } from 'react-hook-form';
 import { CreatePaymentMethod, InitPaymentResult, PaymentIntent, PaymentMethod } from './payment-types';
 import jsonToFormData from 'json-form-data';
@@ -246,6 +246,14 @@ export function useRegistrationFieldsQuery({ participantType = RegistrationsType
                 }
                 return f;
             });
+        },
+        retry(failureCount, error) {
+            if (error instanceof ClientResponseError) {
+                if (error.status === 403 && error.data.data.type === 'registration_status_closed') {
+                    return false;
+                }
+            }
+            return failureCount < 3;
         },
         refetchOnWindowFocus: false
     });
@@ -512,5 +520,20 @@ export function useSummaryQuery(collection: Collections, { filter, except = [], 
         return pb.send<CollectionSummary>(`/api/summary?${params.toString()}`, {
             method: 'GET'
         });
+    });
+}
+
+// Settings
+export function useSettingQuery<T = unknown>(key: string) {
+    return useQuery([Collections.CustomSettings, key], () => {
+        return pb.collection(Collections.CustomSettings)
+            .getOne<CustomSettingsResponse<T>>(key);
+    });
+}
+
+export function useUpdateSettingMutation() {
+    return useMutation(({ key: id, value }: { key: string, value: unknown }) => {
+        return pb.collection(Collections.CustomSettings)
+            .update<CustomSettingsResponse>(id, { value });
     });
 }
