@@ -53,14 +53,12 @@ export default function MerchSensingSummary() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {Object.entries(insight.share)
-                                .sort((a, b) => a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1)
-                                .map(([entry, count]) => (
-                                    <TableRow key={`insight_entry_${entry}`}>
-                                        <TableCell>{entry}</TableCell>
-                                        <TableCell>{count}</TableCell>
-                                    </TableRow>
-                                ))}
+                            {insight.share.map(({ value: entry, count }) => (
+                                <TableRow key={`insight_entry_${entry}`}>
+                                    <TableCell>{entry}</TableCell>
+                                    <TableCell>{count}</TableCell>
+                                </TableRow>
+                            ))}
                         </TableBody>
                     </Table>
                 </section>

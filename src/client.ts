@@ -480,7 +480,10 @@ export interface CollectionSummary {
         id: string
         title: string
         total: number
-        share: Record<string, number>
+        share: {
+            value: string
+            count: string
+        }[]
     }[]
 }
 
