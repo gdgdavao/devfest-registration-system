@@ -4,6 +4,7 @@ import { Collections, ProfessionalProfilesResponse, RecordIdString, Registration
 import { ErrorOption } from 'react-hook-form';
 import { CreatePaymentMethod, InitPaymentResult, PaymentIntent, PaymentMethod } from './payment-types';
 import jsonToFormData from 'json-form-data';
+import { compileFilter, eq } from './lib/pb_filters';
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -527,7 +528,8 @@ export function useSummaryQuery(collection: Collections, { filter, except = [], 
 export function useSettingQuery<T = unknown>(key: string) {
     return useQuery([Collections.CustomSettings, key], () => {
         return pb.collection(Collections.CustomSettings)
-            .getOne<CustomSettingsResponse<T>>(key);
+            .getFirstListItem<CustomSettingsResponse<T>>(
+                compileFilter(eq('key', key)));
     });
 }
 
