@@ -505,17 +505,19 @@ export interface CollectionSummary {
     }[]
 }
 
-export function useSummaryQuery(collection: Collections, { filter, except = [], splittable = [] }: {
+export function useSummaryQuery(collection: Collections, { filter, except = [], splittable = [], expand = [] }: {
     filter?: string
     except?: string[]
     splittable?: string[]
+    expand?: string[]
 }) {
     return useQuery(['summary', collection, filter, except, splittable], () => {
         const params = new URLSearchParams({
             collection,
             filter: filter ?? '',
             except: except.join(','),
-            splittable: except.join(',')
+            splittable: splittable.join(','),
+            expand: expand.join(',')
         });
 
         return pb.send<CollectionSummary>(`/api/summary?${params.toString()}`, {
