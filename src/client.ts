@@ -1,9 +1,10 @@
 import { QueryClient, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import PocketBase, { ClientResponseError, RecordListOptions } from 'pocketbase';
-import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse, TopicInterestsResponse, ManualPaymentsResponse, ManualPaymentsRecord, AddonsRecord, MerchSensingDataResponse } from './pocketbase-types';
+import { Collections, ProfessionalProfilesResponse, RecordIdString, RegistrationStatusesResponse, RegistrationsRecord, RegistrationsResponse as PBRegistrationsResponse, StudentProfilesResponse, RegistrationStatusesStatusOptions, RegistrationsTypeOptions, StudentProfilesRecord, ProfessionalProfilesRecord, AddonsResponse, TicketTypesResponse, FormGroupsResponse, FormGroupsRecord, FormGroupsKeyOptions, MerchSensingDataRecord, PaymentsRecord, PaymentsResponse, AddonOrdersRecord, AddonOrdersResponse, TopicInterestsResponse, ManualPaymentsResponse, ManualPaymentsRecord, AddonsRecord, MerchSensingDataResponse, CustomSettingsResponse } from './pocketbase-types';
 import { ErrorOption } from 'react-hook-form';
 import { CreatePaymentMethod, InitPaymentResult, PaymentIntent, PaymentMethod } from './payment-types';
 import jsonToFormData from 'json-form-data';
+import { compileFilter, eq } from './lib/pb_filters';
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -123,19 +124,15 @@ export function useRegistrationMutation() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const entryData: Record<string, any> = {
             ...record,
-            payment_data: JSON.stringify({
-                expected_amount: record.payment_data?.expected_amount,
-                transaction_details: record.payment_data?.transaction_details,
-            }),
+            payment_data: null,
             topic_interests: JSON.stringify(record.topic_interests),
-            addons_data: JSON.stringify(record.addons_data),
+            addons_data: JSON.stringify(record.addons_data ?? []),
             merch_sensing_data_data: JSON.stringify(record.merch_sensing_data_data),
             student_profile_data: record.student_profile_data ? JSON.stringify(record.student_profile_data) : undefined,
             professional_profile_data: record.professional_profile_data ? JSON.stringify(record.professional_profile_data) : undefined,
         };
 
-        const fd = jsonToFormData(entryData);
-        const gotRecord = await pb.collection(Collections.Registrations).create<RegistrationsResponse>(fd);
+        const gotRecord = await pb.collection(Collections.Registrations).create<RegistrationsResponse>(entryData);
         const paymentRecord = await pb.collection(Collections.ManualPayments).create<ManualPaymentsResponse>(jsonToFormData({
             registrant: gotRecord.id,
             receipt: record.payment_data?.receipt,
@@ -166,6 +163,29 @@ export function useRegistrationMutation() {
         return await pb.collection(Collections.Registrations)
             .update<RegistrationsResponse>(gotRecord.id, { payment: paymentRecord.id, ...extra });
     });
+}
+
+export function useMerchSensingDataQuery(options?: RecordListOptions) {
+    return useInfiniteQuery(
+        [Collections.MerchSensingData, JSON.stringify(options)],
+        ({ pageParam = 1 }) => {
+            return pb.collection(Collections.MerchSensingData)
+                .getList<MerchSensingDataResponse<string[], { registrant: PBRegistrationsResponse }>>(pageParam, undefined, {
+                    ...options,
+                    expand: 'registrant'
+                });
+        },
+        {
+            getNextPageParam(data) {
+                if (data.page + 1 > data.totalPages) return undefined;
+                return data.page + 1;
+            },
+            getPreviousPageParam(data) {
+                if (data.page + 1 < 0) return undefined;
+                return data.page - 1;
+            },
+        }
+    );
 }
 
 export function useDeleteRegistrationMutation() {
@@ -227,6 +247,14 @@ export function useRegistrationFieldsQuery({ participantType = RegistrationsType
                 }
                 return f;
             });
+        },
+        retry(failureCount, error) {
+            if (error instanceof ClientResponseError) {
+                if (error.status === 403 && error.data.data.type === 'registration_status_closed') {
+                    return false;
+                }
+            }
+            return failureCount < 3;
         },
         refetchOnWindowFocus: false
     });
@@ -450,5 +478,66 @@ export function usePaymentIntentQuery(paymentIntentEndpoint?: string, apiKey?: s
         enabled: false,
         refetchOnWindowFocus: false,
         refetchInterval: false,
+    });
+}
+
+// Summary
+type SummaryEntry = SummaryShare | SummarySubentries;
+
+interface SummaryShare {
+    value: string
+    count: number
+}
+
+interface SummarySubentries {
+    value: string
+    entries: SummaryEntry[]
+}
+
+export interface CollectionSummary {
+    total: number
+    csv_endpoint: string
+    insights: {
+        id: string
+        title: string
+        total: number
+        share: SummaryEntry[]
+    }[]
+}
+
+export function useSummaryQuery(collection: Collections, { filter, except = [], splittable = [], expand = [] }: {
+    filter?: string
+    except?: string[]
+    splittable?: string[]
+    expand?: string[]
+}) {
+    return useQuery(['summary', collection, filter, except, splittable], () => {
+        const params = new URLSearchParams({
+            collection,
+            filter: filter ?? '',
+            except: except.join(','),
+            splittable: splittable.join(','),
+            expand: expand.join(',')
+        });
+
+        return pb.send<CollectionSummary>(`/api/summary?${params.toString()}`, {
+            method: 'GET'
+        });
+    });
+}
+
+// Settings
+export function useSettingQuery<T = unknown>(key: string) {
+    return useQuery([Collections.CustomSettings, key], () => {
+        return pb.collection(Collections.CustomSettings)
+            .getFirstListItem<CustomSettingsResponse<T>>(compileFilter(eq('key', key)));
+    });
+}
+
+export function useUpdateSettingMutation() {
+    return useMutation(async ({ key, value }: { key: string, value: unknown }) => {
+        const collection = pb.collection(Collections.CustomSettings);
+        const setting = await collection.getFirstListItem(compileFilter(eq('key', key)));
+        return collection.update<CustomSettingsResponse>(setting.id, { value });
     });
 }

@@ -2,6 +2,201 @@
 /// <reference path="./hooks.d.ts" />
 
 module.exports = {
+    sortSummary(a, b) {
+        return a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1;
+    },
+
+    /**
+     * Returns a summary data of a given collection
+     * @param {models.Collection} collection Collection name or ID
+     * @param {(models.Record | undefined)[]} records List of records
+     * @param {Record<string, unknown>} options Summary generation options
+     * @param {string[]} options.parentCollectionIds Parent collection ID;
+     * @param {string[]} options.exceptColumns Columns to be excluded
+     * @param {string[]} options.splittableColumns String columns that can are separated by comma
+     * @param {string[]} options.expand Columns to be expanded
+     * @param {{total: number, insights: any[]}[]} options.insights Existing insights data from summary
+     * @returns {{total: number, insights: any[]}}
+     */
+    generateSummary(collection, records, options = { exceptColumns: [], splittableColumns: [], expand: [] }) {
+        /** @type {string[]} */
+        const exceptColumns = options.exceptColumns ? options.exceptColumns : [];
+        /** @type {string[]} */
+        const splittableColumns = options.splittableColumns ? options.splittableColumns : [];
+        /** @type {string[]} */
+        const expand = options.expand ? options.expand : [];
+
+        const fields = collection.schema.fields().filter(f => {
+            if (f.type !== 'relation') {
+                return true;
+            }
+
+            if (options.parentCollectionIds && options.parentCollectionIds.includes(f.options.collectionId)) {
+                return false;
+            }
+
+            return expand.includes(f.name);
+        }).map(f => ({
+            system: f.system,
+            name: f.name,
+            type: f.type,
+            options: f.options
+        }));
+
+        // include filtering system columns
+        const systemColumns = fields.filter(f => f.system).map(f => f.name);
+        for (const col of systemColumns) {
+            exceptColumns.push(col);
+        }
+
+        let total = 0;
+        /** @type {{id: string, title: string, total: number, insights: any[]}[]} */
+        let results = options.insights && options.insights.length !== 0 ? options.insights : fields
+            .filter(f => !exceptColumns.includes(f.name)).map(col => ({
+                id: col.name,
+                title: col.name,
+                total: 0,
+                share: {}
+            }));
+
+        const expandableResults = {};
+        const expandedCollections = {};
+
+        const tallyValue = function(result, rawV) {
+            const value = typeof rawV === 'string' ? rawV.trim() : rawV;
+            if (!value) return 0;
+            if (!(value in result.share)) {
+                result.share[value] = 0;
+            }
+            result.share[value]++;
+            return 1;
+        }
+
+        for (const rawRecord of records) {
+            for (let i = 0; i < results.length; i++) {
+                const col = results[i].id;
+                const value = rawRecord.getString(col);
+                if (!value) {
+                    continue;
+                }
+
+                const schemaField = fields.find(f => f.name === col);
+                if (!schemaField) {
+                    continue;
+                }
+
+                let added = 0;
+                if (schemaField.type === 'relation' && expand.includes(col) && rawRecord.expandedOne(col)) {
+                    if (!(col in expandedCollections)) {
+                        expandedCollections[col] = $app.dao().findCollectionByNameOrId(schemaField.options.collectionId);
+                    }
+
+                    const expanded = rawRecord.expandedOne(col);
+                    const expandedResults = this.generateSummary(
+                        expandedCollections[col],
+                        [expanded],
+                        {
+                            parentCollectionIds: !options.parentCollectionIds ? [collection.id] : options.parentCollectionIds.concat(collection.id),
+                            exceptColumns: exceptColumns
+                                .filter(c => c.indexOf(`${schemaField.name}.`) === 0)
+                                .map(c => c.substring(`${schemaField.name}.`.length)),
+                            splittableColumns: splittableColumns
+                                .filter(c => c.indexOf(`${schemaField.name}.`) === 0)
+                                .map(c => c.substring(`${schemaField.name}.`.length)),
+                            expand: expand
+                                .filter(c => c.indexOf(`${schemaField.name}.`) === 0)
+                                .map(c => c.substring(`${schemaField.name}.`.length)),
+                            insights: expandableResults[schemaField.name] ? expandableResults[schemaField.name] : []
+                        }
+                    );
+
+                    if (!(schemaField.name in expandableResults)) {
+                        expandableResults[schemaField.name] = expandedResults.insights;
+                    }
+                } else if (schemaField.type === 'json') {
+                    const value = JSON.parse(rawRecord.getString(col));
+                    if (Array.isArray(value)) {
+                        for (const v of value) {
+                            added += tallyValue(results[i], v);
+                        }
+                    } else if (typeof value === 'object') {
+                        for (const key in value) {
+                            if (!results[i].share[key]) {
+                                results[i].share[key] = { share: {} };
+                            }
+                            const v = value[key];
+                            added += tallyValue(results[i].share[key], v);
+                        }
+                    }
+                } else if (splittableColumns.includes(col) && typeof value === 'string') {
+                    const values = value.split(',');
+                    for (const v of values) {
+                        added += tallyValue(results[i], v.trim());
+                    }
+                } else {
+                    added += tallyValue(results[i], value);
+                }
+
+                if (added > 0) {
+                    results[i].total++;
+                }
+            }
+
+            total++;
+        }
+
+        // Insert the summary data of expanded fields
+        if (expand.length > 0) {
+            for (let i = 0; i < results.length; i++) {
+                const col = results[i].id;
+                if (!(col in expandableResults)) {
+                    continue;
+                }
+
+                const rightSide = results.slice(i + 1);
+                const final = expandableResults[col]
+                    .map(i => Object.assign(i, {
+                        id: `${col}.${i.id}`,
+                        title: `${col}.${i.title}`
+                    }));
+
+                results = results.slice(0, i - 1)
+                    .concat(...final)
+                    .concat(...rightSide);
+            }
+        }
+
+        // Convert the "share" dict to array
+        if (!options.insights || !options.insights.length === 0) {
+            for (let i = 0; i < results.length; i++) {
+                const entries = Object.entries(results[i].share);
+                if (entries.length === 0) {
+                    continue;
+                }
+
+                if (typeof entries[0][1] === 'number') {
+                    results[i].share = entries.sort(this.sortSummary)
+                        .map((e) => ({ value: e[0], count: e[1] }));;
+                } else if (typeof entries[0][1] === 'object') {
+                    // For nested data, it should go here
+                    results[i].share = entries.map((e) => {
+                        return {
+                            value: e[0],
+                            entries: Object.entries(e[1].share)
+                                .sort(this.sortSummary)
+                                .map(ee => ({ value: ee[0], count: ee[1] }))
+                        };
+                    });
+                }
+            }
+        }
+
+        return {
+            total,
+            insights: results
+        }
+    },
+
     /**
      *
      * @param {echo.Context} c

@@ -20,7 +20,7 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
 
             <div className="flex flex-col divide-y-2">
                 <div className="flex space-x-2">
-                    <Button className="flex-1" onClick={() => {
+                    <Button type="button" className="flex-1" onClick={() => {
                         markRegistrant({
                             id: registrant!.status,
                             status: RegistrationStatusesStatusOptions.approved

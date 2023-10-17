@@ -97,6 +97,35 @@ $app.rootCmd.addCommand(new Command({
 }));
 
 onAfterBootstrap((e) => {
+    // Initialize custom settings
+    if (e.app.dao().isCollectionNameUnique('custom_settings')) {
+        const collection = new Collection({
+            name: 'custom_settings',
+            type: 'base',
+            schema: [
+                {
+                    name: 'key',
+                    type: 'text',
+                    required: true
+                },
+                {
+                    name: 'value',
+                    type: 'json',
+                    required: true
+                }
+            ],
+            viewRule: ''
+        });
+
+        e.app.dao().saveCollection(collection);
+
+        // Load default settings
+        e.app.dao().saveRecord(new Record(collection, {
+            key: 'registration_status',
+            value: 'open'
+        }));
+    }
+
     const utils = require(`${__hooks}/utils.js`);
     utils.buildRegistrationFields();
 
@@ -110,6 +139,31 @@ onAfterBootstrap((e) => {
 });
 
 routerAdd("GET", "/api/registration_fields", (c) => {
+    const settings = require(`${__hooks}/settings.js`);
+
+    // Check registration status
+    const requestInfo = $apis.requestInfo(c);
+
+    if (!requestInfo.admin) {
+        const registrationStatus = settings.getRegistrationStatus();
+        if (registrationStatus !== 'open') {
+            const registrationStatusTemplate = settings.getSetting('registration_status_templates', {
+                closed: {
+                    title: 'Registration is closed',
+                    subtitle: ''
+                }
+            });
+
+            return c.json(403, {
+                code: 403,
+                message: registrationStatusTemplate.closed.title,
+                data: Object.assign(registrationStatusTemplate.closed, {
+                    type: 'registration_status_' + registrationStatus
+                }),
+            });
+        }
+    }
+
     const utils = require(`${__hooks}/utils.js`);
     const registrationType = c.queryParamDefault("type", "student");
     const formGroup = c.queryParamDefault("group", "all");
@@ -320,7 +374,79 @@ routerAdd("GET", "/api/email_templates", (c) => {
 
 routerAdd("GET", "/assets/*", $apis.staticDirectoryHandler(`${__hooks}/assets`, false));
 
+// Summary API
+routerAdd("GET", "/api/summary", (c) => {
+    let format = c.queryParam("format");
+    if (!format) {
+        format = 'json';
+    }
+
+    if (format !== 'json' && format !== 'csv') {
+        throw new BadRequestError('Format should be json or csv');
+    }
+
+    const collectionId = c.queryParam("collection");
+    if (!collectionId) {
+        throw new BadRequestError("Collection ID or name is required.");
+    }
+
+    const collection = $app.dao().findCollectionByNameOrId(collectionId);
+    const exceptColumns = c.queryParam("except").split(",").filter(Boolean);
+    const splittableColumns = c.queryParam("splittable").split(",").filter(Boolean);
+
+    const filter = c.queryParam("filter");
+    const expand = c.queryParam("expand").split(",").filter(Boolean);
+
+    const records = filter.length > 0 ?
+        $app.dao().findRecordsByFilter(collectionId, filter) :
+        $app.dao().findRecordsByExpr(collectionId);
+
+    if (expand.length > 0) {
+        $app.dao().expandRecords(records, expand, null);
+    }
+
+    const utils = require(`${__hooks}/utils.js`);
+    const results = utils.generateSummary(collection, records, {
+        filter,
+        exceptColumns,
+        splittableColumns,
+        expand
+    });
+
+    if (format === 'csv') {
+        const output = results.insights.map(i => {
+            const sorted = Object.entries(i.share)
+                .sort((a, b) => a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1);
+            return `
+    ${i.title},\n${sorted.map(([entry, count]) => `"${entry}",${count}`).join('\n')}
+    ,
+        `.trim();
+        }).join('\n');
+
+        c.response().header().set("Content-Type", "text/csv");
+        c.response().header().set("Content-Disposition", `attachment; filename=merch_sensing_data-${(new Date).getTime()}.csv`);
+        c.response().write(output);
+        return null;
+    }
+
+    // Generate csv export URL
+    c.queryParams().set('format', 'csv');
+    const exportCsvEndpoint = '/api/summary?' + c.queryParams().encode();
+
+    return c.json(200, Object.assign(
+        results,
+        {
+            csv_endpoint: exportCsvEndpoint
+        }
+    ));
+});
+
 onRecordBeforeCreateRequest((e) => {
+    const settings = require(`${__hooks}/settings.js`);
+    if (!$apis.requestInfo(e.httpContext).admin && settings.getRegistrationStatus() !== 'open') {
+        throw new ForbiddenError('Registration is closed.');
+    }
+
     const utils = require(`${__hooks}/utils.js`);
     const { profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
     const profile_data = utils.getJsonData(e.httpContext, profileDataKey);
@@ -449,10 +575,16 @@ onRecordAfterUpdateRequest((e) => {
             txDao.saveRecord(e.record);
         });
 
-        if (e.record.getString(profileKey).length != 0 && e.record.getString('payment').length != 0) {
-            const host = "http://" + e.httpContext.request().host;
-            // Send e-mail if it was not created from admin dashboard
-            utils.sendEmails('summary', `id = "${e.record.id}"`, host);
+        try {
+            console.error('ERROR SENDING E-MAIL');
+
+            if (e.record.getString(profileKey).length != 0 && e.record.getString('payment').length != 0) {
+                const host = "http://" + e.httpContext.request().host;
+                // Send e-mail if it was not created from admin dashboard
+                utils.sendEmails('summary', `id = "${e.record.id}"`, host);
+            }
+        } catch (e) {
+            console.error(e);
         }
     } catch (e) {
         console.error(e);
