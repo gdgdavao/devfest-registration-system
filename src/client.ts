@@ -61,6 +61,8 @@ export function getServerSideErrors(err: ClientResponseError) {
 export function useTopicInterestsQuery() {
     return useQuery([Collections.TopicInterests], () => {
         return pb.collection(Collections.TopicInterests).getFullList<TopicInterestsResponse>({ sort: '-updated' });
+    }, {
+        staleTime: 10 * (60 * 1000),
     });
 }
 
@@ -279,6 +281,8 @@ export function useUpdateRegistrationStatusMutation() {
 export function useAddonsQuery() {
     return useQuery([Collections.Addons], () => {
         return pb.collection(Collections.Addons).getFullList<AddonsResponse>();
+    }, {
+        staleTime: 10 * (60 * 1000),
     });
 }
 
@@ -286,6 +290,8 @@ export function useAddonsQuery() {
 export function useTicketTypesQuery() {
     return useQuery([Collections.TicketTypes], () => {
         return pb.collection(Collections.TicketTypes).getFullList<TicketTypesResponse>();
+    }, {
+        staleTime: 10 * (60 * 1000),
     });
 }
 
