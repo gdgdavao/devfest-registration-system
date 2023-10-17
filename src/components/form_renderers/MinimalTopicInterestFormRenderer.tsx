@@ -4,12 +4,15 @@ import { pb, useTopicInterestsQuery } from "@/client";
 import { Card, CardContent } from "../ui/card";
 import Loading from "../Loading";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { cn } from "@/lib/utils";
 
 export default function MinimalTopicInterestFormRenderer({
     onChange,
     value = {},
     field,
-}: FormFieldRendererProps) {
+    disabled,
+    className
+}: FormFieldRendererProps & { className?: string }) {
     const { data: topics, isLoading } = useTopicInterestsQuery();
     const values = (field.options.values as string[]).slice().reverse();
     const selected = value as Record<string, string>;
@@ -33,7 +36,7 @@ export default function MinimalTopicInterestFormRenderer({
     }, [value, onChange, selected, topics, values]);
 
     return (
-        <div className="relative">
+        <div className={cn('relative', className)}>
             {isLoading && <div className="bg-white/40 h-full w-full absolute inset-0 flex flex-col py-24">
                 <Loading className="w-48 mx-auto" />
             </div>}
@@ -53,6 +56,7 @@ export default function MinimalTopicInterestFormRenderer({
 
                             <div className="w-full md:w-1/2 mt-2 md:mt-0">
                                 <Select
+                                    disabled={disabled}
                                     defaultValue={selected[topic.key]}
                                     onValueChange={(v) => setSelected(s => ({ ...s, [topic.key]: v }))}>
                                     <SelectTrigger>
