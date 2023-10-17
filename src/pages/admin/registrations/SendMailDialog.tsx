@@ -17,6 +17,8 @@ export default function SendMailDialog({ filter, recipients: defaultRecipients =
 
     const { data: emailTemplates, isLoading } = useQuery(['email_templates'], () => {
         return pb.send<{ name: string, id: string }[]>('/api/email_templates', { method: 'GET' });
+    }, {
+        staleTime: 10 * (60 * 1000),
     });
 
     const form = useForm({

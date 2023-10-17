@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import NewRegistrationDialog from "./NewRegistrationDialog";
 import RegistrationsPage from "./Registrations";
 import IconPlus from '~icons/material-symbols/add';
 import IconEmail from '~icons/material-symbols/stacked-email-rounded';
@@ -11,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 export default function AllRegistrations() {
     return <RegistrationsPage
         status="all"
-        actions={({ selected, onDelete }) => {
+        actions={({ selected, onDelete, onOpenEditor }) => {
             if (selected.length !== 0) {
                 return <div className="flex items-center justify-between bg-slate-100 p-2 w-full flex-row">
                     <p className="pl-4">{selected.length} selected</p>
@@ -52,17 +51,11 @@ export default function AllRegistrations() {
                     </Button>
                 </SendMailDialog>
 
-                <NewRegistrationDialog>
-                    <Button>
-                        <IconPlus className="mr-2" />
-                        Add new registrant
-                    </Button>
-                </NewRegistrationDialog>
+                <Button onClick={() => onOpenEditor()} type="button">
+                    <IconPlus className="mr-2" />
+                    Add new registrant
+                </Button>
             </div>
         }}
-        rowActions={({ id, onDelete }) => (
-            <RegistrationRowActions
-                id={id}
-                onDelete={onDelete} />
-        )} />
+        rowActions={RegistrationRowActions} />
 }

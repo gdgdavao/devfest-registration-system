@@ -19,9 +19,5 @@ export default function RejectedRegistrations() {
                 </SendMailDialog>
             </div>
         )}
-        rowActions={({ id, onDelete }) => (
-            <RegistrationRowActions
-                id={id}
-                onDelete={onDelete} />
-        )} />
+        rowActions={RegistrationRowActions} />
 }
