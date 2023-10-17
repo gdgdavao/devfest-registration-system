@@ -41,7 +41,7 @@ export default function MinimalTopicInterestFormRenderer({
             <div className="flex flex-col space-y-2">
                 {topics?.map((topic) => (
                     <Card key={`topic_${topic.key}`}>
-                        <CardContent className="flex p-3 flex-col md:flex-row items-start">
+                        <CardContent className="flex p-3 flex-col md:flex-row items-center">
                             <div className="text-left w-full items-start md:items-center flex md:w-1/2 space-x-3">
                                 {topic.icon &&
                                     <img
