@@ -736,3 +736,25 @@ export function useUpdateSettingMutation() {
     }
   );
 }
+
+// Screening API
+export interface ScreeningResponse {
+  criteria: Criterion[];
+  next_id: string | null;
+  prev_id: string | null;
+  record: RegistrationsResponse;
+}
+
+export interface Criterion {
+  id: string;
+  label: string;
+  value: boolean;
+}
+
+export function useScreeningDetailsQuery(registrantId: string, { enabled = true }: { enabled: boolean }) {
+  return useQuery(['screening', registrantId], () => {
+    return pb.send<ScreeningResponse>(`/api/admin/screening/${registrantId}`, {});
+  }, {
+    enabled
+  });
+}

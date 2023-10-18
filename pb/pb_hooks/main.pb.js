@@ -233,6 +233,44 @@ routerAdd("POST", "/api/admin/send_emails", (c) => {
     }
 }, $apis.requireAdminAuth());
 
+routerAdd("GET", "/api/admin/screening/:registrantId", (c) => {
+    const registrantId = c.pathParam('registrantId');
+
+    // get registrant record
+    const registrantRecord = $app.dao().findRecordById('registrations', registrantId);
+    $apis.enrichRecord(c, $app.dao(), registrantRecord, 'status', 'student_profile', 'professional_profile', 'payment', 'addons.addon', 'ticket', 'merch_sensing_data');
+
+    // get ids for pagination
+    const prevRecords = $app.dao().findRecordsByFilter('registrations', `id != "${registrantRecord.id}" && created >= "${registrantRecord.created.string()}"`, 'created', 1);
+    const nextRecords = $app.dao().findRecordsByFilter('registrations', `id != "${registrantRecord.id}" && created < "${registrantRecord.created.string()}"`, '-created', 1);
+
+    // get criteria
+    const criteria = [
+        {
+            id: 'type',
+            label: 'Is a professional?',
+            value: registrantRecord.getString('type') === 'professional'
+        },
+        {
+            id: 'sex',
+            label: 'Is a woman (for diversity)?',
+            value: registrantRecord.getString('sex') === 'female',
+        },
+        {
+            id: 'addons',
+            label: 'Has availed an add-on?',
+            value: registrantRecord.getStringSlice('addons').length !== 0,
+        }
+    ];
+
+    return c.json(200, {
+        prev_id: prevRecords.length !== 0 ? prevRecords[0].id : null,
+        next_id: nextRecords.length !== 0 ? nextRecords[0].id : null,
+        record: registrantRecord,
+        criteria
+    });
+}, $apis.requireAdminAuth());
+
 routerAdd("GET", "/payments_redirect", (c) => {
     try {
         const utils = require(`${__hooks}/utils.js`);
