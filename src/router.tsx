@@ -19,8 +19,8 @@ import ApprovedRegistrations from "./pages/admin/registrations/Approved";
 import RejectedRegistrations from "./pages/admin/registrations/Rejected";
 import RegistrationSummary from "./pages/admin/RegistrationSummary";
 import AllPayments from "./pages/admin/payments/All";
-import MerchSensingAll from "./pages/admin/merch_sensing/All";
-import MerchSensingSummary from "./pages/admin/merch_sensing/Summary";
+import MerchSensingAll from "./pages/admin/logistics/MerchSensingAll";
+import MerchSensingSummary from "./pages/admin/logistics/MerchSensingSummary";
 
 export const router = createBrowserRouter([
   {
@@ -109,18 +109,23 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: "merch_sensing",
+        path: "logistics",
         children: [
           {
-            index: true,
-            element: <MerchSensingAll />,
+            path: "merch_sensing",
+            children: [
+              {
+                index: true,
+                element: <MerchSensingAll />,
+              },
+              {
+                path: "summary",
+                element: <MerchSensingSummary />,
+              },
+            ],
           },
-          {
-            path: "summary",
-            element: <MerchSensingSummary />,
-          },
-        ],
-      },
+        ]
+      }
     ],
   },
 ]);
