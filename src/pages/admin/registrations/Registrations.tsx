@@ -1,7 +1,16 @@
 import { FC, useState } from "react";
 
-import { Collections, RegistrationStatusesStatusOptions } from "@/pocketbase-types";
-import { RegistrationsResponse, useDeleteRegistrationMutation, useRegistrationsQuery, useSettingQuery, useUpdateSettingMutation } from "@/client";
+import {
+  Collections,
+  RegistrationStatusesStatusOptions,
+} from "@/pocketbase-types";
+import {
+  RegistrationsResponse,
+  useDeleteRegistrationMutation,
+  useRegistrationsQuery,
+  useSettingQuery,
+  useUpdateSettingMutation,
+} from "@/client";
 
 import * as pbf from "@/lib/pb_filters";
 import AdminTable from "@/components/layouts/AdminTable";
@@ -31,19 +40,27 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
     const { data: registrationStatus } = useSettingQuery<'open' | 'closed'>('registration_status');
     const { mutate: updateSetting } = useUpdateSettingMutation();
 
-    const { mutateAsync: deleteMutation } = useDeleteRegistrationMutation();
-    const [filter, setFilter] = useState('');
-    const { data, refetch, fetchNextPage, isFetchingNextPage, isLoading, hasNextPage } = useRegistrationsQuery({
-        sort: '-created',
-        filter: pbf.compileFilter(
-            filter.length > 0 && pbf.or(
-                pbf.like('email', filter),
-                pbf.like('first_name', filter),
-                pbf.like('last_name', filter)
-            ),
-            status != 'all' &&
-                pbf.eq('status.status', status)),
-    });
+  const { mutateAsync: deleteMutation } = useDeleteRegistrationMutation();
+  const [filter, setFilter] = useState("");
+  const {
+    data,
+    refetch,
+    fetchNextPage,
+    isFetchingNextPage,
+    isLoading,
+    hasNextPage,
+  } = useRegistrationsQuery({
+    sort: "-created",
+    filter: pbf.compileFilter(
+      filter.length > 0 &&
+        pbf.or(
+          pbf.like("email", filter),
+          pbf.like("first_name", filter),
+          pbf.like("last_name", filter)
+        ),
+      status != "all" && pbf.eq("status.status", status)
+    ),
+  });
 
     return <>
         <RegistrationEditor
