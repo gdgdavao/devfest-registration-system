@@ -5,8 +5,7 @@ import parseHtml, { domToReact, Element } from 'html-react-parser';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { useEffect } from "react";
-
-const currentFormatter = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' });
+import { currencyFormatter } from "@/lib/utils";
 
 export default function RichTicketFormRenderer({ value, onChange }: FormFieldRendererProps) {
     const { data } = useTicketTypesQuery();
@@ -34,7 +33,7 @@ export default function RichTicketFormRenderer({ value, onChange }: FormFieldRen
                     <CardFooter className="mt-auto flex flex-col">
                         <div className="w-full pb-4">
                             <p className="text-sm text-gray-400">Price</p>
-                            <p className="text-lg font-semibold">{currentFormatter.format(ticket.price)}</p>
+                            <p className="text-lg font-semibold">{currencyFormatter.format(ticket.price)}</p>
                         </div>
 
                         <Button
