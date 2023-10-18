@@ -17,104 +17,110 @@ import AllRegistrations from "./pages/admin/registrations/All";
 import PendingRegistrations from "./pages/admin/registrations/Pending";
 import ApprovedRegistrations from "./pages/admin/registrations/Approved";
 import RejectedRegistrations from "./pages/admin/registrations/Rejected";
+import RegistrationSummary from "./pages/admin/RegistrationSummary";
 import AllPayments from "./pages/admin/payments/All";
 import MerchSensingAll from "./pages/admin/merch_sensing/All";
 import MerchSensingSummary from "./pages/admin/merch_sensing/Summary";
 
 export const router = createBrowserRouter([
-    {
-        path: "/",
-        element: <Navigate to="/registration" />,
-    },
-    {
-        path: "/registration",
-        element: <Registration />,
+  {
+    path: "/",
+    element: <Navigate to="/registration" />,
+  },
+  {
+    path: "/registration",
+    element: <Registration />,
+    children: [
+      {
+        index: true,
+        element: <Welcome />,
+      },
+      {
+        path: "profile",
+        element: <Profile />,
+      },
+      {
+        path: "topics",
+        element: <Topic />,
+      },
+      {
+        path: "addons",
+        element: <Addons />,
+      },
+      {
+        path: "payment",
+        element: <Payment />,
+      },
+      {
+        path: "done",
+        element: <Done />,
+      },
+    ],
+  },
+  {
+    path: "/admin/login",
+    element: (
+      <GuestOnly>
+        <AdminLogin />
+      </GuestOnly>
+    ),
+  },
+  {
+    path: "/admin",
+    element: <AdminLayout />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="registrations" />,
+      },
+      {
+        index: true,
+        element: <Navigate to="registrations" />,
+      },
+      {
+        path: "registrations",
         children: [
-            {
-                index: true,
-                element: <Welcome />,
-            },
-            {
-                path: "profile",
-                element: <Profile />,
-            },
-            {
-                path: "topics",
-                element: <Topic />,
-            },
-            {
-                path: "addons",
-                element: <Addons />,
-            },
-            {
-                path: "payment",
-                element: <Payment />,
-            },
-            {
-                path: "done",
-                element: <Done />,
-            },
+          {
+            index: true,
+            element: <AllRegistrations />,
+          },
+          {
+            path: "pending",
+            element: <PendingRegistrations />,
+          },
+          {
+            path: "approved",
+            element: <ApprovedRegistrations />,
+          },
+          {
+            path: "rejected",
+            element: <RejectedRegistrations />,
+          },
+          { path: "summary", element: <RegistrationSummary /> },
         ],
-    },
-    {
-        path: "/admin/login",
-        element: (
-            <GuestOnly>
-                <AdminLogin />
-            </GuestOnly>
-        ),
-    },
-    {
-        path: "/admin",
-        element: <AdminLayout />,
+      },
+      {
+        path: "payments",
         children: [
-            {
-                index: true,
-                element: <Navigate to="registrations" />
-            },
-            {
-                path: "registrations",
-                children: [
-                    {
-                        index: true,
-                        element: <AllRegistrations />
-                    },
-                    {
-                        path: "pending",
-                        element: <PendingRegistrations />
-                    },
-                    {
-                        path: "approved",
-                        element: <ApprovedRegistrations />
-                    },
-                    {
-                        path: "rejected",
-                        element: <RejectedRegistrations />
-                    },
-                ]
-            },
-            {
-                path: "payments",
-                children: [
-                    {
-                        index: true,
-                        element: <AllPayments />
-                    },
-                ]
-            },
-            {
-                path: "merch_sensing",
-                children: [
-                    {
-                        index: true,
-                        element: <MerchSensingAll />
-                    },
-                    {
-                        path: "summary",
-                        element: <MerchSensingSummary />
-                    }
-                ]
-            }
-        ]
-    }
+          {
+            index: true,
+            element: <AllPayments />,
+          },
+        ],
+      },
+      {
+        path: "merch_sensing",
+        children: [
+          {
+            index: true,
+            element: <MerchSensingAll />,
+          },
+          {
+            path: "summary",
+            element: <MerchSensingSummary />,
+          },
+        ],
+      },
+    ],
+  },
 ]);

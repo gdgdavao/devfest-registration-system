@@ -31,6 +31,7 @@
     "@radix-ui/react-tooltip": "^1.0.6",
     "@tanstack/react-query": "^4.35.3",
     "@tanstack/react-table": "^8.10.0",
+    "@tremor/react": "^3.8.1",
     "@types/json-form-data": "^1.7.3",
     "@types/lodash.throttle": "^4.1.7",
     "class-variance-authority": "^0.7.0",
