@@ -110,16 +110,6 @@ export default function ScreenRegistrantDialog({ id, children }: { id: string, c
                                 <span className="text-slate-500">Years of Tech Experience</span>
                                 <p className="font-bold">{registrant?.years_tech_exp}</p>
                             </div>
-
-                            <div className="flex-1 flex flex-col">
-                                <span className="text-slate-500">Amount Paid</span>
-                                <p className="font-bold">
-                                    {
-                                        registrant?.expand?.payment?.expected_amount &&
-                                        <span>₱{registrant.expand.payment.expected_amount}</span>
-                                    }
-                                </p>
-                            </div>
                         </div>
                     </div>
 
