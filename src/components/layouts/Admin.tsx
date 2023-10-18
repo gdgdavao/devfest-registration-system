@@ -75,17 +75,22 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    name: "Merch Sensing",
+    name: "Logistics",
     entries: [
       {
-        path: "/merch_sensing",
-        icon: IconAll,
-        label: "All Entries",
+        path: "/logistics/addon_orders/summary",
+        icon: IconSummary,
+        label: "Add-on Orders Summary",
       },
       {
-        path: "/merch_sensing/summary",
+        path: "/logistics/merch_sensing",
+        icon: IconAll,
+        label: "Merch Sensing",
+      },
+      {
+        path: "/logistics/merch_sensing/summary",
         icon: IconSummary,
-        label: "Summary",
+        label: "Merch Sensing Summary",
       },
     ],
   },
