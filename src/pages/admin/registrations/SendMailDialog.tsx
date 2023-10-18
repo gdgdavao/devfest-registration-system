@@ -1,4 +1,4 @@
-import { RegistrationsResponse, pb } from "@/client";
+import { RegistrationsResponse, mutationConfig, pb } from "@/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -11,6 +11,7 @@ import { ReactNode, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 export default function SendMailDialog({ filter, recipients: defaultRecipients = [], template, children }: { filter?: string, recipients?: RegistrationsResponse[], template: string, children: ReactNode }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -59,11 +60,11 @@ export default function SendMailDialog({ filter, recipients: defaultRecipients =
     }, [filter, filterType, recipients]);
 
     const { mutate: sendMail, isLoading: isEmailSending } = useMutation((payload: { filter: string, template: string, force: boolean }) => {
-        return pb.send('/api/admin/send_emails', {
+        return pb.send<{ message: string }>('/api/admin/send_emails', {
             method: "POST",
             body: payload
         });
-    });
+    }, mutationConfig);
 
     useEffect(() => {
         if (emailTemplates) {
@@ -84,7 +85,8 @@ export default function SendMailDialog({ filter, recipients: defaultRecipients =
                             force,
                             filter: finalFilter,
                         }, {
-                            onSuccess() {
+                            onSuccess(data) {
+                                toast.success(data.message);
                                 setIsOpen(false);
                             }
                         });

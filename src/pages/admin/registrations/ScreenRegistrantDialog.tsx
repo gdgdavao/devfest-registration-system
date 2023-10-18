@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import MinimalTopicInterestFormRenderer from "@/components/form_renderers/MinimalTopicInterestFormRenderer";
 import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle, XCircle } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 // TODO: better interface
 export default function ScreenRegistrantDialog({ id: destinationId, children }: { id: string, children: ReactNode }) {
@@ -55,6 +56,7 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
                                         status: RegistrationStatusesStatusOptions.approved
                                     }, {
                                         onSuccess() {
+                                            toast.success('Registration confirmed successfully.');
                                             queryClient.invalidateQueries({ queryKey: ['screening', id], exact: true });
                                             setRegistrantId(id => data!.next_id ?? id);
                                         },
@@ -74,6 +76,7 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
                                     status: RegistrationStatusesStatusOptions.rejected
                                 }, {
                                     onSuccess() {
+                                        toast.success('Registration confirmed successfully.');
                                         queryClient.invalidateQueries({ queryKey: ['screening', id], exact: true });
                                         setRegistrantId(id => data!.next_id ?? id);
                                     },

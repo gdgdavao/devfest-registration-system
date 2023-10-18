@@ -3,6 +3,7 @@ import AuthOnly from "../AuthOnly";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 
+import { Toaster } from "react-hot-toast";
 import IconAll from "~icons/material-symbols/format-list-bulleted";
 import IconPending from "~icons/material-symbols/pending-outline";
 import IconApprove from "~icons/material-symbols/check-circle-outline";
@@ -184,6 +185,8 @@ export default function AdminLayout() {
 
   return (
     <AuthOnly>
+      <Toaster />
+
       <div
         className={cn(
           "fixed left-0 inset-y-0 z-50 h-screen transition-transform",
