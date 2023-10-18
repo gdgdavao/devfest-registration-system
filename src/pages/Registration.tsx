@@ -262,7 +262,19 @@ export default function RegistrationPage() {
 
             // submitForm
             mutation.mutate(data, {
-                onError,
+                onError(err) {
+                    onError(err);
+
+                    if (context.fields.data) {
+                        const errorKeys = Object.keys(context.form.formState.errors);
+                        const firstErrorKey = errorKeys[0];
+                        const firstError = context.fields.data.find(f => f.name === firstErrorKey);
+                        if (!firstError) {
+                            return;
+                        }
+                        navigate(`/registration${routes[firstError.group as FormDetailsFormGroupOptions]}`);
+                    }
+                },
                 onSuccess() {
                     // initiatePayment(record, payment_data!.payment_method)
                     //     .catch(onError);
