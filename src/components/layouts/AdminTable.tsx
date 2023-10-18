@@ -10,6 +10,7 @@ import { InfiniteData } from "@tanstack/react-query";
 import { ListResult } from "pocketbase";
 import { Badge } from "../ui/badge";
 import { Checkbox } from "../ui/checkbox";
+import DataFilter from "../DataFilter";
 
 interface RowActionsProps<R> {
     record: R
@@ -66,16 +67,21 @@ export default function AdminTable<R>(props: AdminTableProps<R>) {
                 <BelowTitle />
             </div>}
 
-            <div className="pb-4 flex items-center justify-between space-x-2">
-                {selected.length === 0 &&
-                    <Input
-                        className="w-1/2"
-                        defaultValue={searchFilter}
-                        onChange={(ev) => debouncedSetSearchFilter(ev.target.value)}
-                        placeholder={filterPlaceholder ?? "Filter by e-mail..."} />}
+            <div className="pb-4">
+                <div className="pb-2 flex items-center justify-between space-x-2">
+                    {selected.length === 0 &&
+                        <Input
+                            className="w-1/2"
+                            defaultValue={searchFilter}
+                            onChange={(ev) => debouncedSetSearchFilter(ev.target.value)}
+                            placeholder={filterPlaceholder ?? "Filter by e-mail..."} />}
 
-                {Actions && <Actions selected={selected} />}
+                    {Actions && <Actions selected={selected} />}
+                </div>
+
+                {selected.length === 0 && <DataFilter value={[]} onChange={() => {}} />}
             </div>
+
 
             <DataTable
                 isLoading={isLoading}
