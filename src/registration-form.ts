@@ -200,6 +200,10 @@ export function useSetupRegistrationForm({ rename = {addons: 'addons_data'}, ext
         );
 
     const loadForm = () => {
+        if (!watchRegType) {
+            return;
+        }
+
         if (watchRegType === RegistrationsTypeOptions.student) {
             form.setValue("professional_profile_data", undefined);
 
@@ -215,8 +219,19 @@ export function useSetupRegistrationForm({ rename = {addons: 'addons_data'}, ext
             }
         } else {
             form.setValue("student_profile_data", undefined);
+
+            if (
+                !form.getValues("professional_profile_data") ||
+                Object.keys(form.getValues("professional_profile_data")!).length === 0
+            ) {
+                form.setValue("professional_profile_data", {
+                    organization: "",
+                    title: "",
+                    is_fresh_graduate: false,
+                });
+            }
         }
-    }
+    };
 
     const removePersistedFormData = () => {
         localStorage.removeItem(FORM_DATA_KEY);
@@ -229,8 +244,6 @@ export function useSetupRegistrationForm({ rename = {addons: 'addons_data'}, ext
             form.reset(JSON.parse(existingFormData));
             setLoadedFromPersistedData(true);
         }
-
-        loadForm();
     }, []);
     useEffect(loadForm, [watchRegType, fieldsQuery.refetch]);
 
