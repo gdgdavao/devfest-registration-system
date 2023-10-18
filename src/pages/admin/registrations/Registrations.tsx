@@ -149,8 +149,9 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
                     header: 'Last Name',
                 },
                 {
-                    accessorKey: 'created',
-                    header: 'Registered',
+                  accessorKey: 'created',
+                  header: 'Registered',
+                  cell: ({ row }) => (new Date(row.original.created)).toLocaleString(),
                 }
             ]}
             onRefetch={refetch}
