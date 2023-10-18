@@ -78,6 +78,11 @@ const navSections: NavSection[] = [
     name: "Logistics",
     entries: [
       {
+        path: "/logistics/addon_orders/summary",
+        icon: IconSummary,
+        label: "Add-on Orders Summary",
+      },
+      {
         path: "/logistics/merch_sensing",
         icon: IconAll,
         label: "Merch Sensing",

@@ -21,6 +21,7 @@ import RegistrationSummary from "./pages/admin/RegistrationSummary";
 import AllPayments from "./pages/admin/payments/All";
 import MerchSensingAll from "./pages/admin/logistics/MerchSensingAll";
 import MerchSensingSummary from "./pages/admin/logistics/MerchSensingSummary";
+import AddonOrdersSummary from "./pages/admin/logistics/AddonOrdersSummary";
 
 export const router = createBrowserRouter([
   {
@@ -111,6 +112,15 @@ export const router = createBrowserRouter([
       {
         path: "logistics",
         children: [
+          {
+            path: "addon_orders",
+            children: [
+              {
+                path: "summary",
+                element: <AddonOrdersSummary />,
+              },
+            ],
+          },
           {
             path: "merch_sensing",
             children: [
