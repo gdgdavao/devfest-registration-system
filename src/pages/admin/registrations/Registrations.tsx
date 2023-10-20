@@ -70,6 +70,7 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
         <AdminTable
             title={title}
             filter={filter}
+            filterCollection="registrations"
             filterPlaceholder={`Filter by e-mail, first name, or last name`}
             isLoading={isLoading}
             isFetchingNextPage={isFetchingNextPage}

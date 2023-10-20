@@ -10,7 +10,8 @@ import { InfiniteData } from "@tanstack/react-query";
 import { ListResult } from "pocketbase";
 import { Badge } from "../ui/badge";
 import { Checkbox } from "../ui/checkbox";
-import DataFilter from "../DataFilter";
+import DataFilter, { DataFilterValue } from "../DataFilter";
+import { Collections } from "@/pocketbase-types";
 
 interface RowActionsProps<R> {
     record: R
@@ -43,14 +44,16 @@ export interface AdminTableProps<R> {
     // Filter
     filter: string
     filterPlaceholder?: string
+    filterCollection?: `${Collections}`
     onFilterChange: (s: string) => void
 }
 
 export default function AdminTable<R>(props: AdminTableProps<R>) {
     const { data, onRefetch: refetch, onFetchNextPage: fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = props;
     const { title, actions: Actions, filter: searchFilter, filterPlaceholder, onFilterChange: setSearchFilter } = props;
-    const { columns, rowActions: RowActions, onDelete, belowTitle: BelowTitle } = props;
+    const { filterCollection, columns, rowActions: RowActions, onDelete, belowTitle: BelowTitle } = props;
     const selectable = props.selectable ?? true;
+    const [filters, setFilters] = useState<DataFilterValue[]>([]);
 
     // TODO:
     const [selected, setSelected]= useState<R[]>([]);
@@ -79,7 +82,11 @@ export default function AdminTable<R>(props: AdminTableProps<R>) {
                     {Actions && <Actions selected={selected} />}
                 </div>
 
-                {selected.length === 0 && <DataFilter value={[]} onChange={() => {}} />}
+                {(selected.length === 0 && filterCollection) &&
+                    <DataFilter
+                        value={filters}
+                        collection={filterCollection}
+                        onChange={setFilters} />}
             </div>
 
 
