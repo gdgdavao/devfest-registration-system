@@ -23,7 +23,6 @@ import {
   FormGroupsRecord,
   FormGroupsKeyOptions,
   MerchSensingDataRecord,
-  PaymentsRecord,
   PaymentsResponse,
   AddonOrdersRecord,
   AddonOrdersResponse,
@@ -33,6 +32,7 @@ import {
   AddonsRecord,
   MerchSensingDataResponse,
   CustomSettingsResponse,
+  RegistrationStatusesReasonOptions,
 } from "./pocketbase-types";
 import { ErrorOption } from "react-hook-form";
 import {
@@ -394,8 +394,10 @@ export function useUpdateRegistrationStatusMutation() {
       id,
       ...payload
     }: {
-      id: RecordIdString;
-      status: RegistrationStatusesStatusOptions;
+      id: RecordIdString
+      status: RegistrationStatusesStatusOptions
+      reason?: RegistrationStatusesReasonOptions
+      remarks?: string
     }) => {
       return pb
         .collection(Collections.RegistrationStatuses)
@@ -444,6 +446,9 @@ export type PaymentResponse = PaymentsResponse<{
 }>;
 
 export type ManualPaymentResponse = ManualPaymentsResponse<{
+  transaction_id: string;
+  mobile_number: string;
+}, {
   registrant?: RegistrationRecord;
 }>;
 
@@ -468,6 +473,18 @@ export function useManualPaymentsQuery(options?: RecordListOptions) {
         return data.page - 1;
       },
     }
+  );
+}
+
+export function useManualPaymentQuery(id: string, config: { enabled?: boolean } = { enabled: true }) {
+  return useQuery([Collections.ManualPayments, id], () => {
+      return pb
+        .collection(Collections.ManualPayments)
+        .getOne<ManualPaymentResponse>(id, {
+          expand: PAYMENT_RESP_EXPAND,
+        });
+    },
+    config
   );
 }
 
@@ -510,11 +527,11 @@ export function useUpdatePaymentMutation() {
       record,
     }: {
       id: RecordIdString;
-      record: Partial<PaymentsRecord>;
+      record: Partial<ManualPaymentsRecord>;
     }) => {
       return pb
-        .collection(Collections.Payments)
-        .update<PaymentsResponse>(id, record);
+        .collection(Collections.ManualPayments)
+        .update<ManualPaymentResponse>(id, record);
     }, mutationConfig
   );
 }

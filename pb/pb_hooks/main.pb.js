@@ -265,8 +265,23 @@ routerAdd("GET", "/api/admin/screening/:registrantId", (c) => {
     const prevRecords = $app.dao().findRecordsByFilter('registrations', `id != "${registrantRecord.id}" && created >= "${registrantRecord.created.string()}"`, 'created', 1);
     const nextRecords = $app.dao().findRecordsByFilter('registrations', `id != "${registrantRecord.id}" && created < "${registrantRecord.created.string()}"`, '-created', 1);
 
+    // NOTE: ids are sorted by ASC (oldest > newest)
+    const duplicateRecords = $app.dao().findRecordsByFilter('duplicate_registrations', `occurrences >= 2 && ids ?~ "${registrantRecord.id}"`);
+
+    const paymentRecord = registrantRecord.expandedOne('payment');
+
     // get criteria
     const criteria = [
+        {
+            id: 'has_duplicates',
+            label: 'Is registration unique?',
+            value: duplicateRecords.length === 0
+        },
+        {
+            id: 'payment',
+            label: 'Is payment verified?',
+            value: paymentRecord && paymentRecord.getBool('is_verified')
+        },
         {
             id: 'type',
             label: 'Is a professional?',
@@ -655,6 +670,8 @@ onCollectionAfterUpdateRequest((e) => {
     if (e.collection.name === "registrations") {
         const utils = require(`${__hooks}/utils.js`);
         utils.buildRegistrationFields();
+
+        $app.cache().remove(`fields_${e.collection.id}`)
     }
 });
 

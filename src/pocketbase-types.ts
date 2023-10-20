@@ -6,6 +6,7 @@ export enum Collections {
 	AddonOrders = "addon_orders",
 	Addons = "addons",
 	CustomSettings = "custom_settings",
+	DuplicateRegistrations = "duplicate_registrations",
 	FormDetails = "form_details",
 	FormGroups = "form_groups",
 	ManualPayments = "manual_payments",
@@ -14,6 +15,7 @@ export enum Collections {
 	ProfessionalProfiles = "professional_profiles",
 	RegistrationStatuses = "registration_statuses",
 	Registrations = "registrations",
+	SchoolProfileSummary = "school_profile_summary",
 	StudentProfiles = "student_profiles",
 	TicketTypes = "ticket_types",
 	TopicInterests = "topic_interests",
@@ -62,6 +64,13 @@ export type CustomSettingsRecord<Tvalue = unknown> = {
 	value: null | Tvalue
 }
 
+export type DuplicateRegistrationsRecord<Tids = unknown> = {
+	first_name: string
+	ids?: null | Tids
+	last_name: string
+	occurrences?: number
+}
+
 export enum FormDetailsFormGroupOptions {
 	"welcome" = "welcome",
 	"profile" = "profile",
@@ -99,6 +108,8 @@ export type FormGroupsRecord<Tcustom_content = unknown> = {
 export type ManualPaymentsRecord<Ttransaction_details = unknown> = {
 	amount_paid?: number
 	expected_amount: number
+	has_refunded?: boolean
+	is_verified?: boolean
 	receipt?: string
 	registrant?: RecordIdString
 	transaction_details: null | Ttransaction_details
@@ -141,8 +152,17 @@ export enum RegistrationStatusesStatusOptions {
 	"approved" = "approved",
 	"rejected" = "rejected",
 }
+
+export enum RegistrationStatusesReasonOptions {
+	"unqualified" = "unqualified",
+	"refund" = "refund",
+	"duplicate" = "duplicate",
+	"others" = "others",
+}
 export type RegistrationStatusesRecord = {
+	reason?: RegistrationStatusesReasonOptions
 	registrant?: RecordIdString
+	remarks?: string
 	status: RegistrationStatusesStatusOptions
 }
 
@@ -194,6 +214,11 @@ export type RegistrationsRecord<Ttopic_interests = unknown> = {
 	years_tech_exp: RegistrationsYearsTechExpOptions
 }
 
+export type SchoolProfileSummaryRecord = {
+	count?: number
+	school: string
+}
+
 export enum StudentProfilesYearLevelOptions {
 	"1st Year" = "1st Year",
 	"2nd Year" = "2nd Year",
@@ -224,6 +249,7 @@ export type TopicInterestsRecord = {
 export type AddonOrdersResponse<Tpreferences = unknown, Texpand = unknown> = Required<AddonOrdersRecord<Tpreferences>> & BaseSystemFields<Texpand>
 export type AddonsResponse<Tcustomization_options = unknown, Texpand = unknown> = Required<AddonsRecord<Tcustomization_options>> & BaseSystemFields<Texpand>
 export type CustomSettingsResponse<Tvalue = unknown, Texpand = unknown> = Required<CustomSettingsRecord<Tvalue>> & BaseSystemFields<Texpand>
+export type DuplicateRegistrationsResponse<Tids = unknown, Texpand = unknown> = Required<DuplicateRegistrationsRecord<Tids>> & BaseSystemFields<Texpand>
 export type FormDetailsResponse<Tcustom_options = unknown, Texpand = unknown> = Required<FormDetailsRecord<Tcustom_options>> & BaseSystemFields<Texpand>
 export type FormGroupsResponse<Tcustom_content = unknown, Texpand = unknown> = Required<FormGroupsRecord<Tcustom_content>> & BaseSystemFields<Texpand>
 export type ManualPaymentsResponse<Ttransaction_details = unknown, Texpand = unknown> = Required<ManualPaymentsRecord<Ttransaction_details>> & BaseSystemFields<Texpand>
@@ -232,6 +258,7 @@ export type PaymentsResponse<Texpand = unknown> = Required<PaymentsRecord> & Bas
 export type ProfessionalProfilesResponse<Texpand = unknown> = Required<ProfessionalProfilesRecord> & BaseSystemFields<Texpand>
 export type RegistrationStatusesResponse<Texpand = unknown> = Required<RegistrationStatusesRecord> & BaseSystemFields<Texpand>
 export type RegistrationsResponse<Ttopic_interests = unknown, Texpand = unknown> = Required<RegistrationsRecord<Ttopic_interests>> & BaseSystemFields<Texpand>
+export type SchoolProfileSummaryResponse<Texpand = unknown> = Required<SchoolProfileSummaryRecord> & BaseSystemFields<Texpand>
 export type StudentProfilesResponse<Texpand = unknown> = Required<StudentProfilesRecord> & BaseSystemFields<Texpand>
 export type TicketTypesResponse<Texpand = unknown> = Required<TicketTypesRecord> & BaseSystemFields<Texpand>
 export type TopicInterestsResponse<Texpand = unknown> = Required<TopicInterestsRecord> & BaseSystemFields<Texpand>
@@ -242,6 +269,7 @@ export type CollectionRecords = {
 	addon_orders: AddonOrdersRecord
 	addons: AddonsRecord
 	custom_settings: CustomSettingsRecord
+	duplicate_registrations: DuplicateRegistrationsRecord
 	form_details: FormDetailsRecord
 	form_groups: FormGroupsRecord
 	manual_payments: ManualPaymentsRecord
@@ -250,6 +278,7 @@ export type CollectionRecords = {
 	professional_profiles: ProfessionalProfilesRecord
 	registration_statuses: RegistrationStatusesRecord
 	registrations: RegistrationsRecord
+	school_profile_summary: SchoolProfileSummaryRecord
 	student_profiles: StudentProfilesRecord
 	ticket_types: TicketTypesRecord
 	topic_interests: TopicInterestsRecord
@@ -259,6 +288,7 @@ export type CollectionResponses = {
 	addon_orders: AddonOrdersResponse
 	addons: AddonsResponse
 	custom_settings: CustomSettingsResponse
+	duplicate_registrations: DuplicateRegistrationsResponse
 	form_details: FormDetailsResponse
 	form_groups: FormGroupsResponse
 	manual_payments: ManualPaymentsResponse
@@ -267,6 +297,7 @@ export type CollectionResponses = {
 	professional_profiles: ProfessionalProfilesResponse
 	registration_statuses: RegistrationStatusesResponse
 	registrations: RegistrationsResponse
+	school_profile_summary: SchoolProfileSummaryResponse
 	student_profiles: StudentProfilesResponse
 	ticket_types: TicketTypesResponse
 	topic_interests: TopicInterestsResponse

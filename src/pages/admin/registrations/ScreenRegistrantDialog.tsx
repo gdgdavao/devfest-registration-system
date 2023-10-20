@@ -1,22 +1,56 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useScreeningDetailsQuery, useUpdateRegistrationStatusMutation } from "@/client";
-import { RegistrationStatusesStatusOptions } from "@/pocketbase-types";
+import { RegistrationStatusesReasonOptions, RegistrationStatusesStatusOptions } from "@/pocketbase-types";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import MinimalTopicInterestFormRenderer from "@/components/form_renderers/MinimalTopicInterestFormRenderer";
 import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle, XCircle } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { AlertDialogContent, AlertDialogTitle, AlertDialog, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
 
-// TODO: better interface
 export default function ScreenRegistrantDialog({ id: destinationId, children }: { id: string, children: ReactNode }) {
     const queryClient = useQueryClient();
     const [id, setRegistrantId] = useState(destinationId);
     const [open, setIsOpen] = useState(false);
-    const { mutate: markRegistrant, isLoading: isStatusProcessing } = useUpdateRegistrationStatusMutation();
+    const [remarkModalOpened, setRemarkOpened] = useState(false);
+    const [remark, setRemark] = useState('');
+    const { mutate: _markRegistrant, isLoading: isStatusProcessing } = useUpdateRegistrationStatusMutation();
     const { data } = useScreeningDetailsQuery(id, { enabled: open });
     const registrant = data?.record;
-    // const { data: fields } = useRegistrationFieldsQuery(registrantData?.type);
+
+    const markRegistrant = (status: RegistrationStatusesStatusOptions, reason?: RegistrationStatusesReasonOptions) => {
+        if (reason === RegistrationStatusesReasonOptions.others && remark.length === 0) {
+            setRemarkOpened(true);
+            return;
+        }
+
+        _markRegistrant({
+            id: registrant!.status,
+            status,
+            reason,
+            remarks: remark
+        }, {
+            onSuccess() {
+                toast.success('Registration confirmed successfully.');
+                queryClient.invalidateQueries({ queryKey: ['screening', id], exact: true });
+                setRegistrantId(id => data!.next_id ?? id);
+            },
+            onSettled() {
+                if (remark.length > 0) {
+                    setRemark('');
+                }
+            }
+        });
+    }
+
+    useEffect(() => {
+        if (remarkModalOpened) {
+            setTimeout(() => (document.body.style.pointerEvents = ""), 100);
+        }
+    }, [remarkModalOpened]);
 
     return <Dialog open={open} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
@@ -24,6 +58,31 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
             <DialogHeader className="pt-4 md:pt-6 sm:pl-6">
                 <DialogTitle>Screen registrant</DialogTitle>
             </DialogHeader>
+
+            <AlertDialog open={remarkModalOpened} onOpenChange={setRemarkOpened}>
+                <AlertDialogContent>
+                    <AlertDialogTitle>Remarks for rejection</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        <Input
+                            defaultValue={remark}
+                            onChange={(evt) => setRemark(evt.currentTarget.value)}
+                            placeholder="Leave blank if none" />
+                    </AlertDialogDescription>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => {
+                            if (remark.length === 0) {
+                                setRemark('N/A');
+                            }
+
+                            markRegistrant(
+                                RegistrationStatusesStatusOptions.rejected,
+                                RegistrationStatusesReasonOptions.others
+                            );
+                        }}>Submit</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <div className="flex flex-col-reverse md:flex-row-reverse">
                 <div className="w-full md:w-1/3 lg:w-1/4 bg-gray-50 px-3 flex flex-col-reverse md:flex-col">
@@ -51,39 +110,38 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
                                 className="flex-1 py-4 md:py-2"
                                 disabled={isStatusProcessing}
                                 onClick={() => {
-                                    markRegistrant({
-                                        id: registrant!.status,
-                                        status: RegistrationStatusesStatusOptions.approved
-                                    }, {
-                                        onSuccess() {
-                                            toast.success('Registration confirmed successfully.');
-                                            queryClient.invalidateQueries({ queryKey: ['screening', id], exact: true });
-                                            setRegistrantId(id => data!.next_id ?? id);
-                                        },
-                                    });
+                                    markRegistrant(RegistrationStatusesStatusOptions.approved);
                                 }}>
                                 Approve
                             </Button>
 
-                            <Button
-                                type="button"
-                                variant="destructive"
-                                className="flex-1 py-4 md:py-2"
-                                disabled={isStatusProcessing}
-                                onClick={() => {
-                                markRegistrant({
-                                    id: registrant!.status,
-                                    status: RegistrationStatusesStatusOptions.rejected
-                                }, {
-                                    onSuccess() {
-                                        toast.success('Registration confirmed successfully.');
-                                        queryClient.invalidateQueries({ queryKey: ['screening', id], exact: true });
-                                        setRegistrantId(id => data!.next_id ?? id);
-                                    },
-                                });
-                            }}>
-                                Reject
-                            </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        className="flex-1 py-4 md:py-2"
+                                        disabled={isStatusProcessing}>
+                                        Reject
+                                    </Button>
+                                </DropdownMenuTrigger>
+
+                                <DropdownMenuContent className="w-56">
+                                    {Object.values(RegistrationStatusesReasonOptions).map(reason => (
+                                        <DropdownMenuItem
+                                            className="hover:bg-gray-300/50"
+                                            key={`reject_reason_${reason}`}
+                                            onClick={() => {
+                                                markRegistrant(
+                                                    RegistrationStatusesStatusOptions.rejected,
+                                                    reason
+                                                );
+                                            }}>
+                                            {reason}
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
 
                     </div>
@@ -91,8 +149,8 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
                     <div className="md:flex flex-col py-4 space-y-2">
                         <p className="font-bold">Criteria</p>
                         {data?.criteria.map(c => (
-                            <div className="flex items-center space-x-2" key={`criteria_${c.id}`}>
-                                {c.value ? <CheckCircle className="text-green-500" /> : <XCircle className="text-destructive" />}
+                            <div className="flex items-start" key={`criteria_${c.id}`}>
+                                <div className="w-8 pr-2">{c.value ? <CheckCircle className="text-green-500" /> : <XCircle className="text-destructive" />}</div>
                                 <p>{c.label}</p>
                             </div>
                         ))}
@@ -110,12 +168,9 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
                                     <span>Student</span>:
                                     <span>Professional</span>
                                 }
+                                <span> / </span>
+                                <span>{registrant?.expand?.ticket?.name}</span>
                             </p>
-                        </div>
-
-                        <div className="flex-1 flex flex-col py-2">
-                            <span className="text-slate-500">Ticket Type</span>
-                            <p className="font-bold">{registrant?.expand?.ticket?.name}</p>
                         </div>
 
                         <div className="flex-1 flex flex-col py-2">
@@ -126,11 +181,19 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
                                     new Date(registrant?.created).toLocaleString()
                                 }
                             </p>
+                        </div>
+
+                        <div className="flex-1 flex flex-col py-2">
+                            <span className="text-slate-500">Status</span>
+                            <p className="font-bold">
+                                <span>{registrant?.expand?.status?.status ?? 'Unknown'}</span>
+                                {registrant?.expand?.status.status === RegistrationStatusesStatusOptions.rejected && (
+                                    <span> ({registrant?.expand?.status.reason})</span>
+                                )}
+                            </p>
+
                             <p className="font-bold text-sm text-gray-500">
-                                Confirmation: {
-                                    registrant?.expand?.status?.status &&
-                                    <span>{registrant?.expand?.status?.status}</span>
-                                }
+                                Remarks: {registrant?.expand?.status?.remarks ?? 'N/A'}
                             </p>
                         </div>
                     </div>
@@ -243,5 +306,5 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
             </div>
 
         </DialogContent>
-    </Dialog>
+    </Dialog>;
 }

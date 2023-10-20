@@ -475,7 +475,7 @@ module.exports = {
                 }
             } catch (e) {}
 
-            if (!options.showHidden && (typeof options.hidden == "boolean" && options.hidden)) {
+            if (!_options.showHidden && (typeof options.hidden == "boolean" && options.hidden)) {
                 continue;
             }
 
@@ -499,7 +499,8 @@ module.exports = {
                         parent: collection.id,
                         parentKey: field.name,
                         registrationType: _options.registrationType,
-                        hidden: hiddenFields
+                        hidden: hiddenFields,
+                        showHidden: _options.showHidden
                     });
 
                     fields.push({
