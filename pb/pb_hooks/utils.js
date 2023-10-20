@@ -418,6 +418,10 @@ module.exports = {
     * @returns {RegistrationField[]}
     */
     extractCollectionSchema(collection, _options) {
+        if (!_options) {
+            _options = {};
+        }
+
         const fieldsFromSchema = collection.schema.fields();
 
         /**
