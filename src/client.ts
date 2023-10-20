@@ -43,6 +43,7 @@ import {
 } from "./payment-types";
 import jsonToFormData from "json-form-data";
 import { compileFilter, eq } from "./lib/pb_filters";
+import { toast } from "react-hot-toast";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -104,7 +105,9 @@ export function useTopicInterestsQuery() {
   return useQuery([Collections.TopicInterests], () => {
     return pb
       .collection(Collections.TopicInterests)
-      .getFullList<TopicInterestsResponse>({ sort: "-updated" });
+      .getFullList<TopicInterestsResponse>({ sort: '-updated' });
+  }, {
+    staleTime: 10 * (60 * 1000),
   });
 }
 
@@ -175,6 +178,14 @@ export interface RegistrationField {
   options: Record<string, unknown>;
 }
 
+export const mutationConfig = {
+  onError(error: unknown) {
+    if (error instanceof ClientResponseError) {
+      toast.error(error.message);
+    }
+  },
+}
+
 export function useRegistrationMutation() {
   return useMutation(async (record: RegistrationRecord) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -240,7 +251,7 @@ export function useRegistrationMutation() {
         payment: paymentRecord.id,
         ...extra,
       });
-  });
+  }, mutationConfig);
 }
 
 export function useMerchSensingDataQuery(options?: RecordListOptions) {
@@ -275,7 +286,7 @@ export function useMerchSensingDataQuery(options?: RecordListOptions) {
 export function useDeleteRegistrationMutation() {
   return useMutation((id: RecordIdString) => {
     return pb.collection(Collections.Registrations).delete(id);
-  });
+  }, mutationConfig);
 }
 
 export function useUpdateRegistrationMutation() {
@@ -284,7 +295,7 @@ export function useUpdateRegistrationMutation() {
       return pb
         .collection(Collections.Registrations)
         .update<RegistrationsResponse>(id, record);
-    }
+    }, mutationConfig
   );
 }
 
@@ -389,7 +400,7 @@ export function useUpdateRegistrationStatusMutation() {
       return pb
         .collection(Collections.RegistrationStatuses)
         .update(id, payload);
-    }
+    }, mutationConfig
   );
 }
 
@@ -397,15 +408,17 @@ export function useUpdateRegistrationStatusMutation() {
 export function useAddonsQuery() {
   return useQuery([Collections.Addons], () => {
     return pb.collection(Collections.Addons).getFullList<AddonsResponse>();
+  }, {
+    staleTime: 10 * (60 * 1000),
   });
 }
 
 // Ticket Types
 export function useTicketTypesQuery() {
   return useQuery([Collections.TicketTypes], () => {
-    return pb
-      .collection(Collections.TicketTypes)
-      .getFullList<TicketTypesResponse>();
+    return pb.collection(Collections.TicketTypes).getFullList<TicketTypesResponse>();
+  }, {
+    staleTime: 10 * (60 * 1000),
   });
 }
 
@@ -498,7 +511,7 @@ export function useUpdatePaymentMutation() {
       return pb
         .collection(Collections.Payments)
         .update<PaymentsResponse>(id, record);
-    }
+    }, mutationConfig
   );
 }
 
@@ -538,7 +551,7 @@ export function useInitiatePaymentMutation() {
       method: "POST",
       body: payload,
     });
-  });
+  }, mutationConfig);
 }
 
 export function usePaymentMethodMutation() {
@@ -574,7 +587,7 @@ export function usePaymentMethodMutation() {
 
       const json = await resp.json();
       return json.data.id as string;
-    }
+    }, mutationConfig
   );
 }
 
@@ -620,7 +633,7 @@ export function useAttachPaymentIntentMutation() {
 
       const json = await resp.json();
       return json.data as PaymentIntent;
-    }
+    }, mutationConfig
   );
 }
 
@@ -729,6 +742,28 @@ export function useUpdateSettingMutation() {
         compileFilter(eq("key", key))
       );
       return collection.update<CustomSettingsResponse>(setting.id, { value });
-    }
+    }, mutationConfig
   );
+}
+
+// Screening API
+export interface ScreeningResponse {
+  criteria: Criterion[];
+  next_id: string | null;
+  prev_id: string | null;
+  record: RegistrationsResponse;
+}
+
+export interface Criterion {
+  id: string;
+  label: string;
+  value: boolean;
+}
+
+export function useScreeningDetailsQuery(registrantId: string, { enabled = true }: { enabled: boolean }) {
+  return useQuery(['screening', registrantId], () => {
+    return pb.send<ScreeningResponse>(`/api/admin/screening/${registrantId}`, {});
+  }, {
+    enabled
+  });
 }

@@ -3,6 +3,7 @@ import AuthOnly from "../AuthOnly";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 
+import { Toaster } from "react-hot-toast";
 import IconAll from "~icons/material-symbols/format-list-bulleted";
 import IconPending from "~icons/material-symbols/pending-outline";
 import IconApprove from "~icons/material-symbols/check-circle-outline";
@@ -74,17 +75,22 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    name: "Merch Sensing",
+    name: "Logistics",
     entries: [
       {
-        path: "/merch_sensing",
-        icon: IconAll,
-        label: "All Entries",
+        path: "/logistics/addon_orders/summary",
+        icon: IconSummary,
+        label: "Add-on Orders Summary",
       },
       {
-        path: "/merch_sensing/summary",
+        path: "/logistics/merch_sensing",
+        icon: IconAll,
+        label: "Merch Sensing",
+      },
+      {
+        path: "/logistics/merch_sensing/summary",
         icon: IconSummary,
-        label: "Summary",
+        label: "Merch Sensing Summary",
       },
     ],
   },
@@ -184,6 +190,8 @@ export default function AdminLayout() {
 
   return (
     <AuthOnly>
+      <Toaster />
+
       <div
         className={cn(
           "fixed left-0 inset-y-0 z-50 h-screen transition-transform",

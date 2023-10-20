@@ -16,16 +16,19 @@ import JsonCheckboxFormRenderer from "./form_renderers/JsonCheckboxFormRenderer"
 import RichTicketFormRenderer from "./form_renderers/RichTicketsFormRenderer";
 import { FormDetailsFormGroupOptions } from "@/pocketbase-types";
 import PhoneNumberFormRenderer from "./form_renderers/PhoneNumberFormRenderer";
+import { cn } from "@/lib/utils";
 
 export type FormGroup = "all" | `${FormDetailsFormGroupOptions}`;
 
 export default function RegistrationForm({
     data: existingData,
+    className,
     group = "all",
     noLabel = false,
     rename = {},
     customComponents = {},
 }: {
+    className?: string;
     data?: RegistrationsResponse;
     asChild?: boolean;
     group?: FormGroup;
@@ -70,7 +73,7 @@ export default function RegistrationForm({
     }, [existingData]);
 
     return (
-        <div className="w-full flex flex-col space-y-2">
+        <div className={cn(className, 'text-left w-full flex flex-col space-y-3')}>
             {(data ?? [])
                 .filter((f) => (group !== "all" ? f.group === group : true))
                 .map((field) => (

@@ -6,14 +6,14 @@ import IconEdit from '~icons/material-symbols/edit-outline';
 import IconDelete from '~icons/material-symbols/delete-outline';
 import IconScreen from '~icons/material-symbols/thumbs-up-down-outline';
 import { RecordIdString } from "@/pocketbase-types";
-import EditRegistrationDialog from "./EditRegistrationDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import IconEmail from '~icons/material-symbols/stacked-email-rounded';
 import SendMailDialog from "./SendMailDialog";
 
-export function RegistrationRowActions({ id, onDelete }: {
+export function RegistrationRowActions({ id, onDelete, onOpenEditor }: {
     id: RecordIdString,
     onDelete: (id: RecordIdString) => Promise<void>
+    onOpenEditor: (id?: string) => void
 }) {
     return <div className="flex flex-row space-x-2">
         <TooltipProvider>
@@ -33,11 +33,13 @@ export function RegistrationRowActions({ id, onDelete }: {
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger>
-                    <EditRegistrationDialog id={id}>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <IconEdit />
-                        </Button>
-                    </EditRegistrationDialog>
+                    <Button
+                        variant="ghost"
+                        type="button"
+                        onClick={() => onOpenEditor(id)}
+                        className="h-8 w-8 p-0">
+                        <IconEdit />
+                    </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                     Edit
