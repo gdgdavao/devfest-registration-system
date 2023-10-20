@@ -153,6 +153,10 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
                     header: 'Type',
                 },
                 {
+                    accessorKey: 'expand.status.status',
+                    header: 'Status',
+                },
+                {
                     accessorKey: 'email',
                     header: 'Email',
                 },
