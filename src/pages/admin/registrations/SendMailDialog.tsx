@@ -12,8 +12,11 @@ import { useForm } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import DataFilter from "@/components/data-filter/DataFilter";
+import { DataFilterValue } from "@/components/data-filter/types";
+import { FilterExpr, compileFilter, eq } from "@/lib/pb_filters";
 
-export default function SendMailDialog({ filter, recipients: defaultRecipients = [], template, children }: { filter?: string, recipients?: RegistrationsResponse[], template: string, children: ReactNode }) {
+export default function SendMailDialog({ filter = [], recipients: defaultRecipients = [], template, children }: { filter?: DataFilterValue[], recipients?: RegistrationsResponse[], template: string, children: ReactNode }) {
     const [isOpen, setIsOpen] = useState(false);
 
     const { data: emailTemplates, isLoading } = useQuery(['email_templates'], () => {
@@ -25,8 +28,7 @@ export default function SendMailDialog({ filter, recipients: defaultRecipients =
     const form = useForm({
         resolver: joiResolver(Joi.object({
             filterType: Joi.string(),
-            filter: Joi.string()
-                .when('filterType', {
+            filter: Joi.array().when('filterType', {
                     is: 'filter',
                     then: Joi.required(),
                     otherwise: Joi.forbidden()
@@ -42,7 +44,7 @@ export default function SendMailDialog({ filter, recipients: defaultRecipients =
         })),
         defaultValues: {
             filterType: 'filter',
-            filter: filter ?? '',
+            filter: filter ?? [],
             recipients: defaultRecipients.map(r => r.email) ?? [],
             template: template ?? "confirm",
             force: false
@@ -54,26 +56,33 @@ export default function SendMailDialog({ filter, recipients: defaultRecipients =
 
     const finalFilter = useMemo(() => {
         if (filterType === 'email' && recipients.length > 0) {
-            return recipients.map(r => `email = "${r}"`).join(' || ');
+            return recipients.map(r => eq('email', r)!);
         }
-        return filter ?? '';
+        return filter?.map(f => f.expr) ?? [];
     }, [filter, filterType, recipients]);
 
-    const { mutate: sendMail, isLoading: isEmailSending } = useMutation((payload: { filter: string, template: string, force: boolean }) => {
+    const { mutate: sendMail, isLoading: isEmailSending } = useMutation(({ filter, ...payload }: { filter: FilterExpr[], template: string, force: boolean }) => {
         return pb.send<{ message: string }>('/api/admin/send_emails', {
             method: "POST",
-            body: payload
+            body: {
+                ...payload,
+                filter: compileFilter(...filter),
+            }
         });
     }, mutationConfig);
 
     useEffect(() => {
         if (emailTemplates) {
+            //@ts-expect-error circular error
             form.setValue('template', emailTemplates[0].id);
         }
     }, [emailTemplates]);
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isOpen} onOpenChange={(state) => {
+            setIsOpen(state);
+            setTimeout(() => (document.body.style.pointerEvents = ""), 100);
+        }}>
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
@@ -154,10 +163,10 @@ export default function SendMailDialog({ filter, recipients: defaultRecipients =
                                                             render={({ field }) => (
                                                                 <FormItem>
                                                                     <FormControl>
-                                                                        <Input
-                                                                            className="w-full"
-                                                                            placeholder="status = 'pending'"
-                                                                            {...field} />
+                                                                        <DataFilter
+                                                                            collection="registrations"
+                                                                            onChange={field.onChange}
+                                                                            value={field.value} />
                                                                     </FormControl>
                                                                     <FormMessage />
                                                                 </FormItem>

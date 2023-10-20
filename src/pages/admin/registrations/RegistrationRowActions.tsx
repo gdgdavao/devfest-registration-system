@@ -9,6 +9,7 @@ import { RecordIdString } from "@/pocketbase-types";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import IconEmail from '~icons/material-symbols/stacked-email-rounded';
 import SendMailDialog from "./SendMailDialog";
+import { eq } from "@/lib/pb_filters";
 
 export function RegistrationRowActions({ id, onDelete, onOpenEditor }: {
     id: RecordIdString,
@@ -49,7 +50,7 @@ export function RegistrationRowActions({ id, onDelete, onOpenEditor }: {
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger>
-                    <SendMailDialog template="confirm" filter={`id = "${id}"`}>
+                    <SendMailDialog template="confirm" filter={[{ type: 'string', expr: eq('id', id)! }]}>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                             <IconEmail />
                         </Button>

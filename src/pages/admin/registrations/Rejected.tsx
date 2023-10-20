@@ -3,6 +3,7 @@ import { RegistrationRowActions } from "./RegistrationRowActions";
 import RegistrationsPage from "./Registrations";
 import SendMailDialog from "./SendMailDialog";
 import IconEmail from '~icons/material-symbols/stacked-email-rounded';
+import { eq } from "@/lib/pb_filters";
 
 export default function RejectedRegistrations() {
     return <RegistrationsPage
@@ -11,7 +12,7 @@ export default function RejectedRegistrations() {
         actions={() => (
             <div>
                 {/* TODO: change filter, add status */}
-                <SendMailDialog template="confirm" filter={`status.status = "rejected"`}>
+                <SendMailDialog template="confirm" filter={[{ type: 'string', expr: eq('status.status', 'rejected')! }]}>
                     <Button>
                         <IconEmail className="mr-2" />
                         Send e-mail confirmation
