@@ -1,28 +1,24 @@
-import { FilterExpr, FilterOp, eq, ops } from "@/lib/pb_filters";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Button } from "./ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./ui/command";
+import { FilterOp, eq, ops } from "@/lib/pb_filters";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Button } from "../ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command";
 import { CommandLoading } from "cmdk";
 import { LoaderIcon } from "lucide-react";
 import { Collections } from "@/pocketbase-types";
 import { useQuery } from "@tanstack/react-query";
 import { RegistrationField, pb } from "@/client";
 import { useMemo, useState } from "react";
-import { Input } from "./ui/input";
-import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "./ui/select";
-
-export interface DataFilterValue<T = FilterOp> {
-    type: string
-    values: string[]
-    expr: FilterExpr<T>
-}
+import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "../ui/select";
+import { DataFilterValue } from "./types";
+import SelectDataFilterValue from "./SelectDataFilterValue";
+import TextDataFilterValue from "./TextDataFilterValue";
+import RemoteSelectDataFilterValue from "./RemoteSelectDataFilterValue";
 
 export default function DataFilter({ collection, value = [], onChange }: {
     collection: `${Collections}`
     value: DataFilterValue[]
     onChange: (v: DataFilterValue[]) => void
 }) {
-    // const [refs, setRefs] = useState<Record<string, RefObject<HTMLDivElement>>>({});
     const [openedFilter, setOpenedFilter] = useState(-2);
 
     const { data, isLoading } = useQuery([collection, 'fields'], () => {
@@ -91,42 +87,50 @@ export default function DataFilter({ collection, value = [], onChange }: {
                                                     </Select>
 
                                                     {v.values ? (
-                                                        <Select value={JSON.parse(v.expr.rhs as string)} onValueChange={(newValue) => {
-                                                            onChange(value.map((vv, vIdx) => (
-                                                                vIdx === idx ? {
-                                                                    ...vv,
-                                                                    expr: {
-                                                                        ...vv.expr,
-                                                                        rhs: JSON.stringify(newValue)
-                                                                    }
-                                                                } : vv
-                                                            )));
-                                                        }}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="Values">
-                                                                    {JSON.parse(v.expr.rhs as string) ?? 'Select...'}
-                                                                </SelectValue>
-                                                            </SelectTrigger>
-
-                                                            <SelectContent>
-                                                                {v.values.map((value) =>
-                                                                    <SelectItem key={`${idx}_${value}`} value={value}>
-                                                                        {value}
-                                                                    </SelectItem>)}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    ) : (
-                                                        <Input type={v.type === 'number' ? 'number' : 'text'}
-                                                            value={typeof JSON.parse(v.expr.rhs as string) === 'object'
-                                                                ? v.expr.rhs as string
-                                                                : JSON.parse(v.expr.rhs as string)}
-                                                            onChange={(evt) => {
+                                                        <SelectDataFilterValue
+                                                            value={JSON.parse(v.expr.rhs as string)}
+                                                            values={v.values}
+                                                            onChange={(v) => {
                                                                 onChange(value.map((vv, vIdx) => (
                                                                     vIdx === idx ? {
                                                                         ...vv,
                                                                         expr: {
                                                                             ...vv.expr,
-                                                                            rhs: JSON.stringify(evt.currentTarget.value)
+                                                                            rhs: JSON.stringify(v)
+                                                                        }
+                                                                    } : vv
+                                                                )));
+                                                            }} />
+                                                    ) : (v.type === 'relation' && v.collectionId) ? (
+                                                        <RemoteSelectDataFilterValue
+                                                            collectionId={v.collectionId}
+                                                            value={JSON.parse(v.expr.rhs as string)}
+                                                            onChange={(v) => {
+                                                                onChange(value.map((vv, vIdx) => (
+                                                                    vIdx === idx ? {
+                                                                        ...vv,
+                                                                        expr: {
+                                                                            ...vv.expr,
+                                                                            rhs: JSON.stringify(v)
+                                                                        }
+                                                                    } : vv
+                                                                )));
+                                                            }} />
+                                                    ) : (
+                                                        <TextDataFilterValue
+                                                            type={v.type}
+                                                            value={
+                                                                typeof JSON.parse(v.expr.rhs as string) === 'object'
+                                                                    ? v.expr.rhs as string
+                                                                    : JSON.parse(v.expr.rhs as string)
+                                                            }
+                                                            onChange={(v) => {
+                                                                onChange(value.map((vv, vIdx) => (
+                                                                    vIdx === idx ? {
+                                                                        ...vv,
+                                                                        expr: {
+                                                                            ...vv.expr,
+                                                                            rhs: JSON.stringify(v)
                                                                         }
                                                                     } : vv
                                                                 )));
@@ -194,6 +198,7 @@ export default function DataFilter({ collection, value = [], onChange }: {
                                                     onChange(value.concat({
                                                         type: selectedField.type,
                                                         values: field.options.values,
+                                                        collectionId: field.options.collectionId,
                                                         expr: eq(fieldName, '')!
                                                     } as DataFilterValue));
 

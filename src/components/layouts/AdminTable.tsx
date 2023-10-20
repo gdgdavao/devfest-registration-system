@@ -10,8 +10,9 @@ import { InfiniteData } from "@tanstack/react-query";
 import { ListResult } from "pocketbase";
 import { Badge } from "../ui/badge";
 import { Checkbox } from "../ui/checkbox";
-import DataFilter, { DataFilterValue } from "../DataFilter";
+import DataFilter from "../data-filter/DataFilter";
 import { Collections } from "@/pocketbase-types";
+import { DataFilterValue } from "../data-filter/types";
 
 interface RowActionsProps<R> {
     record: R
@@ -42,20 +43,20 @@ export interface AdminTableProps<R> {
     onDelete: (record: R) => Promise<void>
 
     // Filter
-    filter: string
+    searchFilter: string
+    filters: DataFilterValue[]
     filterPlaceholder?: string
     filterCollection?: `${Collections}`
-    onFilterChange: (s: string) => void
+    onSearchFilterChange: (s: string) => void
+    onFilterChange: (s: DataFilterValue[]) => void
 }
 
 export default function AdminTable<R>(props: AdminTableProps<R>) {
     const { data, onRefetch: refetch, onFetchNextPage: fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = props;
-    const { title, actions: Actions, filter: searchFilter, filterPlaceholder, onFilterChange: setSearchFilter } = props;
+    const { title, actions: Actions, filters, onFilterChange, searchFilter, filterPlaceholder, onSearchFilterChange: setSearchFilter } = props;
     const { filterCollection, columns, rowActions: RowActions, onDelete, belowTitle: BelowTitle } = props;
     const selectable = props.selectable ?? true;
-    const [filters, setFilters] = useState<DataFilterValue[]>([]);
 
-    // TODO:
     const [selected, setSelected]= useState<R[]>([]);
     const debouncedSetSearchFilter = useDebouncedCallback(setSearchFilter, 1000);
 
@@ -76,7 +77,7 @@ export default function AdminTable<R>(props: AdminTableProps<R>) {
                         <Input
                             className="w-1/2"
                             defaultValue={searchFilter}
-                            onChange={(ev) => debouncedSetSearchFilter(ev.target.value)}
+                            onChange={(ev) => debouncedSetSearchFilter(ev.currentTarget.value)}
                             placeholder={filterPlaceholder ?? "Filter by e-mail..."} />}
 
                     {Actions && <Actions selected={selected} />}
@@ -86,7 +87,7 @@ export default function AdminTable<R>(props: AdminTableProps<R>) {
                     <DataFilter
                         value={filters}
                         collection={filterCollection}
-                        onChange={setFilters} />}
+                        onChange={onFilterChange} />}
             </div>
 
 
