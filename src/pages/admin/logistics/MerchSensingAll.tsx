@@ -6,9 +6,11 @@ import * as pbf from "@/lib/pb_filters";
 import AdminTable from "@/components/layouts/AdminTable";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import { DataFilterValue } from "@/components/data-filter/types";
 
 export default function AllPage() {
     const [filter, setFilter] = useState('');
+    const [filters, setFilters] = useState<DataFilterValue[]>([]);
     const { data, refetch, fetchNextPage, isFetchingNextPage, isLoading, hasNextPage } = useMerchSensingDataQuery({
         sort: '-created',
         filter: pbf.compileFilter(
@@ -21,7 +23,9 @@ export default function AllPage() {
 
     return <AdminTable
         title="Merch Sensing Data"
-        filter={filter}
+        searchFilter={filter}
+        filters={filters}
+        filterCollection="merch_sensing_data"
         selectable={false}
         filterPlaceholder={`Filter by registrant e-mail, first name, or last name`}
         isLoading={isLoading}
@@ -74,5 +78,6 @@ export default function AllPage() {
         onRefetch={refetch}
         onDelete={async () => {}}
         onFetchNextPage={fetchNextPage}
-        onFilterChange={setFilter} />
+        onFilterChange={setFilters}
+        onSearchFilterChange={setFilter} />
 }

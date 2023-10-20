@@ -1,25 +1,31 @@
 import { FC, useState } from "react";
 
-import { PaymentResponse, useManualPaymentsQuery } from "@/client";
+import { ManualPaymentResponse, useManualPaymentsQuery } from "@/client";
 import * as pbf from "@/lib/pb_filters";
 import AdminTable from "@/components/layouts/AdminTable";
+import { DataFilterValue } from "@/components/data-filter/types";
 
 export default function PaymentsTable({ title = "Payments", actions, rowActions: RowActions }: {
     title?: string
-    actions?: FC,
-    rowActions: FC<{ record: PaymentResponse, refetch: () => Promise<void> }>
+    actions?: FC<{ selected: ManualPaymentResponse[] }>,
+    rowActions: FC<{ record: ManualPaymentResponse, refetch: () => Promise<void> }>
 }) {
     const [emailFilter, setEmailFilter] = useState('');
-    const { data, refetch, fetchNextPage, isLoading, hasNextPage, isFetchingNextPage } = useManualPaymentsQuery({
-        sort: '-created',
-        filter: pbf.compileFilter(
-            pbf.notEmpty('registrant'),
-            emailFilter.length > 0 && pbf.like('registrant.email', emailFilter))
-    });
+    const [filters, setFilters] = useState<DataFilterValue[]>([]);
+    const { data, refetch, fetchNextPage, isLoading, hasNextPage, isFetchingNextPage } =
+        useManualPaymentsQuery({
+            sort: '-created',
+            filter: pbf.compileFilter(
+                pbf.notEmpty('registrant'),
+                emailFilter.length > 0 && pbf.like('registrant.email', emailFilter),
+                ...filters.map(f => f.expr))
+        });
 
     return <AdminTable
         title={title}
-        filter={emailFilter}
+        searchFilter={emailFilter}
+        filters={filters}
+        filterCollection="payments"
         isLoading={isLoading}
         isFetchingNextPage={isFetchingNextPage}
         hasNextPage={hasNextPage}
@@ -43,5 +49,6 @@ export default function PaymentsTable({ title = "Payments", actions, rowActions:
         onRefetch={refetch}
         onDelete={async () => {}}
         onFetchNextPage={fetchNextPage}
-        onFilterChange={setEmailFilter} />
+        onFilterChange={setFilters}
+        onSearchFilterChange={setEmailFilter} />
 }
