@@ -13,6 +13,7 @@ import { DataFilterValue } from "./types";
 import SelectDataFilterValue from "./SelectDataFilterValue";
 import TextDataFilterValue from "./TextDataFilterValue";
 import RemoteSelectDataFilterValue from "./RemoteSelectDataFilterValue";
+import BooleanSelectDataFilterValue from "./BooleanDataFilterValue";
 
 export default function DataFilter({ collection, value = [], onChange }: {
     collection: `${Collections}`
@@ -116,6 +117,20 @@ export default function DataFilter({ collection, value = [], onChange }: {
                                                                     } : vv
                                                                 )));
                                                             }} />
+                                                    ) : v.type === 'bool' ? (
+                                                        <BooleanSelectDataFilterValue
+                                                            value={v.expr.rhs as string}
+                                                            onChange={(v) => {
+                                                                onChange(value.map((vv, vIdx) => (
+                                                                    vIdx === idx ? {
+                                                                        ...vv,
+                                                                        expr: {
+                                                                            ...vv.expr,
+                                                                            rhs: JSON.stringify(v === 'true')
+                                                                        }
+                                                                    } : vv
+                                                                )));
+                                                            }} />
                                                     ) : (
                                                         <TextDataFilterValue
                                                             type={v.type}
@@ -145,8 +160,6 @@ export default function DataFilter({ collection, value = [], onChange }: {
                                                             Math.min(idx + 1, value.length - 1),
                                                             idx === value.length - 1 ? value.length - 1 : value.length
                                                         );
-
-                                                        console.log(left, right);
 
                                                         onChange(
                                                             left.length > 0 && right.length > 0
