@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 
 import IconCheck from '~icons/material-symbols/check-small';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { PaymentResponse, useUpdatePaymentMutation } from "@/client";
+import { ManualPaymentResponse, useUpdatePaymentMutation } from "@/client";
 import { PaymentsStatusOptions } from "@/pocketbase-types";
 
 export function PaymentRowActions({ record, refetch }: {
-    record: PaymentResponse
+    record: ManualPaymentResponse
     refetch: () => Promise<void>
 }) {
     const { mutate: updatePayment } = useUpdatePaymentMutation();

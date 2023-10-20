@@ -443,13 +443,17 @@ export type PaymentResponse = PaymentsResponse<{
   registrant?: RegistrationRecord;
 }>;
 
+export type ManualPaymentResponse = ManualPaymentsResponse<{
+  registrant?: RegistrationRecord;
+}>;
+
 export function useManualPaymentsQuery(options?: RecordListOptions) {
   return useInfiniteQuery(
     [Collections.ManualPayments, JSON.stringify(options)],
     ({ pageParam = 1 }) => {
       return pb
         .collection(Collections.ManualPayments)
-        .getList<PaymentResponse>(pageParam, undefined, {
+        .getList<ManualPaymentResponse>(pageParam, undefined, {
           ...options,
           expand: PAYMENT_RESP_EXPAND,
         });

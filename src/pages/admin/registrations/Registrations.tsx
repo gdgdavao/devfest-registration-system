@@ -1,15 +1,15 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import {
-  Collections,
-  RegistrationStatusesStatusOptions,
+    Collections,
+    RegistrationStatusesStatusOptions,
 } from "@/pocketbase-types";
 import {
-  RegistrationsResponse,
-  useDeleteRegistrationMutation,
-  useRegistrationsQuery,
-  useSettingQuery,
-  useUpdateSettingMutation,
+    RegistrationsResponse,
+    useDeleteRegistrationMutation,
+    useRegistrationsQuery,
+    useSettingQuery,
+    useUpdateSettingMutation,
 } from "@/client";
 
 import * as pbf from "@/lib/pb_filters";
@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import RegistrationEditor, { RegistrationEditorContext, useRegistrationEditorContext } from "./RegistrationEditor";
+import { DataFilterValue } from "@/components/data-filter/types";
 
 export default function RegistrationsPage({ title = "Registrations", status = "all", actions: Actions, rowActions: RowActions }: {
     title?: string
@@ -40,27 +41,40 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
     const { data: registrationStatus } = useSettingQuery<'open' | 'closed'>('registration_status');
     const { mutate: updateSetting } = useUpdateSettingMutation();
 
-  const { mutateAsync: deleteMutation } = useDeleteRegistrationMutation();
-  const [filter, setFilter] = useState("");
-  const {
-    data,
-    refetch,
-    fetchNextPage,
-    isFetchingNextPage,
-    isLoading,
-    hasNextPage,
-  } = useRegistrationsQuery({
-    sort: "-created",
-    filter: pbf.compileFilter(
-      filter.length > 0 &&
-        pbf.or(
-          pbf.like("email", filter),
-          pbf.like("first_name", filter),
-          pbf.like("last_name", filter)
+    const { mutateAsync: deleteMutation } = useDeleteRegistrationMutation();
+    const [searchFilter, setSearchFilter] = useState("");
+    const [filters, setFilters] = useState<DataFilterValue[]>([]);
+    const finalFilters = useMemo(() => filters.map(f => f.expr), [filters]);
+
+    const {
+        data,
+        refetch,
+        fetchNextPage,
+        isFetchingNextPage,
+        isLoading,
+        hasNextPage,
+    } = useRegistrationsQuery({
+        sort: "-created",
+        filter: pbf.compileFilter(
+            searchFilter.length > 0 &&
+            pbf.or(
+                pbf.like("email", searchFilter),
+                pbf.like("first_name", searchFilter),
+                pbf.like("last_name", searchFilter)
+            ),
+            ...finalFilters
         ),
-      status != "all" && pbf.eq("status.status", status)
-    ),
-  });
+    });
+
+    useEffect(() => {
+        if (status != 'all') {
+            setFilters(f => f.concat({
+                type: 'select',
+                values: Object.values(RegistrationStatusesStatusOptions),
+                expr: pbf.eq("status.status", status)!
+            }));
+        }
+    }, []);
 
     return <>
         <RegistrationEditor
@@ -69,7 +83,9 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
             id={editorContext.currentRegistrantId} />
         <AdminTable
             title={title}
-            filter={filter}
+            filters={filters}
+            searchFilter={searchFilter}
+            filterCollection="registrations"
             filterPlaceholder={`Filter by e-mail, first name, or last name`}
             isLoading={isLoading}
             isFetchingNextPage={isFetchingNextPage}
@@ -149,14 +165,15 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
                     header: 'Last Name',
                 },
                 {
-                  accessorKey: 'created',
-                  header: 'Registered',
-                  cell: ({ row }) => (new Date(row.original.created)).toLocaleString(),
+                    accessorKey: 'created',
+                    header: 'Registered',
+                    cell: ({ row }) => (new Date(row.original.created)).toLocaleString(),
                 }
             ]}
             onRefetch={refetch}
             onDelete={async (r) => { await deleteMutation(r.id); }}
             onFetchNextPage={fetchNextPage}
-            onFilterChange={setFilter} />
+            onFilterChange={setFilters}
+            onSearchFilterChange={setSearchFilter} />
     </>
 }

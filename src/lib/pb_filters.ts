@@ -1,5 +1,5 @@
 // PocketBase type-safe filter builders
-const ops = {
+export const ops = {
     par: '', // (expr)
     and: '&&',
     or: '||',
@@ -55,14 +55,12 @@ export interface FilterExpr<T = FilterOp> {
 
 export type MaybeFilterExpr<T = FilterOp> = FilterExpr<T> | null;
 
-function wrapValue(value: unknown): string | null {
+export function wrapValue(value: unknown): string | null {
     switch (typeof value) {
     case 'string':
-        return `"${value}"`;
     case "number":
     case "bigint":
     case "boolean":
-        return `${value}`;
     case "object":
         return `${JSON.stringify(value)}`;
     default:
@@ -134,13 +132,13 @@ export function not<T extends keyof typeof inverse>(expr: MaybeFilterExpr<T>): M
 }
 
 function wrapOp<T extends FilterOp>(op: T) {
-    const closure = (collection: string, value: OpValue | OpValue[]): MaybeFilterExpr<T | "or"> => {
+    const closure = (field: string, value: OpValue | OpValue[]): MaybeFilterExpr<T | "or"> => {
         if (Array.isArray(value)) {
-            return or(...value.map(v => closure(collection, v)));
+            return or(...value.map(v => closure(field, v)));
         }
         const finalValue = wrapValue(value);
         if (!finalValue) return null;
-        return {op, lhs: collection, rhs: finalValue};
+        return {op, lhs: field, rhs: finalValue};
     }
     return closure;
 }

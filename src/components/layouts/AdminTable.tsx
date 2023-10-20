@@ -10,6 +10,9 @@ import { InfiniteData } from "@tanstack/react-query";
 import { ListResult } from "pocketbase";
 import { Badge } from "../ui/badge";
 import { Checkbox } from "../ui/checkbox";
+import DataFilter from "../data-filter/DataFilter";
+import { Collections } from "@/pocketbase-types";
+import { DataFilterValue } from "../data-filter/types";
 
 interface RowActionsProps<R> {
     record: R
@@ -40,18 +43,20 @@ export interface AdminTableProps<R> {
     onDelete: (record: R) => Promise<void>
 
     // Filter
-    filter: string
+    searchFilter: string
+    filters: DataFilterValue[]
     filterPlaceholder?: string
-    onFilterChange: (s: string) => void
+    filterCollection?: `${Collections}`
+    onSearchFilterChange: (s: string) => void
+    onFilterChange: (s: DataFilterValue[]) => void
 }
 
 export default function AdminTable<R>(props: AdminTableProps<R>) {
     const { data, onRefetch: refetch, onFetchNextPage: fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = props;
-    const { title, actions: Actions, filter: searchFilter, filterPlaceholder, onFilterChange: setSearchFilter } = props;
-    const { columns, rowActions: RowActions, onDelete, belowTitle: BelowTitle } = props;
+    const { title, actions: Actions, filters, onFilterChange, searchFilter, filterPlaceholder, onSearchFilterChange: setSearchFilter } = props;
+    const { filterCollection, columns, rowActions: RowActions, onDelete, belowTitle: BelowTitle } = props;
     const selectable = props.selectable ?? true;
 
-    // TODO:
     const [selected, setSelected]= useState<R[]>([]);
     const debouncedSetSearchFilter = useDebouncedCallback(setSearchFilter, 1000);
 
@@ -66,16 +71,25 @@ export default function AdminTable<R>(props: AdminTableProps<R>) {
                 <BelowTitle />
             </div>}
 
-            <div className="pb-4 flex items-center justify-between space-x-2">
-                {selected.length === 0 &&
-                    <Input
-                        className="w-1/2"
-                        defaultValue={searchFilter}
-                        onChange={(ev) => debouncedSetSearchFilter(ev.target.value)}
-                        placeholder={filterPlaceholder ?? "Filter by e-mail..."} />}
+            <div className="pb-4">
+                <div className="pb-2 flex items-center justify-between space-x-2">
+                    {selected.length === 0 &&
+                        <Input
+                            className="w-1/2"
+                            defaultValue={searchFilter}
+                            onChange={(ev) => debouncedSetSearchFilter(ev.currentTarget.value)}
+                            placeholder={filterPlaceholder ?? "Filter by e-mail..."} />}
 
-                {Actions && <Actions selected={selected} />}
+                    {Actions && <Actions selected={selected} />}
+                </div>
+
+                {(selected.length === 0 && filterCollection) &&
+                    <DataFilter
+                        value={filters}
+                        collection={filterCollection}
+                        onChange={onFilterChange} />}
             </div>
+
 
             <DataTable
                 isLoading={isLoading}
