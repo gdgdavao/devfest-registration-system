@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import {
     Collections,
@@ -62,10 +62,19 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
                 pbf.like("first_name", searchFilter),
                 pbf.like("last_name", searchFilter)
             ),
-            status != "all" && pbf.eq("status.status", status),
             ...finalFilters
         ),
     });
+
+    useEffect(() => {
+        if (status != 'all') {
+            setFilters(f => f.concat({
+                type: 'select',
+                values: Object.values(RegistrationStatusesStatusOptions),
+                expr: pbf.eq("status.status", status)!
+            }));
+        }
+    }, []);
 
     return <>
         <RegistrationEditor
