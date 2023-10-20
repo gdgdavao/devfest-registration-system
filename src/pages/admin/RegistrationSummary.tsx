@@ -6,6 +6,10 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Loading from "@/components/Loading";
 import { Collections } from "@/pocketbase-types";
+import DataFilter from "@/components/data-filter/DataFilter";
+import { useState } from "react";
+import { DataFilterValue } from "@/components/data-filter/types";
+import { compileFilter } from "@/lib/pb_filters";
 
 const CHART_COLORS = [
   "bg-blue-500",
@@ -39,10 +43,12 @@ const TOPIC_FIELDS = {
 } as const;
 
 export default function RegistrationSummary() {
+  const [filters, setFilters] = useState<DataFilterValue[]>([]);
   const { data, isLoading, isFetched } = useSummaryQuery(
     Collections.Registrations,
     {
       except: ["email", "first_name", "last_name", "contact_number"],
+      filter: compileFilter(...filters.map(f => f.expr))
     }
   );
 
@@ -61,6 +67,11 @@ export default function RegistrationSummary() {
           )}
         </div>
       </header>
+
+      <DataFilter
+        collection="registrations"
+        value={filters}
+        onChange={setFilters} />
 
       {isLoading && !isFetched && (
         <div className="flex flex-col items-center">
