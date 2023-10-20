@@ -181,7 +181,7 @@ routerAdd("GET", "/api/admin/fields/:collectionId", (c) => {
     let fieldsFromData = [];
 
     if (isForced || !$app.cache().has(cacheKey)) {
-        const fields = utils.extractCollectionSchema(collection);
+        const fields = utils.extractCollectionSchema(collection, { showHidden: true });
         $app.cache().set(cacheKey, fields);
         fieldsFromData = fields;
     } else {

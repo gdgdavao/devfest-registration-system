@@ -414,12 +414,14 @@ module.exports = {
     /**
     *
     * @param {models.Collection | undefined} collection
-    * @param {{parent?: string, parentKey?: string, registrationType: string, hidden?: string[]} | undefined} _options
+    * @param {{parent?: string, parentKey?: string, registrationType: string, hidden?: string[]} | undefined, showHidden: boolean} _options
     * @returns {RegistrationField[]}
     */
     extractCollectionSchema(collection, _options) {
         if (!_options) {
-            _options = {};
+            _options = {
+                showHidden: false
+            };
         }
 
         const fieldsFromSchema = collection.schema.fields();
@@ -473,7 +475,7 @@ module.exports = {
                 }
             } catch (e) {}
 
-            if (typeof options.hidden == "boolean" && options.hidden) {
+            if (!options.showHidden && (typeof options.hidden == "boolean" && options.hidden)) {
                 continue;
             }
 
