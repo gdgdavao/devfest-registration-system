@@ -10,15 +10,23 @@ import { toast } from "react-hot-toast";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { AlertDialogContent, AlertDialogTitle, AlertDialog, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
+import useAdminFiltersState from "@/lib/admin_utils";
+import * as pbf from "@nedpals/pbf";
 
 export default function ScreenRegistrantDialog({ id: destinationId, children }: { id: string, children: ReactNode }) {
+    const { finalFilter } = useAdminFiltersState((v) => pbf.or(
+        pbf.like("email", v),
+        pbf.like("first_name", v),
+        pbf.like("last_name", v)
+    ));
+
     const queryClient = useQueryClient();
     const [id, setRegistrantId] = useState(destinationId);
     const [open, setIsOpen] = useState(false);
     const [remarkModalOpened, setRemarkOpened] = useState(false);
     const [remark, setRemark] = useState('');
     const { mutate: _markRegistrant, isLoading: isStatusProcessing } = useUpdateRegistrationStatusMutation();
-    const { data } = useScreeningDetailsQuery(id, { enabled: open });
+    const { data } = useScreeningDetailsQuery(id, { enabled: open, filter: pbf.stringify(finalFilter) });
     const registrant = data?.record;
 
     const markRegistrant = (status: RegistrationStatusesStatusOptions, reason?: RegistrationStatusesReasonOptions) => {

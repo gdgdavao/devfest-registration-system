@@ -781,9 +781,10 @@ export interface Criterion {
   value: boolean;
 }
 
-export function useScreeningDetailsQuery(registrantId: string, { enabled = true }: { enabled: boolean }) {
+export function useScreeningDetailsQuery(registrantId: string, { enabled = true, filter }: { enabled: boolean, filter?: string }) {
   return useQuery(['screening', registrantId], () => {
-    return pb.send<ScreeningResponse>(`/api/admin/screening/${registrantId}`, {});
+    return pb.send<ScreeningResponse>(
+      `/api/admin/screening/${registrantId}${filter ? '?' + (new URLSearchParams({filter}).toString()) : '' }`, {});
   }, {
     enabled
   });

@@ -256,14 +256,21 @@ routerAdd("POST", "/api/admin/send_emails", (c) => {
 
 routerAdd("GET", "/api/admin/screening/:registrantId", (c) => {
     const registrantId = c.pathParam('registrantId');
+    const filter = c.queryParam('filter');
+    const registrationsCollection = 'registrations';
 
     // get registrant record
-    const registrantRecord = $app.dao().findRecordById('registrations', registrantId);
+    const registrantRecord = $app.dao().findRecordById(registrationsCollection, registrantId);
     $apis.enrichRecord(c, $app.dao(), registrantRecord, 'status', 'student_profile', 'professional_profile', 'payment', 'addons.addon', 'ticket', 'merch_sensing_data');
 
+    const isNotCurrentUser = `id != "${registrantRecord.id}"`;
+    const userRegistered = registrantRecord.created.string();
+
     // get ids for pagination
-    const prevRecords = $app.dao().findRecordsByFilter('registrations', `id != "${registrantRecord.id}" && created >= "${registrantRecord.created.string()}"`, 'created', 1);
-    const nextRecords = $app.dao().findRecordsByFilter('registrations', `id != "${registrantRecord.id}" && created < "${registrantRecord.created.string()}"`, '-created', 1);
+    const prevFilter = [isNotCurrentUser, `created >= "${userRegistered}"`, filter.length !== 0 ? `(${filter})` : null].filter(f => f !== null).join(' && ');
+    const nextFilter = [isNotCurrentUser, `created < "${userRegistered}"`, filter.length !== 0 ? `(${filter})` : null].filter(f => f !== null).join(' && ');
+    const prevRecords = $app.dao().findRecordsByFilter(registrationsCollection, prevFilter, 'created', 1);
+    const nextRecords = $app.dao().findRecordsByFilter(registrationsCollection, nextFilter, '-created', 1);
 
     // NOTE: ids are sorted by ASC (oldest > newest)
     const duplicateRecords = $app.dao().findRecordsByFilter('duplicate_registrations', `occurrences >= 2 && ids ?~ "${registrantRecord.id}"`);
@@ -297,7 +304,7 @@ routerAdd("GET", "/api/admin/screening/:registrantId", (c) => {
             label: 'Has availed an add-on?',
             value: registrantRecord.getStringSlice('addons').length !== 0,
         }
-    ];
+    ].filter(Boolean);
 
     return c.json(200, {
         prev_id: prevRecords.length !== 0 ? prevRecords[0].id : null,
