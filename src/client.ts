@@ -42,7 +42,7 @@ import {
   PaymentMethod,
 } from "./payment-types";
 import jsonToFormData from "json-form-data";
-import { compileFilter, eq } from "./lib/pb_filters";
+import pbf from "@nedpals/pbf";
 import { toast } from "react-hot-toast";
 
 export const queryClient = new QueryClient({
@@ -750,7 +750,7 @@ export function useSettingQuery<T = unknown>(key: string) {
     return pb
       .collection(Collections.CustomSettings)
       .getFirstListItem<CustomSettingsResponse<T>>(
-        compileFilter(eq("key", key))
+        pbf.stringify(pbf.eq("key", key))
       );
   });
 }
@@ -760,7 +760,7 @@ export function useUpdateSettingMutation() {
     async ({ key, value }: { key: string; value: unknown }) => {
       const collection = pb.collection(Collections.CustomSettings);
       const setting = await collection.getFirstListItem(
-        compileFilter(eq("key", key))
+        pbf.stringify(pbf.eq("key", key))
       );
       return collection.update<CustomSettingsResponse>(setting.id, { value });
     }, mutationConfig

@@ -14,7 +14,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import DataFilter from "@/components/data-filter/DataFilter";
 import { DataFilterValue } from "@/components/data-filter/types";
-import { FilterExpr, compileFilter, eq } from "@/lib/pb_filters";
+import { stringify, eq, Filter, and } from "@nedpals/pbf";
 
 export default function SendMailDialog({ filter = [], recipients: defaultRecipients = [], template, children }: { filter?: DataFilterValue[], recipients?: RegistrationsResponse[], template: string, children: ReactNode }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -58,15 +58,15 @@ export default function SendMailDialog({ filter = [], recipients: defaultRecipie
         if (filterType === 'email' && recipients.length > 0) {
             return recipients.map(r => eq('email', r)!);
         }
-        return filter?.map(f => f.expr) ?? [];
+        return filter ?? [];
     }, [filter, filterType, recipients]);
 
-    const { mutate: sendMail, isLoading: isEmailSending } = useMutation(({ filter, ...payload }: { filter: FilterExpr[], template: string, force: boolean }) => {
+    const { mutate: sendMail, isLoading: isEmailSending } = useMutation(({ filter, ...payload }: { filter: Filter[], template: string, force: boolean }) => {
         return pb.send<{ message: string }>('/api/admin/send_emails', {
             method: "POST",
             body: {
                 ...payload,
-                filter: compileFilter(...filter),
+                filter: stringify(and(...filter)),
             }
         });
     }, mutationConfig);

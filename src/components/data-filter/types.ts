@@ -1,8 +1,9 @@
-import { FilterExpr, FilterOp } from "@/lib/pb_filters"
+import { Filter } from "@nedpals/pbf"
 
-export interface DataFilterValue<T = FilterOp> {
+export interface DataFilterMeta {
     type: string
     values?: string[]
     collectionId?: string
-    expr: FilterExpr<T>
 }
+
+export type DataFilterValue<T extends Filter = Filter> = T & { meta: DataFilterMeta } 
