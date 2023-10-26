@@ -7,9 +7,8 @@ import { Button } from "@/components/ui/button";
 import Loading from "@/components/Loading";
 import { Collections } from "@/pocketbase-types";
 import DataFilter from "@/components/data-filter/DataFilter";
-import { useState } from "react";
-import { DataFilterValue } from "@/components/data-filter/types";
-import { and, stringify } from "@nedpals/pbf";
+import { stringify } from "@nedpals/pbf";
+import useAdminFiltersState from "@/lib/admin_utils";
 
 const CHART_COLORS = [
   "bg-blue-500",
@@ -43,12 +42,12 @@ const TOPIC_FIELDS = {
 } as const;
 
 export default function RegistrationSummary() {
-  const [filters, setFilters] = useState<DataFilterValue[]>([]);
+  const { finalFilter, filters, setFilters } = useAdminFiltersState();
   const { data, isLoading, isFetched } = useSummaryQuery(
     Collections.Registrations,
     {
       except: ["email", "first_name", "last_name", "contact_number"],
-      filter: stringify(and(...filters))
+      filter: stringify(finalFilter)
     }
   );
 

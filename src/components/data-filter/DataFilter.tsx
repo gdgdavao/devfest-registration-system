@@ -84,7 +84,7 @@ export default function DataFilter({ collection, value = [], onChange }: {
                                                         </SelectContent>
                                                     </Select>
 
-                                                    {v.meta.values ? (
+                                                    {v.meta?.values ? (
                                                         <SelectDataFilterValue
                                                             value={v.value as string}
                                                             values={v.meta.values}
@@ -96,7 +96,7 @@ export default function DataFilter({ collection, value = [], onChange }: {
                                                                     } : vv
                                                                 )));
                                                             }} />
-                                                    ) : (v.meta.type === 'relation' && v.meta.collectionId) ? (
+                                                    ) : (v.meta?.type === 'relation' && v.meta?.collectionId) ? (
                                                         <RemoteSelectDataFilterValue
                                                             collectionId={v.meta.collectionId}
                                                             value={v.value as string}
@@ -108,7 +108,7 @@ export default function DataFilter({ collection, value = [], onChange }: {
                                                                     } : vv
                                                                 )));
                                                             }} />
-                                                    ) : v.meta.type === 'bool' ? (
+                                                    ) : v.meta?.type === 'bool' ? (
                                                         <BooleanSelectDataFilterValue
                                                             value={v.value as string}
                                                             onChange={(v) => {
@@ -121,7 +121,7 @@ export default function DataFilter({ collection, value = [], onChange }: {
                                                             }} />
                                                     ) : (
                                                         <TextDataFilterValue
-                                                            type={v.meta.type}
+                                                            type={v.meta?.type ?? 'text'}
                                                             value={v.value as string}
                                                             onChange={(v) => {
                                                                 onChange(value.map((vv, vIdx) => (

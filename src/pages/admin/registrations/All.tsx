@@ -9,9 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { eq } from "@nedpals/pbf";
 
 export default function AllRegistrations() {
-    return <RegistrationsPage
-        status="all"
-        actions={({ selected, onDelete, onOpenEditor }) => {
+    return <RegistrationsPage actions={({ selected, onDelete, onOpenEditor }) => {
             if (selected.length !== 0) {
                 return <div className="flex items-center justify-between bg-slate-100 p-2 w-full flex-row">
                     <p className="pl-4">{selected.length} selected</p>

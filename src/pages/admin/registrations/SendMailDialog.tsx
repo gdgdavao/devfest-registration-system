@@ -73,7 +73,6 @@ export default function SendMailDialog({ filter = [], recipients: defaultRecipie
 
     useEffect(() => {
         if (emailTemplates) {
-            //@ts-expect-error circular error
             form.setValue('template', emailTemplates[0].id);
         }
     }, [emailTemplates]);

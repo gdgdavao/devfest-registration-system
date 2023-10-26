@@ -1,29 +1,27 @@
-import { useState } from "react";
-
 import { pb, useMerchSensingDataQuery } from "@/client";
 
 import * as pbf from "@nedpals/pbf";
 import AdminTable from "@/components/layouts/AdminTable";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { DataFilterValue } from "@/components/data-filter/types";
+import useAdminFiltersState from "@/lib/admin_utils";
 
 export default function AllPage() {
-    const [filter, setFilter] = useState('');
-    const [filters, setFilters] = useState<DataFilterValue[]>([]);
+    const { finalFilter, searchFilter, setSearchFilter, filters, setFilters } =
+        useAdminFiltersState((v) => pbf.or(
+            pbf.like('registrant.email', v),
+            pbf.like('registrant.first_name', v),
+            pbf.like('registrant.last_name', v)
+        ));
+
     const { data, refetch, fetchNextPage, isFetchingNextPage, isLoading, hasNextPage } = useMerchSensingDataQuery({
         sort: '-created',
-        filter: pbf.stringify(
-            filter.length > 0 ? pbf.or(
-                pbf.like('registrant.email', filter),
-                pbf.like('registrant.first_name', filter),
-                pbf.like('registrant.last_name', filter)
-            ) : null),
+        filter: pbf.stringify(finalFilter),
     });
 
     return <AdminTable
         title="Merch Sensing Data"
-        searchFilter={filter}
+        searchFilter={searchFilter}
         filters={filters}
         filterCollection="merch_sensing_data"
         selectable={false}
@@ -79,5 +77,5 @@ export default function AllPage() {
         onDelete={async () => {}}
         onFetchNextPage={fetchNextPage}
         onFilterChange={setFilters}
-        onSearchFilterChange={setFilter} />
+        onSearchFilterChange={setSearchFilter} />
 }
