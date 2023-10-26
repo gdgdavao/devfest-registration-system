@@ -1,9 +1,6 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC } from "react";
 
-import {
-    Collections,
-    RegistrationStatusesStatusOptions,
-} from "@/pocketbase-types";
+import { Collections } from "@/pocketbase-types";
 import {
     RegistrationsResponse,
     useDeleteRegistrationMutation,
@@ -12,7 +9,7 @@ import {
     useUpdateSettingMutation,
 } from "@/client";
 
-import * as pbf from "@/lib/pb_filters";
+import * as pbf from "@nedpals/pbf";
 import AdminTable from "@/components/layouts/AdminTable";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -20,16 +17,15 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import RegistrationEditor, { RegistrationEditorContext, useRegistrationEditorContext } from "./RegistrationEditor";
-import { DataFilterValue } from "@/components/data-filter/types";
+import useAdminFiltersState from "@/lib/admin_utils";
 
-export default function RegistrationsPage({ title = "Registrations", status = "all", actions: Actions, rowActions: RowActions }: {
+export default function RegistrationsPage({ title = "Registrations", actions: Actions, rowActions: RowActions }: {
     title?: string
-    status: 'all' | `${RegistrationStatusesStatusOptions}`
     actions?: FC<{
         selected: RegistrationsResponse[]
         onDelete: () => Promise<void>
         onOpenEditor: RegistrationEditorContext['openEditor']
-    }>,
+    }>
     rowActions: FC<{
         id: string, refetch: () => Promise<void>
         onDelete: (id: string) => Promise<void>
@@ -42,9 +38,15 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
     const { mutate: updateSetting } = useUpdateSettingMutation();
 
     const { mutateAsync: deleteMutation } = useDeleteRegistrationMutation();
-    const [searchFilter, setSearchFilter] = useState("");
-    const [filters, setFilters] = useState<DataFilterValue[]>([]);
-    const finalFilters = useMemo(() => filters.map(f => f.expr), [filters]);
+    const {
+        finalFilter,
+        searchFilter, setSearchFilter,
+        filters, setFilters
+    } = useAdminFiltersState((v) => pbf.or(
+        pbf.like("email", v),
+        pbf.like("first_name", v),
+        pbf.like("last_name", v)
+    ));
 
     const {
         data,
@@ -55,26 +57,8 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
         hasNextPage,
     } = useRegistrationsQuery({
         sort: "-created",
-        filter: pbf.compileFilter(
-            searchFilter.length > 0 &&
-            pbf.or(
-                pbf.like("email", searchFilter),
-                pbf.like("first_name", searchFilter),
-                pbf.like("last_name", searchFilter)
-            ),
-            ...finalFilters
-        ),
+        filter: finalFilter ? pbf.stringify(finalFilter) : ''
     });
-
-    useEffect(() => {
-        if (status != 'all') {
-            setFilters(f => f.concat({
-                type: 'select',
-                values: Object.values(RegistrationStatusesStatusOptions),
-                expr: pbf.eq("status.status", status)!
-            }));
-        }
-    }, []);
 
     return <>
         <RegistrationEditor

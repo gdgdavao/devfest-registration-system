@@ -21,6 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import useTailwindBreakpoint from "@/lib/tailwind_breakpoint";
+import JSONCrush from "jsoncrush";
+import * as pbf from "@nedpals/pbf";
 
 interface NavSection {
   name: string;
@@ -43,17 +45,17 @@ const navSections: NavSection[] = [
         label: "All Entries",
       },
       {
-        path: "/registrations/pending",
+        path: `/registrations?${(new URLSearchParams({'filter': JSONCrush.crush(JSON.stringify(pbf.eq('status.status', 'pending')))}))}`,
         icon: IconPending,
         label: "Pending",
       },
       {
-        path: "/registrations/approved",
+        path: `/registrations?${(new URLSearchParams({'filter': JSONCrush.crush(JSON.stringify(pbf.eq('status.status', 'approved')))}))}`,
         icon: IconApprove,
         label: "Approved",
       },
       {
-        path: "/registrations/rejected",
+        path: `/registrations?${(new URLSearchParams({'filter': JSONCrush.crush(JSON.stringify(pbf.eq('status.status', 'rejected')))}))}`,
         icon: IconReject,
         label: "Rejected",
       },

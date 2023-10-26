@@ -14,9 +14,6 @@ import Addons from "./pages/Registration/Addons";
 import Payment from "./pages/Registration/Payment/Payment";
 import Done from "./pages/Registration/Done";
 import AllRegistrations from "./pages/admin/registrations/All";
-import PendingRegistrations from "./pages/admin/registrations/Pending";
-import ApprovedRegistrations from "./pages/admin/registrations/Approved";
-import RejectedRegistrations from "./pages/admin/registrations/Rejected";
 import RegistrationSummary from "./pages/admin/RegistrationSummary";
 import AllPayments from "./pages/admin/payments/All";
 import MerchSensingAll from "./pages/admin/logistics/MerchSensingAll";
@@ -84,18 +81,6 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: <AllRegistrations />,
-          },
-          {
-            path: "pending",
-            element: <PendingRegistrations />,
-          },
-          {
-            path: "approved",
-            element: <ApprovedRegistrations />,
-          },
-          {
-            path: "rejected",
-            element: <RejectedRegistrations />,
           },
           { path: "summary", element: <RegistrationSummary /> },
         ],

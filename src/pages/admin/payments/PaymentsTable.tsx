@@ -1,24 +1,33 @@
-import { FC, useState } from "react";
+import { FC, useMemo } from "react";
 
 import { ManualPaymentResponse, useManualPaymentsQuery } from "@/client";
-import * as pbf from "@/lib/pb_filters";
+import * as pbf from "@nedpals/pbf";
 import AdminTable from "@/components/layouts/AdminTable";
-import { DataFilterValue } from "@/components/data-filter/types";
+import useAdminFiltersState from "@/lib/admin_utils";
 
 export default function PaymentsTable({ title = "Payments", actions, rowActions: RowActions }: {
     title?: string
     actions?: FC<{ selected: ManualPaymentResponse[] }>,
     rowActions: FC<{ record: ManualPaymentResponse, refetch: () => Promise<void> }>
 }) {
-    const [emailFilter, setEmailFilter] = useState('');
-    const [filters, setFilters] = useState<DataFilterValue[]>([]);
+    const {
+        finalFilter: _finalFilter,
+        searchFilter: emailFilter, setSearchFilter: setEmailFilter,
+        filters, setFilters
+    } = useAdminFiltersState((v) => pbf.like('registrant.email', v));
+
+    const finalFilters = useMemo(() => {
+        const isValidRegistrant = pbf.notEmpty('registrant');
+        if (!_finalFilter) {
+            return isValidRegistrant;
+        }
+        return pbf.and(isValidRegistrant, _finalFilter);
+    }, [_finalFilter]);
+
     const { data, refetch, fetchNextPage, isLoading, hasNextPage, isFetchingNextPage } =
         useManualPaymentsQuery({
             sort: '-created',
-            filter: pbf.compileFilter(
-                pbf.notEmpty('registrant'),
-                emailFilter.length > 0 && pbf.like('registrant.email', emailFilter),
-                ...filters.map(f => f.expr))
+            filter: pbf.stringify(finalFilters)
         });
 
     return <AdminTable

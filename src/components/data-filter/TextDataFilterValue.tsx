@@ -1,3 +1,4 @@
+import { useDebouncedCallback } from "use-debounce";
 import { Input } from "../ui/input";
 
 export default function TextDataFilterValue({ type, value, onChange }: {
@@ -5,10 +6,12 @@ export default function TextDataFilterValue({ type, value, onChange }: {
     type: string
     onChange: (s: string) => void
 }) {
+    const debouncedOnChange = useDebouncedCallback(onChange, 1000);
+
     return (
         <Input
             type={type === 'number' ? 'number' : 'text'}
-            value={value}
-            onChange={(evt) => onChange(evt.currentTarget.value)} />
+            defaultValue={value}
+            onChange={(evt) => debouncedOnChange(evt.currentTarget.value)} />
     );
 }
