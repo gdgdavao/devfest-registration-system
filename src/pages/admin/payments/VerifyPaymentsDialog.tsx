@@ -4,7 +4,7 @@ import { Collections } from "@/pocketbase-types";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
-import * as pbf from "@/lib/pb_filters";
+import * as pbf from "@nedpals/pbf";
 import toast from "react-hot-toast";
 import { currencyFormatter } from "@/lib/utils";
 
@@ -14,12 +14,12 @@ export default function VerifyPaymentsDialog({ id, children }: { id: string, chi
     const { data } = useManualPaymentQuery(id, { enabled: open });
     const { data: dupeData } = useQuery([Collections.ManualPayments, 'dupe', id], () => {
         return pb.collection(Collections.ManualPayments).getFullList<ManualPaymentResponse>(500, {
-            filter: pbf.compileFilter(
-                data && pbf.and(
+            filter: pbf.stringify(pbf.par.maybe(
+                data && pbf.and.maybe(
                     pbf.not(pbf.eq('id', data.id)),
-                    pbf.eq('transaction_details.transaction_id', data.transaction_details?.transaction_id)
+                    data.transaction_details && pbf.eq('transaction_details.transaction_id', data.transaction_details.transaction_id)
                 )
-            ),
+            )),
             expand: 'registrant'
         })
     }, { enabled: open && !!data });

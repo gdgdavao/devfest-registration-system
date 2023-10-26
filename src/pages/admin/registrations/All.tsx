@@ -6,7 +6,7 @@ import { RegistrationRowActions } from "./RegistrationRowActions";
 import SendMailDialog from "./SendMailDialog";
 import IconDelete from '~icons/material-symbols/delete-outline';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { eq } from "@/lib/pb_filters";
+import { eq } from "@nedpals/pbf";
 
 export default function AllRegistrations() {
     return <RegistrationsPage
@@ -45,7 +45,7 @@ export default function AllRegistrations() {
 
             return <div className="flex flex-row space-x-2">
                 {/* TODO: change filter, add status */}
-                <SendMailDialog template="confirm" filter={[{ type: 'string', expr: eq('status.status', 'pending')! }]}>
+                <SendMailDialog template="confirm" filter={[{ ...eq('status.status', 'pending'), meta: { type: 'string' } }]}>
                     <Button>
                         <IconEmail className="mr-2" />
                         Send e-mail

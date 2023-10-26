@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import {
     Collections,
@@ -12,7 +12,7 @@ import {
     useUpdateSettingMutation,
 } from "@/client";
 
-import * as pbf from "@/lib/pb_filters";
+import * as pbf from "@nedpals/pbf";
 import AdminTable from "@/components/layouts/AdminTable";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -44,7 +44,6 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
     const { mutateAsync: deleteMutation } = useDeleteRegistrationMutation();
     const [searchFilter, setSearchFilter] = useState("");
     const [filters, setFilters] = useState<DataFilterValue[]>([]);
-    const finalFilters = useMemo(() => filters.map(f => f.expr), [filters]);
 
     const {
         data,
@@ -55,23 +54,29 @@ export default function RegistrationsPage({ title = "Registrations", status = "a
         hasNextPage,
     } = useRegistrationsQuery({
         sort: "-created",
-        filter: pbf.compileFilter(
+        filter: pbf.stringify(filters.length > 1 ? pbf.and.maybe(
             searchFilter.length > 0 &&
             pbf.or(
                 pbf.like("email", searchFilter),
                 pbf.like("first_name", searchFilter),
                 pbf.like("last_name", searchFilter)
             ),
-            ...finalFilters
-        ),
+            ...filters
+        ) : pbf.or(
+            pbf.like("email", searchFilter),
+            pbf.like("first_name", searchFilter),
+            pbf.like("last_name", searchFilter)
+        ))
     });
 
     useEffect(() => {
         if (status != 'all') {
             setFilters(f => f.concat({
-                type: 'select',
-                values: Object.values(RegistrationStatusesStatusOptions),
-                expr: pbf.eq("status.status", status)!
+                ...pbf.eq("status.status", status),
+                meta: {
+                    type: 'select',
+                    values: Object.values(RegistrationStatusesStatusOptions),
+                }
             }));
         }
     }, []);

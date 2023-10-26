@@ -42,7 +42,7 @@ import {
   PaymentMethod,
 } from "./payment-types";
 import jsonToFormData from "json-form-data";
-import pbf from "@nedpals/pbf";
+import * as pbf from "@nedpals/pbf";
 import { toast } from "react-hot-toast";
 
 export const queryClient = new QueryClient({

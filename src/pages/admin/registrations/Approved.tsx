@@ -3,7 +3,7 @@ import { RegistrationRowActions } from "./RegistrationRowActions";
 import RegistrationsPage from "./Registrations";
 import SendMailDialog from "./SendMailDialog";
 import IconEmail from '~icons/material-symbols/stacked-email-rounded';
-import { eq } from "@/lib/pb_filters";
+import { eq } from "@nedpals/pbf";
 
 export default function ApprovedRegistrations() {
     return <RegistrationsPage
@@ -12,7 +12,7 @@ export default function ApprovedRegistrations() {
         actions={() => (
             <div>
                 {/* TODO: change filter, add status */}
-                <SendMailDialog template="confirm" filter={[{ type: 'string', expr: eq('status.status', 'approved')! }]}>
+                <SendMailDialog template="confirm" filter={[{ ...eq('status.status', 'approved'), meta: { type: 'string' } }]}>
                     <Button>
                         <IconEmail className="mr-2" />
                         Send e-mail confirmation

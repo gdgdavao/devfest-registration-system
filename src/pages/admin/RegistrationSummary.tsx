@@ -9,7 +9,7 @@ import { Collections } from "@/pocketbase-types";
 import DataFilter from "@/components/data-filter/DataFilter";
 import { useState } from "react";
 import { DataFilterValue } from "@/components/data-filter/types";
-import { compileFilter } from "@/lib/pb_filters";
+import { and, stringify } from "@nedpals/pbf";
 
 const CHART_COLORS = [
   "bg-blue-500",
@@ -48,7 +48,7 @@ export default function RegistrationSummary() {
     Collections.Registrations,
     {
       except: ["email", "first_name", "last_name", "contact_number"],
-      filter: compileFilter(...filters.map(f => f.expr))
+      filter: stringify(and(...filters))
     }
   );
 

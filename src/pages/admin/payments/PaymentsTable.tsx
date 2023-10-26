@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 
 import { ManualPaymentResponse, useManualPaymentsQuery } from "@/client";
-import * as pbf from "@/lib/pb_filters";
+import * as pbf from "@nedpals/pbf";
 import AdminTable from "@/components/layouts/AdminTable";
 import { DataFilterValue } from "@/components/data-filter/types";
 
@@ -15,10 +15,11 @@ export default function PaymentsTable({ title = "Payments", actions, rowActions:
     const { data, refetch, fetchNextPage, isLoading, hasNextPage, isFetchingNextPage } =
         useManualPaymentsQuery({
             sort: '-created',
-            filter: pbf.compileFilter(
+            filter: pbf.stringify(pbf.and.maybe(
                 pbf.notEmpty('registrant'),
                 emailFilter.length > 0 && pbf.like('registrant.email', emailFilter),
-                ...filters.map(f => f.expr))
+                ...filters.map(f => f)
+            ))
         });
 
     return <AdminTable

@@ -1,4 +1,4 @@
-import { FilterOp, eq, ops } from "@/lib/pb_filters";
+import { COMPARISON_OPS, ComparisonOp, eq, getSymbolByOp } from "@nedpals/pbf";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command";
@@ -51,7 +51,7 @@ export default function DataFilter({ collection, value = [], onChange }: {
                         <Popover open={openedFilter === idx} onOpenChange={op => setOpenedFilter(op ? idx : -2)}>
                             <PopoverTrigger asChild>
                                 <Button variant="outline" size="sm">
-                                    {v.expr.lhs as string} <span className="text-gray-400 px-2">{ops[v.expr.op]}</span> {v.expr.rhs as string}
+                                    {v.field} <span className="text-gray-400 px-2">{getSymbolByOp(v.op)}</span> {`${v.value}`}
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="p-0" side="bottom" align="start">
@@ -60,26 +60,23 @@ export default function DataFilter({ collection, value = [], onChange }: {
                                         <CommandGroup>
                                             <div className="p-2 flex flex-col items-start space-y-2">
                                                 <div className="flex space-x-2 items-center">
-                                                    <Select value={v.expr.op} onValueChange={(newOp) => {
+                                                    <Select value={v.op} onValueChange={(newOp) => {
                                                         onChange(value.map((vv, vIdx) => (
                                                             vIdx === idx ? {
                                                                 ...vv,
-                                                                expr: {
-                                                                    ...vv.expr,
-                                                                    op: newOp as FilterOp
-                                                                }
+                                                                op: newOp as ComparisonOp
                                                             } : vv
                                                         )));
                                                     }}>
                                                         <SelectTrigger className="w-[80px]">
                                                             <SelectValue placeholder="Operator">
-                                                                {ops[v.expr.op]}
+                                                                {getSymbolByOp(v.op)}
                                                             </SelectValue>
                                                         </SelectTrigger>
 
                                                         <SelectContent>
-                                                            {Object.entries(ops)
-                                                                .filter(([op]) => !['and', 'or', 'par'].includes(op) && !op.includes('any'))
+                                                            {Object.entries(COMPARISON_OPS)
+                                                                .filter(([op]) => !op.includes('any'))
                                                                 .map(([op, sym]) =>
                                                                     <SelectItem key={`op_${op}`} value={op}>
                                                                         {sym}
@@ -87,66 +84,50 @@ export default function DataFilter({ collection, value = [], onChange }: {
                                                         </SelectContent>
                                                     </Select>
 
-                                                    {v.values ? (
+                                                    {v.meta.values ? (
                                                         <SelectDataFilterValue
-                                                            value={JSON.parse(v.expr.rhs as string)}
-                                                            values={v.values}
+                                                            value={v.value as string}
+                                                            values={v.meta.values}
                                                             onChange={(v) => {
                                                                 onChange(value.map((vv, vIdx) => (
                                                                     vIdx === idx ? {
                                                                         ...vv,
-                                                                        expr: {
-                                                                            ...vv.expr,
-                                                                            rhs: JSON.stringify(v)
-                                                                        }
+                                                                        value: v
                                                                     } : vv
                                                                 )));
                                                             }} />
-                                                    ) : (v.type === 'relation' && v.collectionId) ? (
+                                                    ) : (v.meta.type === 'relation' && v.meta.collectionId) ? (
                                                         <RemoteSelectDataFilterValue
-                                                            collectionId={v.collectionId}
-                                                            value={JSON.parse(v.expr.rhs as string)}
+                                                            collectionId={v.meta.collectionId}
+                                                            value={v.value as string}
                                                             onChange={(v) => {
                                                                 onChange(value.map((vv, vIdx) => (
                                                                     vIdx === idx ? {
                                                                         ...vv,
-                                                                        expr: {
-                                                                            ...vv.expr,
-                                                                            rhs: JSON.stringify(v)
-                                                                        }
+                                                                        value: v
                                                                     } : vv
                                                                 )));
                                                             }} />
-                                                    ) : v.type === 'bool' ? (
+                                                    ) : v.meta.type === 'bool' ? (
                                                         <BooleanSelectDataFilterValue
-                                                            value={v.expr.rhs as string}
+                                                            value={v.value as string}
                                                             onChange={(v) => {
                                                                 onChange(value.map((vv, vIdx) => (
                                                                     vIdx === idx ? {
                                                                         ...vv,
-                                                                        expr: {
-                                                                            ...vv.expr,
-                                                                            rhs: JSON.stringify(v === 'true')
-                                                                        }
+                                                                        value: v
                                                                     } : vv
                                                                 )));
                                                             }} />
                                                     ) : (
                                                         <TextDataFilterValue
-                                                            type={v.type}
-                                                            value={
-                                                                typeof JSON.parse(v.expr.rhs as string) === 'object'
-                                                                    ? v.expr.rhs as string
-                                                                    : JSON.parse(v.expr.rhs as string)
-                                                            }
+                                                            type={v.meta.type}
+                                                            value={v.value as string}
                                                             onChange={(v) => {
                                                                 onChange(value.map((vv, vIdx) => (
                                                                     vIdx === idx ? {
                                                                         ...vv,
-                                                                        expr: {
-                                                                            ...vv.expr,
-                                                                            rhs: JSON.stringify(v)
-                                                                        }
+                                                                        value: v
                                                                     } : vv
                                                                 )));
                                                             }} />
@@ -209,10 +190,12 @@ export default function DataFilter({ collection, value = [], onChange }: {
                                                     if (!selectedField) return;
 
                                                     onChange(value.concat({
-                                                        type: selectedField.type,
-                                                        values: field.options.values,
-                                                        collectionId: field.options.collectionId,
-                                                        expr: eq(fieldName, '')!
+                                                        ...eq(fieldName, '')!,
+                                                        meta: {
+                                                            type: selectedField.type,
+                                                            values: field.options.values,
+                                                            collectionId: field.options.collectionId,
+                                                        }
                                                     } as DataFilterValue));
 
                                                     setOpenedFilter(value.length);

@@ -1,4 +1,4 @@
-import { Filter } from "@nedpals/pbf"
+import { ComparisonFilter } from "@nedpals/pbf"
 
 export interface DataFilterMeta {
     type: string
@@ -6,4 +6,4 @@ export interface DataFilterMeta {
     collectionId?: string
 }
 
-export type DataFilterValue<T extends Filter = Filter> = T & { meta: DataFilterMeta } 
+export type DataFilterValue = ComparisonFilter & { meta: DataFilterMeta }

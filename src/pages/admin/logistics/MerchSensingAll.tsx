@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { pb, useMerchSensingDataQuery } from "@/client";
 
-import * as pbf from "@/lib/pb_filters";
+import * as pbf from "@nedpals/pbf";
 import AdminTable from "@/components/layouts/AdminTable";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
@@ -13,12 +13,12 @@ export default function AllPage() {
     const [filters, setFilters] = useState<DataFilterValue[]>([]);
     const { data, refetch, fetchNextPage, isFetchingNextPage, isLoading, hasNextPage } = useMerchSensingDataQuery({
         sort: '-created',
-        filter: pbf.compileFilter(
-            filter.length > 0 && pbf.or(
+        filter: pbf.stringify(
+            filter.length > 0 ? pbf.or(
                 pbf.like('registrant.email', filter),
                 pbf.like('registrant.first_name', filter),
                 pbf.like('registrant.last_name', filter)
-            )),
+            ) : null),
     });
 
     return <AdminTable
