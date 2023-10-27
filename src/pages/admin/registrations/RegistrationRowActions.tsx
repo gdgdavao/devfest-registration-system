@@ -11,8 +11,9 @@ import IconEmail from '~icons/material-symbols/stacked-email-rounded';
 import SendMailDialog from "./SendMailDialog";
 import { eq } from "@nedpals/pbf";
 
-export function RegistrationRowActions({ id, onDelete, onOpenEditor }: {
+export function RegistrationRowActions({ id, refetch, onDelete, onOpenEditor }: {
     id: RecordIdString,
+    refetch: () => Promise<void>
     onDelete: (id: RecordIdString) => Promise<void>
     onOpenEditor: (id?: string) => void
 }) {
@@ -20,7 +21,7 @@ export function RegistrationRowActions({ id, onDelete, onOpenEditor }: {
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger>
-                    <ScreenRegistrantDialog id={id}>
+                    <ScreenRegistrantDialog id={id} onClose={() => refetch()}>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                             <IconScreen />
                         </Button>
