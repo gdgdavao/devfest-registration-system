@@ -55,6 +55,7 @@ module.exports = {
             .filter(f => !exceptColumns.includes(f.name)).map(col => ({
                 id: col.name,
                 title: col.name,
+                type: col.type,
                 total: 0,
                 share: {}
             }));
@@ -91,6 +92,7 @@ module.exports = {
                         expandedCollections[col] = $app.dao().findCollectionByNameOrId(schemaField.options.collectionId);
                     }
 
+                    const prefix = `${schemaField.name}.`;
                     const expanded = rawRecord.expandedOne(col);
                     const expandedResults = this.generateSummary(
                         expandedCollections[col],
@@ -98,14 +100,14 @@ module.exports = {
                         {
                             parentCollectionIds: !options.parentCollectionIds ? [collection.id] : options.parentCollectionIds.concat(collection.id),
                             exceptColumns: exceptColumns
-                                .filter(c => c.indexOf(`${schemaField.name}.`) === 0)
-                                .map(c => c.substring(`${schemaField.name}.`.length)),
+                                .filter(c => c.indexOf(prefix) === 0)
+                                .map(c => c.substring(prefix.length)),
                             splittableColumns: splittableColumns
-                                .filter(c => c.indexOf(`${schemaField.name}.`) === 0)
-                                .map(c => c.substring(`${schemaField.name}.`.length)),
+                                .filter(c => c.indexOf(prefix) === 0)
+                                .map(c => c.substring(prefix.length)),
                             expand: expand
-                                .filter(c => c.indexOf(`${schemaField.name}.`) === 0)
-                                .map(c => c.substring(`${schemaField.name}.`.length)),
+                                .filter(c => c.indexOf(prefix) === 0)
+                                .map(c => c.substring(prefix.length)),
                             insights: expandableResults[schemaField.name] ? expandableResults[schemaField.name] : []
                         }
                     );

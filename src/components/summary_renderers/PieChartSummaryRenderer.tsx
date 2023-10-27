@@ -15,7 +15,7 @@ const CHART_COLORS = [
 
 export default function PieChartSummaryRenderer({ insight }: SummaryRendererProps) {
   return (
-    <div className="p-4 flex items-center space-x-6">
+    <div className="p-4 flex flex-col md:flex-row items-center space-y-6 md:space-y-0 md:space-x-6">
       <DonutChart
         index="value"
         category="count"

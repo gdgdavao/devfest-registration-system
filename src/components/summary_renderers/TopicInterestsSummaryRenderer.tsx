@@ -4,6 +4,7 @@ import { pb, useTopicInterestsQuery } from "@/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { useMemo, useState } from "react";
 import Loading from "../Loading";
+import useTailwindBreakpoint from "@/lib/tailwind_breakpoint";
 
 const VALUES = [
     "Very Interested",
@@ -14,6 +15,7 @@ const VALUES = [
 ];
 
 export default function TopicInterestsSummaryRenderer({ insight }: SummaryRendererProps) {
+    const breakpoint = useTailwindBreakpoint();
     const [value, setValue] = useState(VALUES[0]);
     const { data: topics, isLoading } = useTopicInterestsQuery();
 
@@ -53,8 +55,10 @@ export default function TopicInterestsSummaryRenderer({ insight }: SummaryRender
                 className="mt-6"
                 data={results}
                 index="id"
+                layout={breakpoint && ["xs", "sm"].includes(breakpoint) ? "vertical" : "horizontal"}
                 categories={["count"]}
                 colors={["blue", "red", "yellow", "green", "orange"]}
+                showAnimation={true}
                 yAxisWidth={48}
             />
 
@@ -63,8 +67,8 @@ export default function TopicInterestsSummaryRenderer({ insight }: SummaryRender
                     <Loading className="w-48 mx-auto" />
                 </div>
             ) : (
-                <Tabs value={value} onValueChange={setValue}>
-                    <TabsList>
+                <Tabs value={value} onValueChange={setValue} className="w-full">
+                    <TabsList className="overflow-x-auto overflow-y-hidden w-full">
                         {VALUES.map((v) => (
                             <TabsTrigger key={`value_trigger_${v}`} value={v}>{v}</TabsTrigger>
                         ))}
@@ -78,7 +82,7 @@ export default function TopicInterestsSummaryRenderer({ insight }: SummaryRender
                                         <div className="w-full flex items-center md:w-1/2 space-x-3">
                                             {topic.icon &&
                                                 <img src={topic.icon} alt={topic.label} className="w-8" />}
-                                            <span>{topic.label}</span>
+                                            <span className="truncate w-72 md:w-full">{topic.label}</span>
                                         </div>
 
                                         <span>{topic.count}</span>
