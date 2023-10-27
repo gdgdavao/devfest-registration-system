@@ -1,5 +1,5 @@
 import { CollectionInsight } from "@/client";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { FC } from "react";
 import PieChartSummaryRenderer from "./summary_renderers/PieChartSummaryRenderer";
 
@@ -21,6 +21,7 @@ export default function SummaryRenderer({ className, title, insight, customCompo
         <CardTitle>
           {title ?? insight.title}
         </CardTitle>
+        <CardDescription>{insight.total} responses</CardDescription>
       </CardHeader>
       <CardContent>
         <Component insight={insight} />
