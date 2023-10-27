@@ -173,6 +173,7 @@ module.exports = {
             for (let i = 0; i < results.length; i++) {
                 const entries = Object.entries(results[i].share);
                 if (entries.length === 0) {
+                    results[i].share = [];
                     continue;
                 }
 
