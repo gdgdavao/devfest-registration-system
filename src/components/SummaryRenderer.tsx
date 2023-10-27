@@ -2,6 +2,7 @@ import { CollectionInsight } from "@/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { FC } from "react";
 import PieChartSummaryRenderer from "./summary_renderers/PieChartSummaryRenderer";
+import BarGraphSummaryRenderer from "./summary_renderers/BarGraphSummaryRenderer";
 
 export interface SummaryRendererProps {
   insight: CollectionInsight
@@ -13,7 +14,11 @@ export default function SummaryRenderer({ className, title, insight, customCompo
   insight: CollectionInsight
   customComponents: Record<string, FC<SummaryRendererProps>>
 }) {
-  const Component = insight.id in customComponents ? customComponents[insight.id] : PieChartSummaryRenderer;
+  const Component = insight.id in customComponents
+    ? customComponents[insight.id]
+    : insight.share.length > 5
+    ? BarGraphSummaryRenderer :
+      PieChartSummaryRenderer;
 
   return (
     <Card className={className} key={`insight_${insight.id}`}>
