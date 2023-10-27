@@ -157,14 +157,12 @@ module.exports = {
 
                 const rightSide = results.slice(i + 1);
                 const final = expandableResults[col]
-                    .map(i => Object.assign(i, {
-                        id: `${col}.${i.id}`,
-                        title: `${col}.${i.title}`
+                    .map(j => Object.assign(j, {
+                        id: `${col}.${j.id}`,
+                        title: `${col}.${j.title}`
                     }));
 
-                results = results.slice(0, i - 1)
-                    .concat(...final)
-                    .concat(...rightSide);
+                results = results.slice(0, i).concat(final, rightSide);
             }
         }
 
