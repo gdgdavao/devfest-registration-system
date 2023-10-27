@@ -15,7 +15,7 @@ import * as pbf from "@nedpals/pbf";
 import { cn } from "@/lib/utils";
 import VerifyPaymentsDialog from "../payments/VerifyPaymentsDialog";
 
-export default function ScreenRegistrantDialog({ id: destinationId, children }: { id: string, children: ReactNode }) {
+export default function ScreenRegistrantDialog({ id: destinationId, onClose, children }: { id: string, onClose?: () => void, children: ReactNode }) {
     const { finalFilter } = useAdminFiltersState((v) => pbf.or(
         pbf.like("email", v),
         pbf.like("first_name", v),
@@ -62,7 +62,12 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
         }
     }, [remarkModalOpened]);
 
-    return <Dialog open={open} onOpenChange={setIsOpen}>
+    return <Dialog open={open} onOpenChange={(state) => {
+        setIsOpen(state);
+        if (!state) {
+            onClose?.();
+        }
+    }}>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="flex flex-col p-0 max-w-screen-lg max-h-screen h-screen md:h-[90vh]">
             <DialogHeader className="pt-4 md:pt-6 sm:pl-6">

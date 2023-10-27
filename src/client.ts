@@ -704,15 +704,18 @@ export interface SummarySubentries {
   entries: SummaryEntry[];
 }
 
+export interface CollectionInsight {
+  id: string;
+  title: string;
+  total: number;
+  type: string;
+  share: SummaryEntry[];
+}
+
 export interface CollectionSummary {
   total: number;
   csv_endpoint: string;
-  insights: {
-    id: string;
-    title: string;
-    total: number;
-    share: SummaryEntry[];
-  }[];
+  insights: CollectionInsight[];
 }
 
 export function useSummaryQuery(
