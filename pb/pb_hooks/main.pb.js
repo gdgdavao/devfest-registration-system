@@ -277,16 +277,45 @@ routerAdd("GET", "/api/admin/screening/:registrantId", (c) => {
 
     const paymentRecord = registrantRecord.expandedOne('payment');
 
+    // calculate interest
+    let interestRating = 0;
+    const interests = JSON.parse(registrantRecord.getString('topic_interests'));
+    if (typeof interests === 'object') {
+        try {
+            const fields = $app.dao().findRecordsByFilter('form_details', 'key = "topic_interests"', '-created', 1);
+            if (fields.length >= 1) {
+                const fieldValues = JSON.parse(fields[0].getString('custom_options')).values;
+                const targetInterests = ['gcp', 'ml', 'android_dev'];
+
+                let total = 0;
+
+                for (const interest of targetInterests) {
+                    total += (fieldValues.length - fieldValues.indexOf(interests[interest]));
+                }
+
+                interestRating = total / targetInterests.length;
+            }
+        } catch (e) {}
+    }
+
     // get criteria
     const criteria = [
         {
+            id: 'topic_interests',
+            label: `Topic interest rating: ${interestRating === Math.floor(interestRating) ? interestRating : interestRating.toFixed(2)}`,
+            description: 'How interested is the participant in the topics of the event (GCP, ML, and Android development). Must be greater than or equal to 3.',
+            value: interestRating > 3
+        },
+        {
             id: 'has_duplicates',
             label: 'Is registration unique?',
+            description: 'Ensures if there are no duplicate registrations. Ignore this if there are multiple different participants with same names.',
             value: duplicateRecords.length === 0
         },
         {
             id: 'payment',
             label: 'Is payment verified?',
+            description: 'Checks if payment has been validated by the team.',
             value: paymentRecord && paymentRecord.getBool('is_verified')
         },
         {

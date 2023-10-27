@@ -11,8 +11,9 @@ export default function MinimalTopicInterestFormRenderer({
     value = {},
     field,
     disabled,
-    className
-}: FormFieldRendererProps & { className?: string }) {
+    className,
+    readOnly = false
+}: FormFieldRendererProps & { className?: string, readOnly?: boolean }) {
     const { data: topics, isLoading } = useTopicInterestsQuery();
     const values = (field.options.values as string[]).slice().reverse();
     const selected = value as Record<string, string>;
@@ -44,8 +45,8 @@ export default function MinimalTopicInterestFormRenderer({
             <div className="flex flex-col space-y-2">
                 {topics?.map((topic) => (
                     <Card key={`topic_${topic.key}`}>
-                        <CardContent className="flex p-3 flex-col md:flex-row items-center">
-                            <div className="text-left w-full items-start md:items-center flex md:w-1/2 space-x-3">
+                        <CardContent className="flex p-3 flex-row items-center">
+                            <div className="text-left items-start md:items-center flex w-1/2 md:w-2/3 space-x-3">
                                 {topic.icon &&
                                     <img
                                         className="w-4 h-full"
@@ -54,24 +55,28 @@ export default function MinimalTopicInterestFormRenderer({
                                 <p className="text-sm">{topic.topic_name}</p>
                             </div>
 
-                            <div className="w-full md:w-1/2 mt-2 md:mt-0">
-                                <Select
-                                    disabled={disabled}
-                                    defaultValue={selected[topic.key]}
-                                    onValueChange={(v) => setSelected(s => ({ ...s, [topic.key]: v }))}>
-                                    <SelectTrigger>
-                                        <SelectValue>{ selected[topic.key] }</SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {values.map(v => (
-                                            <SelectItem
-                                                key={`value_${topic.key}_${v}`}
-                                                value={v}>
-                                                {v}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                            <div className="w-1/2 md:w-1/3 md:mt-0">
+                                {readOnly ? (
+                                    <p className="text-right font-bold">{selected[topic.key]}</p>
+                                ) : (
+                                    <Select
+                                        disabled={disabled}
+                                        defaultValue={selected[topic.key]}
+                                        onValueChange={(v) => setSelected(s => ({ ...s, [topic.key]: v }))}>
+                                        <SelectTrigger>
+                                            <SelectValue>{ selected[topic.key] }</SelectValue>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {values.map(v => (
+                                                <SelectItem
+                                                    key={`value_${topic.key}_${v}`}
+                                                    value={v}>
+                                                    {v}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

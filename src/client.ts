@@ -778,6 +778,7 @@ export interface ScreeningResponse {
 export interface Criterion {
   id: string;
   label: string;
+  description?: string;
   value: boolean;
 }
 
@@ -786,6 +787,6 @@ export function useScreeningDetailsQuery(registrantId: string, { enabled = true,
     return pb.send<ScreeningResponse>(
       `/api/admin/screening/${registrantId}${filter ? '?' + (new URLSearchParams({filter}).toString()) : '' }`, {});
   }, {
-    enabled
+    enabled,
   });
 }

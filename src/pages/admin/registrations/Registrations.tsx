@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import { Collections } from "@/pocketbase-types";
+import { Collections, RegistrationStatusesStatusOptions, RegistrationsTypeOptions } from "@/pocketbase-types";
 import {
     RegistrationsResponse,
     useDeleteRegistrationMutation,
@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import RegistrationEditor, { RegistrationEditorContext, useRegistrationEditorContext } from "./RegistrationEditor";
 import useAdminFiltersState from "@/lib/admin_utils";
+import { Badge } from "@/components/ui/badge";
 
 export default function RegistrationsPage({ title = "Registrations", actions: Actions, rowActions: RowActions }: {
     title?: string
@@ -133,24 +134,29 @@ export default function RegistrationsPage({ title = "Registrations", actions: Ac
             )}
             columns={[
                 {
-                    accessorKey: 'type',
-                    header: 'Type',
+                    header: 'Type / Status',
+                    cell: ({ row }) => (
+                        <div className="flex flex-col space-y-2 items-start">
+                            <Badge variant={row.original.type === RegistrationsTypeOptions.professional ? 'default' : 'secondary'}>
+                                {row.original.type}
+                            </Badge>
+
+                            <Badge className={cn({
+                                'bg-red-500 text-white': row.original.expand?.status.status === RegistrationStatusesStatusOptions.rejected,
+                                'bg-green-500 text-white': row.original.expand?.status.status === RegistrationStatusesStatusOptions.approved,
+                                'bg-amber-400 text-black': row.original.expand?.status.status === RegistrationStatusesStatusOptions.pending
+                            })}>{row.original.expand?.status.status}</Badge>
+                        </div>
+                    ),
                 },
                 {
-                    accessorKey: 'expand.status.status',
-                    header: 'Status',
-                },
-                {
-                    accessorKey: 'email',
-                    header: 'Email',
-                },
-                {
-                    accessorKey: 'first_name',
-                    header: 'First Name',
-                },
-                {
-                    accessorKey: 'last_name',
-                    header: 'Last Name',
+                    header: 'Name / Email',
+                    cell: ({ row }) => (
+                        <div className="flex flex-col space-y-2 items-start">
+                            <p className="font-semibold">{row.original.last_name}, {row.original.first_name}</p>
+                            <p className="text-gray-600">{row.original.email.toLowerCase()}</p>
+                        </div>
+                    )
                 },
                 {
                     accessorKey: 'created',

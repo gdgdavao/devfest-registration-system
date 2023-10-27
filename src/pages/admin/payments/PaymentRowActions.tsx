@@ -6,7 +6,7 @@ import { ManualPaymentResponse } from "@/client";
 import VerifyPaymentsDialog from "./VerifyPaymentsDialog";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function PaymentRowActions({ record }: {
+export function PaymentRowActions({ record, refetch }: {
     record: ManualPaymentResponse
     refetch: () => Promise<void>
 }) {
@@ -14,7 +14,7 @@ export function PaymentRowActions({ record }: {
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger>
-                    <VerifyPaymentsDialog id={record.id}>
+                    <VerifyPaymentsDialog id={record.id} onChange={() => refetch()}>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                             <IconCheck />
                         </Button>

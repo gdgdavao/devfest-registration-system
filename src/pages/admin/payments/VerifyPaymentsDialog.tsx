@@ -8,7 +8,7 @@ import * as pbf from "@nedpals/pbf";
 import toast from "react-hot-toast";
 import { currencyFormatter } from "@/lib/utils";
 
-export default function VerifyPaymentsDialog({ id, children }: { id: string, children: ReactNode }) {
+export default function VerifyPaymentsDialog({ id, onChange, children }: { id: string, onChange?: () => void, children: ReactNode }) {
     const [open, setIsOpen] = useState(false);
     // const [remarkModalOpened, setRemarkOpened] = useState(false);
     const { data } = useManualPaymentQuery(id, { enabled: open });
@@ -54,6 +54,7 @@ export default function VerifyPaymentsDialog({ id, children }: { id: string, chi
                                     }, {
                                         onSuccess() {
                                             toast.success('Payment status updated successfully.');
+                                            onChange?.();
                                             setIsOpen(false);
                                         }
                                     });
@@ -75,6 +76,7 @@ export default function VerifyPaymentsDialog({ id, children }: { id: string, chi
                                     }, {
                                         onSuccess() {
                                             toast.success('Payment status updated successfully.');
+                                            onChange?.();
                                             setIsOpen(false);
                                         }
                                     });

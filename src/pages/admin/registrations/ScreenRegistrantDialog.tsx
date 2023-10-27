@@ -12,6 +12,8 @@ import { AlertDialogContent, AlertDialogTitle, AlertDialog, AlertDialogDescripti
 import { Input } from "@/components/ui/input";
 import useAdminFiltersState from "@/lib/admin_utils";
 import * as pbf from "@nedpals/pbf";
+import { cn } from "@/lib/utils";
+import VerifyPaymentsDialog from "../payments/VerifyPaymentsDialog";
 
 export default function ScreenRegistrantDialog({ id: destinationId, children }: { id: string, children: ReactNode }) {
     const { finalFilter } = useAdminFiltersState((v) => pbf.or(
@@ -26,7 +28,7 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
     const [remarkModalOpened, setRemarkOpened] = useState(false);
     const [remark, setRemark] = useState('');
     const { mutate: _markRegistrant, isLoading: isStatusProcessing } = useUpdateRegistrationStatusMutation();
-    const { data } = useScreeningDetailsQuery(id, { enabled: open, filter: pbf.stringify(finalFilter) });
+    const { data, refetch } = useScreeningDetailsQuery(id, { enabled: open, filter: pbf.stringify(finalFilter) });
     const registrant = data?.record;
 
     const markRegistrant = (status: RegistrationStatusesStatusOptions, reason?: RegistrationStatusesReasonOptions) => {
@@ -62,7 +64,7 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
 
     return <Dialog open={open} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="p-0 max-w-screen-lg">
+        <DialogContent className="flex flex-col p-0 max-w-screen-lg max-h-screen h-screen md:h-[90vh]">
             <DialogHeader className="pt-4 md:pt-6 sm:pl-6">
                 <DialogTitle>Screen registrant</DialogTitle>
             </DialogHeader>
@@ -92,7 +94,7 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
                 </AlertDialogContent>
             </AlertDialog>
 
-            <div className="flex flex-col-reverse md:flex-row-reverse">
+            <div className="flex-1 overflow-y-auto flex flex-col-reverse md:flex-row-reverse">
                 <div className="w-full md:w-1/3 lg:w-1/4 bg-gray-50 px-3 flex flex-col-reverse md:flex-col">
                     <div className="flex flex-col space-y-2 py-3">
                         <div className="space-x-2 flex">
@@ -150,6 +152,14 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
                                     ))}
                                 </DropdownMenuContent>
                             </DropdownMenu>
+
+                            <VerifyPaymentsDialog
+                                id={data?.record.payment ?? ''}
+                                onChange={() => { refetch(); }}>
+                                <Button disabled={!data}>
+                                    Verify payment
+                                </Button>
+                            </VerifyPaymentsDialog>
                         </div>
 
                     </div>
@@ -159,13 +169,16 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
                         {data?.criteria.map(c => (
                             <div className="flex items-start" key={`criteria_${c.id}`}>
                                 <div className="w-8 pr-2">{c.value ? <CheckCircle className="text-green-500" /> : <XCircle className="text-destructive" />}</div>
-                                <p>{c.label}</p>
+                                <div>
+                                    <p>{c.label}</p>
+                                    {c.description && <p className="text-xs text-gray-600">{c.description}</p>}
+                                </div>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                <div className="overflow-y-scroll max-h-[calc(100vh-25rem)] md:max-h-[calc(100vh-20rem)] w-full md:w-2/3 lg:w-3/4 flex flex-col divide-y-2 px-6">
+                <div className="overflow-y-scroll flex-1 w-full md:w-2/3 lg:w-3/4 flex flex-col divide-y-2 px-6">
                     <div className="flex flex-row flex-wrap md:flex-nowrap py-8 justify-center items-start">
                         <div className="w-full md:w-1/2 flex flex-col">
                             <span className="text-slate-500">Name</span>
@@ -181,7 +194,7 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
                             </p>
                         </div>
 
-                        <div className="flex-1 flex flex-col py-2">
+                        <div className="flex-1 flex flex-col py-2 md:pl-2">
                             <span className="text-slate-500">Date/Time Registered</span>
                             <p className="font-bold">
                                 {
@@ -191,18 +204,21 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
                             </p>
                         </div>
 
-                        <div className="flex-1 flex flex-col py-2">
+                        <div className="flex-1 flex flex-col py-2 md:pl-2">
                             <span className="text-slate-500">Status</span>
-                            <p className="font-bold">
+                            <p className={cn('font-bold', {
+                                'text-red-500': registrant?.expand?.status.status === RegistrationStatusesStatusOptions.rejected,
+                                'text-green-500': registrant?.expand?.status.status === RegistrationStatusesStatusOptions.approved,
+                            })}>
                                 <span>{registrant?.expand?.status?.status ?? 'Unknown'}</span>
                                 {registrant?.expand?.status.status === RegistrationStatusesStatusOptions.rejected && (
                                     <span> ({registrant?.expand?.status.reason})</span>
                                 )}
                             </p>
 
-                            <p className="font-bold text-sm text-gray-500">
+                            {registrant?.expand?.status.remarks && <p className="font-bold text-sm text-gray-500">
                                 Remarks: {registrant?.expand?.status?.remarks ?? 'N/A'}
-                            </p>
+                            </p>}
                         </div>
                     </div>
 
@@ -307,7 +323,7 @@ export default function ScreenRegistrantDialog({ id: destinationId, children }: 
                                 onBlur={() => {}}
                                 name="topic_interests"
                                 className="w-full"
-                                disabled />
+                                readOnly />
                         </div>
                     </div>
                 </div>
