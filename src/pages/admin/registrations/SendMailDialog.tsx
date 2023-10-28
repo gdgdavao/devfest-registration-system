@@ -14,7 +14,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import DataFilter from "@/components/data-filter/DataFilter";
 import { DataFilterValue } from "@/components/data-filter/types";
-import { stringify, eq, Filter, and } from "@nedpals/pbf";
+import * as pbf from "@nedpals/pbf";
 
 export default function SendMailDialog({ filter = [], recipients: defaultRecipients = [], template, children }: { filter?: DataFilterValue[], recipients?: RegistrationsResponse[], template: string, children: ReactNode }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -51,22 +51,28 @@ export default function SendMailDialog({ filter = [], recipients: defaultRecipie
         }
     });
 
+    const recipientFilter = form.watch("filter");
     const filterType = form.watch("filterType");
     const recipients = form.watch("recipients", []);
 
     const finalFilter = useMemo(() => {
         if (filterType === 'email' && recipients.length > 0) {
-            return recipients.map(r => eq('email', r)!);
+            if (recipients.length === 1) {
+                return pbf.eq('email', recipients[0]);
+            }
+            return pbf.eq.either('email', recipients);
+        } else if (recipientFilter.length === 1) {
+            return recipientFilter[0];
         }
-        return filter ?? [];
-    }, [filter, filterType, recipients]);
+        return pbf.and(...recipientFilter);
+    }, [recipientFilter, filterType, recipients]);
 
-    const { mutate: sendMail, isLoading: isEmailSending } = useMutation(({ filter, ...payload }: { filter: Filter[], template: string, force: boolean }) => {
+    const { mutate: sendMail, isLoading: isEmailSending } = useMutation(({ filter, ...payload }: { filter: pbf.Filter, template: string, force: boolean }) => {
         return pb.send<{ message: string }>('/api/admin/send_emails', {
             method: "POST",
             body: {
                 ...payload,
-                filter: stringify(and(...filter)),
+                filter: pbf.stringify(filter),
             }
         });
     }, mutationConfig);
