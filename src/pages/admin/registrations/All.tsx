@@ -15,6 +15,13 @@ export default function AllRegistrations() {
                     <p className="pl-4">{selected.length} selected</p>
 
                     <div className="flex space-x-2">
+                        <SendMailDialog template="confirm" recipients={selected}>
+                            <Button>
+                                <IconEmail className="mr-2" />
+                                Send e-mail
+                            </Button>
+                        </SendMailDialog>
+
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <Button variant="destructive">

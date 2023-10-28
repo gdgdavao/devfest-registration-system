@@ -83,6 +83,18 @@ export default function SendMailDialog({ filter = [], recipients: defaultRecipie
         }
     }, [emailTemplates]);
 
+    useEffect(() => {
+        form.setValue('template', template);
+
+        if (filter.length === 0 && defaultRecipients.length !== 0) {
+            form.setValue('filterType', 'email');
+            form.setValue('recipients', defaultRecipients.map(r => r.email));
+        } else if (filter.length !== 0) {
+            form.setValue('filterType', 'filter');
+            form.setValue('filter', filter);
+        }
+    }, [defaultRecipients, filter, template]);
+
     return (
         <Dialog open={isOpen} onOpenChange={(state) => {
             setIsOpen(state);
