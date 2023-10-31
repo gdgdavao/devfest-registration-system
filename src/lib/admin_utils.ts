@@ -4,7 +4,7 @@ import JSONCrush from "jsoncrush";
 import { DataFilterValue } from "@/components/data-filter/types";
 import * as pbf from "@nedpals/pbf";
 
-export default function useAdminFiltersState(filtersForSearch?: (f: string) => pbf.Filter) {
+export default function useAdminFiltersState(filtersForSearch?: (f: string) => pbf.Filter[]) {
     const [searchParams, setSearchParams] = useSearchParams();
 
     const filters = useMemo<DataFilterValue[]>(() => {
@@ -33,29 +33,33 @@ export default function useAdminFiltersState(filtersForSearch?: (f: string) => p
         return sf;
     });
 
-    const finalFilter = useMemo<pbf.MaybeFilter<pbf.Filter>>(() => {
-        if (searchFilter.length === 0 && filters.length === 0) {
+    const finalFiltersForSearch = useMemo(() => {
+        return filtersForSearch?.(searchFilter) ?? [];
+    }, [searchFilter]);
+
+    const finalFilterList = useMemo<pbf.Filter[]>(() => {
+        return [...finalFiltersForSearch, ...filters];
+    }, [filters, finalFiltersForSearch]);
+
+    const finalFilter = useMemo(() => {
+        if (finalFilterList.length === 0) {
             return null;
-        } else if (searchFilter.length === 0) {
-            if (filters.length === 1) {
-                return filters[0];
-            }
-            return pbf.and(...filters)
+        } else if (finalFilterList.length === 1) {
+            return finalFilterList[0];
+        } else if (filters.length === 0) {
+            return pbf.or(...finalFiltersForSearch);
+        } else if (finalFiltersForSearch.length === 0) {
+            return pbf.and.maybe(...filters);
         }
-
-        const _filtersForSearch = filtersForSearch?.(searchFilter) ?? null;
-        if (filters.length === 0) {
-            return _filtersForSearch;
-        }
-
-        return pbf.and.maybe(_filtersForSearch, ...filters);
-    }, [filters, searchFilter]);
+        return pbf.and.maybe(pbf.or(...finalFiltersForSearch), ...filters);
+    }, [finalFiltersForSearch, finalFilterList, filters]);
 
     return {
         searchFilter,
         setSearchFilter,
         filters,
         setFilters,
-        finalFilter
+        finalFilter,
+        finalFilterList
     }
 }

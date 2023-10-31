@@ -8,11 +8,11 @@ import useAdminFiltersState from "@/lib/admin_utils";
 
 export default function AllPage() {
     const { finalFilter, searchFilter, setSearchFilter, filters, setFilters } =
-        useAdminFiltersState((v) => pbf.or(
+        useAdminFiltersState((v) => [
             pbf.like('registrant.email', v),
             pbf.like('registrant.first_name', v),
             pbf.like('registrant.last_name', v)
-        ));
+        ]);
 
     const { data, refetch, fetchNextPage, isFetchingNextPage, isLoading, hasNextPage } = useMerchSensingDataQuery({
         sort: '-created',

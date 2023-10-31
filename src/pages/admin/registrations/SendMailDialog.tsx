@@ -1,4 +1,4 @@
-import { RegistrationsResponse, mutationConfig, pb } from "@/client";
+import { mutationConfig, pb } from "@/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -16,7 +16,12 @@ import DataFilter from "@/components/data-filter/DataFilter";
 import { DataFilterValue } from "@/components/data-filter/types";
 import * as pbf from "@nedpals/pbf";
 
-export default function SendMailDialog({ filter = [], recipients: defaultRecipients = [], template, children }: { filter?: DataFilterValue[], recipients?: RegistrationsResponse[], template: string, children: ReactNode }) {
+export default function SendMailDialog({ filter = [], recipients: defaultRecipients = [], template, children }: { 
+    filter?: DataFilterValue[]
+    recipients?: string[]
+    template: string
+    children: ReactNode 
+}) {
     const [isOpen, setIsOpen] = useState(false);
 
     const { data: emailTemplates, isLoading } = useQuery(['email_templates'], () => {
@@ -44,28 +49,29 @@ export default function SendMailDialog({ filter = [], recipients: defaultRecipie
         })),
         defaultValues: {
             filterType: 'filter',
-            filter: filter ?? [],
-            recipients: defaultRecipients.map(r => r.email) ?? [],
-            template: template ?? "confirm",
+            filter: [] as DataFilterValue[],
+            recipients: [] as string[],
+            template: "confirm",
             force: false
         }
     });
 
-    const recipientFilter = form.watch("filter");
-    const filterType = form.watch("filterType");
-    const recipients = form.watch("recipients", []);
+    const currentTemplate = form.watch("template");
+    const currentFilter = form.watch("filter", []);
+    const currentFilterType = form.watch("filterType");
+    const currentRecipients = form.watch("recipients", []);
 
     const finalFilter = useMemo(() => {
-        if (filterType === 'email' && recipients.length > 0) {
-            if (recipients.length === 1) {
-                return pbf.eq('email', recipients[0]);
+        if (currentFilterType === 'email' && currentRecipients.length > 0) {
+            if (currentRecipients.length === 1) {
+                return pbf.eq('email', currentRecipients[0]);
             }
-            return pbf.eq.either('email', recipients);
-        } else if (recipientFilter.length === 1) {
-            return recipientFilter[0];
+            return pbf.eq.either('email', currentRecipients);
+        } else if (currentFilter.length === 1) {
+            return currentFilter[0];
         }
-        return pbf.and(...recipientFilter);
-    }, [recipientFilter, filterType, recipients]);
+        return pbf.and(...currentFilter);
+    }, [currentFilter, currentFilterType, currentRecipients]);
 
     const { mutate: sendMail, isLoading: isEmailSending } = useMutation(({ filter, ...payload }: { filter: pbf.Filter, template: string, force: boolean }) => {
         return pb.send<{ message: string }>('/api/admin/send_emails', {
@@ -78,22 +84,27 @@ export default function SendMailDialog({ filter = [], recipients: defaultRecipie
     }, mutationConfig);
 
     useEffect(() => {
-        if (emailTemplates) {
+        if (!currentTemplate && emailTemplates) {
             form.setValue('template', emailTemplates[0].id);
         }
-    }, [emailTemplates]);
+    }, [currentTemplate, emailTemplates]);
 
     useEffect(() => {
-        form.setValue('template', template);
-
-        if (filter.length === 0 && defaultRecipients.length !== 0) {
-            form.setValue('filterType', 'email');
-            form.setValue('recipients', defaultRecipients.map(r => r.email));
-        } else if (filter.length !== 0) {
-            form.setValue('filterType', 'filter');
-            form.setValue('filter', filter);
+        if (!isOpen) {
+            return;
         }
-    }, [defaultRecipients, filter, template]);
+
+        form.setValue('template', template);
+        if (filter.length !== 0 || defaultRecipients.length !== 0) {
+            form.setValue("filterType", filter.length !== 0 ? "filter" : "email");
+            form.setValue("recipients", defaultRecipients ?? []);
+            form.setValue('filter', filter ?? []);
+        } else {
+            form.setValue("filterType", "filter");
+            form.setValue("recipients", []);
+            form.setValue('filter', []);
+        }
+    }, [isOpen]);
 
     return (
         <Dialog open={isOpen} onOpenChange={(state) => {
@@ -200,16 +211,17 @@ export default function SendMailDialog({ filter = [], recipients: defaultRecipie
                                                         <FormField
                                                             control={form.control}
                                                             name="recipients"
-                                                            disabled={form.getValues('filterType') !== 'email'}
-                                                            render={({ field }) => (
+                                                            disabled={currentFilterType !== 'email'}
+                                                            render={({ field: { onChange, ...field } }) => (
                                                                 <FormItem>
                                                                     <FormControl>
                                                                         <Input
                                                                             {...field}
+                                                                            type="text"
                                                                             placeholder="example@example.com"
-                                                                            defaultValue={(field.value ?? []).join(',')}
+                                                                            value={(field.value ?? []).join(',')}
                                                                             onChange={(evt) => {
-                                                                                field.onChange(
+                                                                                onChange(
                                                                                     evt.target.value.split(',').map(i => i.trim())
                                                                                 );
                                                                             }} />

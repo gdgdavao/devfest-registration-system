@@ -28,7 +28,8 @@ export default function RegistrationsPage({ title = "Registrations", actions: Ac
         onOpenEditor: RegistrationEditorContext['openEditor']
     }>
     rowActions: FC<{
-        id: string, refetch: () => Promise<void>
+        record: RegistrationsResponse
+        refetch: () => Promise<void>
         onDelete: (id: string) => Promise<void>
         onOpenEditor: RegistrationEditorContext['openEditor']
     }>
@@ -43,11 +44,11 @@ export default function RegistrationsPage({ title = "Registrations", actions: Ac
         finalFilter,
         searchFilter, setSearchFilter,
         filters, setFilters
-    } = useAdminFiltersState((v) => pbf.or(
+    } = useAdminFiltersState((v) => [
         pbf.like("email", v),
         pbf.like("first_name", v),
         pbf.like("last_name", v)
-    ));
+    ]);
 
     const {
         data,
@@ -127,7 +128,7 @@ export default function RegistrationsPage({ title = "Registrations", actions: Ac
             }}
             rowActions={({ record, refetch, onDelete }) => (
                 <RowActions
-                    id={record.id}
+                    record={record}
                     refetch={refetch}
                     onDelete={onDelete}
                     onOpenEditor={editorContext.openEditor} />

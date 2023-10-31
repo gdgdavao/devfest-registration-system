@@ -16,11 +16,11 @@ import { cn } from "@/lib/utils";
 import VerifyPaymentsDialog from "../payments/VerifyPaymentsDialog";
 
 export default function ScreenRegistrantDialog({ id: destinationId, onClose, children }: { id: string, onClose?: () => void, children: ReactNode }) {
-    const { finalFilter } = useAdminFiltersState((v) => pbf.or(
+    const { finalFilter } = useAdminFiltersState((v) => [
         pbf.like("email", v),
         pbf.like("first_name", v),
         pbf.like("last_name", v)
-    ));
+    ]);
 
     const queryClient = useQueryClient();
     const [id, setRegistrantId] = useState(destinationId);

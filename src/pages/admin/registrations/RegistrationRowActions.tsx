@@ -9,10 +9,10 @@ import { RecordIdString } from "@/pocketbase-types";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import IconEmail from '~icons/material-symbols/stacked-email-rounded';
 import SendMailDialog from "./SendMailDialog";
-import { eq } from "@nedpals/pbf";
+import { RegistrationsResponse } from "@/client";
 
-export function RegistrationRowActions({ id, refetch, onDelete, onOpenEditor }: {
-    id: RecordIdString,
+export function RegistrationRowActions({ record, refetch, onDelete, onOpenEditor }: {
+    record: RegistrationsResponse,
     refetch: () => Promise<void>
     onDelete: (id: RecordIdString) => Promise<void>
     onOpenEditor: (id?: string) => void
@@ -21,7 +21,7 @@ export function RegistrationRowActions({ id, refetch, onDelete, onOpenEditor }: 
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger>
-                    <ScreenRegistrantDialog id={id} onClose={() => refetch()}>
+                    <ScreenRegistrantDialog id={record.id} onClose={() => refetch()}>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                             <IconScreen />
                         </Button>
@@ -38,7 +38,7 @@ export function RegistrationRowActions({ id, refetch, onDelete, onOpenEditor }: 
                     <Button
                         variant="ghost"
                         type="button"
-                        onClick={() => onOpenEditor(id)}
+                        onClick={() => onOpenEditor(record.id)}
                         className="h-8 w-8 p-0">
                         <IconEdit />
                     </Button>
@@ -51,7 +51,7 @@ export function RegistrationRowActions({ id, refetch, onDelete, onOpenEditor }: 
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger>
-                    <SendMailDialog template="confirm" filter={[{ ...eq('id', id), meta: { type: 'string' } }]}>
+                    <SendMailDialog template="confirm" recipients={[record.email]}>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                             <IconEmail />
                         </Button>
@@ -81,7 +81,7 @@ export function RegistrationRowActions({ id, refetch, onDelete, onOpenEditor }: 
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => onDelete(id)}>
+                                <AlertDialogAction onClick={() => onDelete(record.id)}>
                                     Continue
                                 </AlertDialogAction>
                             </AlertDialogFooter>

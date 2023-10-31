@@ -6,16 +6,19 @@ import { RegistrationRowActions } from "./RegistrationRowActions";
 import SendMailDialog from "./SendMailDialog";
 import IconDelete from '~icons/material-symbols/delete-outline';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { eq } from "@nedpals/pbf";
+import useAdminFiltersState from "@/lib/admin_utils";
+import { DataFilterValue } from "@/components/data-filter/types";
 
 export default function AllRegistrations() {
+    const { finalFilterList } = useAdminFiltersState();
+    
     return <RegistrationsPage actions={({ selected, onDelete, onOpenEditor }) => {
             if (selected.length !== 0) {
                 return <div className="flex items-center justify-between bg-slate-100 p-2 w-full flex-row">
                     <p className="pl-4">{selected.length} selected</p>
 
                     <div className="flex space-x-2">
-                        <SendMailDialog template="confirm" recipients={selected}>
+                        <SendMailDialog template="confirm" recipients={selected.map(r => r.email)}>
                             <Button>
                                 <IconEmail className="mr-2" />
                                 Send e-mail
@@ -50,7 +53,7 @@ export default function AllRegistrations() {
 
             return <div className="flex flex-row space-x-2">
                 {/* TODO: change filter, add status */}
-                <SendMailDialog template="confirm" filter={[{ ...eq('status.status', 'pending'), meta: { type: 'string' } }]}>
+                <SendMailDialog template="confirm" filter={finalFilterList as DataFilterValue[]}>
                     <Button>
                         <IconEmail className="mr-2" />
                         Send e-mail

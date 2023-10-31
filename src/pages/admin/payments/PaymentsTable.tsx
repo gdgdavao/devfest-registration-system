@@ -16,7 +16,7 @@ export default function PaymentsTable({ title = "Payments", actions, rowActions:
         finalFilter: _finalFilter,
         searchFilter: emailFilter, setSearchFilter: setEmailFilter,
         filters, setFilters
-    } = useAdminFiltersState((v) => pbf.like('registrant.email', v));
+    } = useAdminFiltersState((v) => [pbf.like('registrant.email', v)]);
 
     const finalFilters = useMemo(() => {
         const isValidRegistrant = pbf.notEmpty('registrant');
