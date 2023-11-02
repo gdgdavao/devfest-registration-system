@@ -425,11 +425,11 @@ export function useAddonOrdersQuery(options?: RecordListOptions) {
     ({ pageParam = 1 }) => {
       return pb
         .collection(Collections.Registrations)
-        .getList<PBRegistrationsResponse<unknown, { addons: AddonOrderResponse[] }>>(pageParam, undefined, {
+        .getList<PBRegistrationsResponse<unknown, { status: RegistrationStatusesResponse, addons: AddonOrderResponse[] }>>(pageParam, undefined, {
           ...options,
-          fields: ['first_name', 'last_name', 'email', 'addons','expand'].join(','),
+          fields: ['first_name', 'type', 'last_name', 'email', 'addons','expand'].join(','),
           filter: pbf.stringify(pbf.gte('addons:length', 1)) + (options?.filter ? ` && (${options.filter})` : ''),
-          expand: ['addons', 'addons.addon'].join(','),
+          expand: ['status', 'addons', 'addons.addon'].join(','),
         });
     },
     {
