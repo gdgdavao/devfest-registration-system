@@ -421,7 +421,7 @@ export type AddonOrderResponse = AddonOrdersResponse<{ size?: string }, {
 
 export function useAddonOrdersQuery(options?: RecordListOptions) {
   return useInfiniteQuery(
-    [Collections.Registrations, JSON.stringify(options)],
+    [Collections.AddonOrders, 'all', JSON.stringify(options)],
     ({ pageParam = 1 }) => {
       return pb
         .collection(Collections.Registrations)
