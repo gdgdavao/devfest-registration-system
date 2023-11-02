@@ -601,7 +601,7 @@ module.exports = {
 
                 if (shouldExpand) {
                     const keyWithParent = _options.parentKey ? `${_options.parentKey}.${field.name}` : field.name;
-                    
+
                     const hiddenFields = Array.isArray(_options.hidden) ? _options.hidden
                         .filter(f => f.indexOf(keyWithParent) !== -1 && f.length > keyWithParent.length)
                         .map(f => f.substring(keyWithParent.length + 1)) : [];
@@ -619,23 +619,15 @@ module.exports = {
                         expand: expandFields,
                     });
 
-                    fields.push({
-                        title,
-                        name: field.name,
-                        type: field.type,
-                        options: {
-                            ...options,
-                            fields: relFields
-                        }
-                    });
-                } else {
-                    fields.push({
-                        title,
-                        name: field.name,
-                        type: field.type,
-                        options
-                    });
+                    options = { ...options, fields: relFields }
                 }
+                
+                fields.push({
+                    title,
+                    name: field.name,
+                    type: field.type,
+                    options
+                });
 
                 continue;
             }

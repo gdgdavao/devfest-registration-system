@@ -19,6 +19,7 @@ import AllPayments from "./pages/admin/payments/All";
 import MerchSensingAll from "./pages/admin/logistics/MerchSensingAll";
 import MerchSensingSummary from "./pages/admin/logistics/MerchSensingSummary";
 import AddonOrdersSummary from "./pages/admin/logistics/AddonOrdersSummary";
+import AddonOrdersAllPage from "./pages/admin/logistics/AddonOrdersAll";
 
 export const router = createBrowserRouter([
   {
@@ -100,6 +101,10 @@ export const router = createBrowserRouter([
           {
             path: "addon_orders",
             children: [
+              {
+                index: true,
+                element: <AddonOrdersAllPage />,
+              },
               {
                 path: "summary",
                 element: <AddonOrdersSummary />,

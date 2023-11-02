@@ -541,6 +541,59 @@ routerAdd("GET", "/api/summary", (c) => {
     ));
 });
 
+/**
+ * 
+ * @param {echo.HandlerFunc} next 
+ * @returns {echo.HandlerFunc}
+ */
+function loadAdminContextViaQuery(next) {
+    return (c) => {
+        const token = c.queryParam("token")
+        if (token.length == 0) {
+            return next(c);
+        }
+
+        const admin = $app.dao().findAdminByToken(token, $app.settings().adminAuthToken.secret);
+        c.set("admin", admin)
+        return next(c);
+    }
+}
+
+routerAdd("GET", "/admin/addon_orders/export", (c) => {
+    const filter = c.queryParam("filter");
+    const records = $app.dao().findRecordsByFilter(
+        "registrations",
+        "addons:length >= 1" + (filter.length !== 0 ? ` && (${filter})` : ''),
+        "-last_name",
+        0
+    )
+
+    $apis.enrichRecords(c, $app.dao(), records, 'addons.addon');
+    let output = 'Last Name,First Name,Add-on,Add-on Preference\n';
+    
+    for (const record of records) {
+        const orderRecords = record.expandedAll('addons')
+
+        for (const order of orderRecords) {
+            const addon = order.expandedOne('addon');
+            const rawPrefs = order.getString('preferences');
+            const preferences = rawPrefs.length != 0 ? JSON.parse(rawPrefs) : {};
+            
+            output += [
+                record.getString('last_name'),
+                record.getString('first_name'),
+                addon.getString('title'),
+                Object.entries(preferences).map(p => `${p[0]}: ${p[1]}`).join(' | ')
+            ].join(',') + '\n';
+        }
+    }
+
+    c.response().header().set("Content-Type", "text/csv");
+    c.response().header().set("Content-Disposition", `attachment; filename=addon_orders-${(new Date).getTime()}.csv`);
+    c.response().write(output);
+    return null;
+}, loadAdminContextViaQuery, $apis.requireAdminAuth());
+
 onRecordBeforeCreateRequest((e) => {
     const settings = require(`${__hooks}/settings.js`);
     if (!$apis.requestInfo(e.httpContext).admin && settings.getRegistrationStatus() !== 'open') {
