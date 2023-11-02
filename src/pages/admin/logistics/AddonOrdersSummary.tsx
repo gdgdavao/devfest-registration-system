@@ -43,6 +43,7 @@ export default function AddonOrdersSummary() {
       <div className="mb-8">
         <DataFilter
           collection="addon_orders"
+          expand={["registrant", "registrant.status"]}
           value={filters}
           onChange={setFilters} />
       </div>

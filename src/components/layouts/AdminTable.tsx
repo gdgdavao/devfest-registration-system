@@ -45,6 +45,8 @@ export interface AdminTableProps<R> {
     // Filter
     searchFilter: string
     filters: DataFilterValue[]
+    filterExpand?: string[]
+    filterHidden?: string[]
     filterPlaceholder?: string
     filterCollection?: `${Collections}`
     onSearchFilterChange: (s: string) => void
@@ -54,7 +56,7 @@ export interface AdminTableProps<R> {
 export default function AdminTable<R>(props: AdminTableProps<R>) {
     const { data, onRefetch: refetch, onFetchNextPage: fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = props;
     const { title, actions: Actions, filters, onFilterChange, searchFilter, filterPlaceholder, onSearchFilterChange: setSearchFilter } = props;
-    const { filterCollection, columns, rowActions: RowActions, onDelete, belowTitle: BelowTitle } = props;
+    const { filterCollection, filterExpand, filterHidden, columns, rowActions: RowActions, onDelete, belowTitle: BelowTitle } = props;
     const selectable = props.selectable ?? true;
 
     const [selected, setSelected]= useState<R[]>([]);
@@ -86,6 +88,8 @@ export default function AdminTable<R>(props: AdminTableProps<R>) {
                 {(selected.length === 0 && filterCollection) &&
                     <DataFilter
                         value={filters}
+                        expand={filterExpand}
+                        hidden={filterHidden}
                         collection={filterCollection}
                         onChange={onFilterChange} />}
             </div>

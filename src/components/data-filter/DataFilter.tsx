@@ -15,15 +15,30 @@ import TextDataFilterValue from "./TextDataFilterValue";
 import RemoteSelectDataFilterValue from "./RemoteSelectDataFilterValue";
 import BooleanSelectDataFilterValue from "./BooleanDataFilterValue";
 
-export default function DataFilter({ collection, value = [], onChange }: {
+function mapFields(f: RegistrationField, parentName?: string): RegistrationField | (RegistrationField[]) {
+    const name = parentName ? `${parentName}.${f.name}` : f.name;
+    if (f.type === 'relation' && f.options.fields) {
+        return (f.options.fields as RegistrationField[])
+            .map(f => mapFields(f, name)).flat();
+    }
+    return {
+        ...f,
+        name
+    };
+}
+
+export default function DataFilter({ collection, expand = [], hidden = [], value = [], onChange }: {
     collection: `${Collections}`
     value: DataFilterValue[]
+    expand?: string[]
+    hidden?: string[]
     onChange: (v: DataFilterValue[]) => void
 }) {
     const [openedFilter, setOpenedFilter] = useState(-2);
 
     const { data, isLoading } = useQuery([collection, 'fields'], () => {
-        return pb.send<RegistrationField[]>(`/api/admin/fields/${collection}`, { });
+        const params = new URLSearchParams({ hidden: hidden.join(','), expand: expand.join(',') });
+        return pb.send<RegistrationField[]>(`/api/admin/fields/${collection}?${params.toString()}`, { });
     });
 
     const fields = useMemo(() => {
@@ -32,12 +47,7 @@ export default function DataFilter({ collection, value = [], onChange }: {
         }
 
         return data
-            .map(f => f.type === 'relation' && f.options.expand ?
-                (f.options.fields as RegistrationField[])
-                    .map(cf => ({
-                        ...cf,
-                        name: `${f.name}.${cf.name}`
-                    })) : f)
+            .map(f => mapFields(f))
             .flat();
     }, [data]);
 

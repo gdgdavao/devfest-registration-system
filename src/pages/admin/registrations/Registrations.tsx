@@ -72,6 +72,7 @@ export default function RegistrationsPage({ title = "Registrations", actions: Ac
             filters={filters}
             searchFilter={searchFilter}
             filterCollection="registrations"
+            filterExpand={["status", "student_profile", "professional_profile", "payments", "ticket"]}
             filterPlaceholder={`Filter by e-mail, first name, or last name`}
             isLoading={isLoading}
             isFetchingNextPage={isFetchingNextPage}

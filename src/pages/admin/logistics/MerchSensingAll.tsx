@@ -23,6 +23,7 @@ export default function AllPage() {
         title="Merch Sensing Data"
         searchFilter={searchFilter}
         filters={filters}
+        filterExpand={["registrant"]}
         filterCollection="merch_sensing_data"
         selectable={false}
         filterPlaceholder={`Filter by registrant e-mail, first name, or last name`}

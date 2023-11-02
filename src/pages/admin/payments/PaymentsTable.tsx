@@ -37,6 +37,7 @@ export default function PaymentsTable({ title = "Payments", actions, rowActions:
         searchFilter={emailFilter}
         filters={filters}
         filterCollection="manual_payments"
+        filterExpand={["registrant", "registrant.status"]}
         isLoading={isLoading}
         isFetchingNextPage={isFetchingNextPage}
         hasNextPage={hasNextPage}

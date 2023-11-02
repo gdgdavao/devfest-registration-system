@@ -59,6 +59,7 @@ export default function RegistrationSummary() {
       <div className="mb-8">
         <DataFilter
           collection="registrations"
+          expand={["status", "student_profile", "professional_profile", "payments", "ticket.ticket"]}
           value={filters}
           onChange={setFilters} />
       </div>

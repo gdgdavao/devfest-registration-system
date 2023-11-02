@@ -558,5 +558,114 @@ module.exports = {
         }
 
         return fields;
+    },
+
+    /**
+    *
+    * @param {models.Collection | undefined} collection
+    * @param {{parent?: string, parentKey?: string, hidden?: string[], expand?: string[]} | undefined,} _options
+    * @returns {RegistrationField[]}
+    */
+    extractCollectionSchema2(collection, _options) {
+        if (!_options) {
+            _options = {
+                hidden: [],
+                expand: []
+            };
+        }
+
+        const fieldsFromSchema = collection.schema.fields();
+
+        /**
+         * @type {RegistrationField[]}
+         */
+        const fields = [];
+
+        for (const field of fieldsFromSchema) {
+            if (_options.hidden && _options.hidden.indexOf(field.name) !== -1) {
+                continue;
+            }
+
+            let options = JSON.parse(JSON.stringify(field.options));
+            let title = field.name;
+            let shouldExpand = false;
+            if (field.type == "relation" && _options.expand && _options.expand.findIndex(f => f.indexOf(field.name) !== -1 || f.indexOf(field.name + ".")) !== -1) {
+                shouldExpand = true;
+            }
+
+            if (field.type === "relation") {
+                // Avoid loop!
+                if (typeof _options.parent !== "undefined" && field.options.collectionId === _options.parent) {
+                    continue;
+                }
+
+                if (shouldExpand) {
+                    const keyWithParent = _options.parentKey ? `${_options.parentKey}.${field.name}` : field.name;
+                    
+                    const hiddenFields = Array.isArray(_options.hidden) ? _options.hidden
+                        .filter(f => f.indexOf(keyWithParent) !== -1 && f.length > keyWithParent.length)
+                        .map(f => f.substring(keyWithParent.length + 1)) : [];
+
+                    const expandFields = Array.isArray(_options.expand) ? _options.expand
+                        .filter(f => f.indexOf(keyWithParent) !== -1 && f.length > keyWithParent.length)
+                        .map(f => f.substring(keyWithParent.length + 1)) : [];
+
+                    const relCollection = $app.dao().findCollectionByNameOrId(field.options.collectionId);
+
+                    const relFields = this.extractCollectionSchema2(relCollection, {
+                        parent: collection.id,
+                        parentKey: keyWithParent,
+                        hidden: hiddenFields,
+                        expand: expandFields,
+                    });
+
+                    fields.push({
+                        title,
+                        name: field.name,
+                        type: field.type,
+                        options: {
+                            ...options,
+                            fields: relFields
+                        }
+                    });
+                } else {
+                    fields.push({
+                        title,
+                        name: field.name,
+                        type: field.type,
+                        options
+                    });
+                }
+
+                continue;
+            }
+
+            if (collection.name === "registrations" && field.name === "topic_interests") {
+                const topicRecords = arrayOf(new Record);
+
+                $app.dao().recordQuery("topic_interests")
+                    .all(topicRecords);
+
+                const topics = [];
+
+                for (const topic of topicRecords) {
+                    topics.push({
+                        name: topic.get("topic_name"),
+                        key: topic.get("key")
+                    });
+                }
+
+                options = { ...options, topics };
+            }
+
+            fields.push({
+                name: field.name,
+                type: field.type,
+                title,
+                options
+            });
+        }
+
+        return fields;
     }
 }

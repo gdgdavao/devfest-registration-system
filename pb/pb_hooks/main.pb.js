@@ -173,21 +173,11 @@ routerAdd("GET", "/api/registration_fields", (c) => {
 
 routerAdd("GET", "/api/admin/fields/:collectionId", (c) => {
     const collectionId = c.pathParam("collectionId");
-    const isForced = c.queryParam("force") === '1' || c.queryParam("force") == 'true';
     const collection = $app.dao().findCollectionByNameOrId(collectionId);
     const utils = require(`${__hooks}/utils.js`);
-    const cacheKey = `fields_${collection.id}`;
-
-    let fieldsFromData = [];
-
-    if (isForced || !$app.cache().has(cacheKey)) {
-        const fields = utils.extractCollectionSchema(collection, { showHidden: true });
-        $app.cache().set(cacheKey, fields);
-        fieldsFromData = fields;
-    } else {
-        const fields = $app.cache().get(cacheKey);
-        fieldsFromData = fields;
-    }
+    const expand = c.queryParam("expand").split(",").filter(Boolean);
+    const hidden = c.queryParam("hidden").split(",").filter(Boolean);
+    const fieldsFromData = utils.extractCollectionSchema2(collection, { expand, hidden });
 
     return c.json(200, fieldsFromData);
 }, $apis.requireAdminAuth());
