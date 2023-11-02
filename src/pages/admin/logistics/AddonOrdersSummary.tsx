@@ -1,80 +1,75 @@
 import { pb, useSummaryQuery } from "@/client";
 import Loading from "@/components/Loading";
-import { Badge } from "@/components/ui/badge";
+import SummaryRenderer from "@/components/SummaryRenderer";
+import DataFilter from "@/components/data-filter/DataFilter";
+import PreferencesSummaryRenderer from "@/components/summary_renderers/PreferencesSummaryRenderer";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import useAdminFiltersState from "@/lib/admin_utils";
+import { cn } from "@/lib/utils";
 import { Collections } from "@/pocketbase-types";
-import { Download } from "lucide-react";
+import { stringify } from "@nedpals/pbf";
+import { Download, RefreshCcw } from "lucide-react";
 
 export default function AddonOrdersSummary() {
-    const { data, isLoading, isFetched } = useSummaryQuery(Collections.AddonOrders, {
-        expand: ['addon'],
-        except: ['registrant', 'addon.description', 'addon.price', 'preferences', 'addon.customization_options', 'addon.cover_image']
-    });
+  const { finalFilter, filters, setFilters } = useAdminFiltersState();
+  const { data, isLoading, isRefetching, isFetched, refetch } = useSummaryQuery(
+    Collections.AddonOrders,
+    {
+      except: ['addon.description', 'addon.customization_options', 'addon.price', 'addon.cover_image'],
+      expand: ['addon'],
+      filter: stringify(finalFilter)
+    }
+  );
 
-    return (
-        <div className="flex flex-col">
-            <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:justify-between pb-4">
-                <div className="flex items-center space-x-2 pb-4">
-                    <h2>Add-on Orders Summary</h2>
-                    <Badge>{data?.total ?? 0}</Badge>
-                </div>
+  return (
+    <div>
+      <header className="flex flex-col md:flex-row justify-end md:justify-between md:items-center mb-6">
+        <h2>Add-on Orders Metrics</h2>
+        <div className="mt-4 md:mt-0 space-x-2">
+          <Button disabled={isLoading || isRefetching} onClick={() => { refetch(); }}>
+            <RefreshCcw className={cn({ 'animate-spin': isRefetching }, 'mr-2')} />
+            Refresh
+          </Button>
 
-                <div className="space-x-2">
-                    {data?.csv_endpoint && <Button asChild>
-                        <a href={pb.buildUrl(data.csv_endpoint)} download>
-                            <Download className="mr-2" />
-                            Export data
-                        </a>
-                    </Button>}
-                </div>
-            </div>
-
-            {(isLoading && !isFetched) && <div className="flex flex-col items-center">
-                <Loading className="w-48" />
-            </div>}
-
-            {(isFetched && !data) && <div className="flex flex-col items-center">
-                <p className="text-3xl text-muted-foreground">No data found.</p>
-            </div>}
-
-            {data?.insights.map(insight => (
-                <section key={`insight_${insight.id}`} className="pb-8">
-                    <div className="flex items-center space-x-2 mb-4">
-                        <h3>{insight.title}</h3>
-                        <Badge>{insight.total}</Badge>
-                    </div>
-
-                    <Table className="border">
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Entry name</TableHead>
-                                <TableHead>Count</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {insight.share.map(({ value: entry, ...others }) => {
-                                if ('entries' in others) {
-                                    return <>
-                                        {/* TODO: improve this next time */}
-                                        {others.entries.filter(e => 'count' in e).map(({ value: subentry, ...others }) => (
-                                            <TableRow key={`insight_entry_${entry}_${entry}`}>
-                                                <TableCell>{entry} &gt; {subentry}</TableCell>
-                                                {'count' in others && <TableCell>{others.count}</TableCell>}
-                                            </TableRow>
-                                        ))}
-                                    </>;
-                                }
-
-                                return <TableRow key={`insight_entry_${entry}`}>
-                                    <TableCell>{entry}</TableCell>
-                                    <TableCell>{others.count}</TableCell>
-                                </TableRow>;
-                            })}
-                        </TableBody>
-                    </Table>
-                </section>
-            ))}
+          <Button disabled={!data?.csv_endpoint} asChild>
+            <a href={data ? pb.buildUrl(data.csv_endpoint) : '#'} download>
+              <Download className="mr-2" />
+              Export data
+            </a>
+          </Button>
         </div>
-    );
+      </header>
+
+      <div className="mb-8">
+        <DataFilter
+          collection="addon_orders"
+          value={filters}
+          onChange={setFilters} />
+      </div>
+
+      {isLoading && !isFetched && (
+        <div className="flex flex-col items-center">
+          <Loading className="w-48" />
+        </div>
+      )}
+
+      {isFetched && !data && (
+        <div className="flex flex-col items-center">
+          <p className="text-3xl text-muted-foreground">No data found.</p>
+        </div>
+      )}
+
+      <div className="space-y-4">
+      {data?.insights.map((insight) =>
+        <SummaryRenderer
+          key={`insight_${insight.id}`}
+        //   title={REGISTRATION_FIELDS[insight.title as keyof typeof REGISTRATION_FIELDS]}
+          insight={insight}
+          customComponents={{
+            preferences: PreferencesSummaryRenderer
+          }} />
+      )}
+      </div>
+    </div>
+  );
 }
