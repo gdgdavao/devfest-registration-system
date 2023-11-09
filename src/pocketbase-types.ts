@@ -11,6 +11,7 @@ export enum Collections {
 	FormGroups = "form_groups",
 	ManualPayments = "manual_payments",
 	MerchSensingData = "merch_sensing_data",
+	Participants = "participants",
 	Payments = "payments",
 	ProfessionalProfiles = "professional_profiles",
 	RegistrationStatuses = "registration_statuses",
@@ -126,6 +127,19 @@ export type MerchSensingDataRecord<Tpreferred_offered_merch = unknown> = {
 	other_preferred_offered_merch?: string
 	preferred_offered_merch?: null | Tpreferred_offered_merch
 	registrant?: RecordIdString
+}
+
+export enum ParticipantsStatusOptions {
+	"unchecked" = "unchecked",
+	"present" = "present",
+	"absent" = "absent",
+}
+export type ParticipantsRecord = {
+	is_addon_claimed?: boolean
+	pId: string
+	registrant: RecordIdString
+	remarks?: string
+	status: ParticipantsStatusOptions
 }
 
 export enum PaymentsStatusOptions {
@@ -254,6 +268,7 @@ export type FormDetailsResponse<Tcustom_options = unknown, Texpand = unknown> = 
 export type FormGroupsResponse<Tcustom_content = unknown, Texpand = unknown> = Required<FormGroupsRecord<Tcustom_content>> & BaseSystemFields<Texpand>
 export type ManualPaymentsResponse<Ttransaction_details = unknown, Texpand = unknown> = Required<ManualPaymentsRecord<Ttransaction_details>> & BaseSystemFields<Texpand>
 export type MerchSensingDataResponse<Tpreferred_offered_merch = unknown, Texpand = unknown> = Required<MerchSensingDataRecord<Tpreferred_offered_merch>> & BaseSystemFields<Texpand>
+export type ParticipantsResponse<Texpand = unknown> = Required<ParticipantsRecord> & BaseSystemFields<Texpand>
 export type PaymentsResponse<Texpand = unknown> = Required<PaymentsRecord> & BaseSystemFields<Texpand>
 export type ProfessionalProfilesResponse<Texpand = unknown> = Required<ProfessionalProfilesRecord> & BaseSystemFields<Texpand>
 export type RegistrationStatusesResponse<Texpand = unknown> = Required<RegistrationStatusesRecord> & BaseSystemFields<Texpand>
@@ -274,6 +289,7 @@ export type CollectionRecords = {
 	form_groups: FormGroupsRecord
 	manual_payments: ManualPaymentsRecord
 	merch_sensing_data: MerchSensingDataRecord
+	participants: ParticipantsRecord
 	payments: PaymentsRecord
 	professional_profiles: ProfessionalProfilesRecord
 	registration_statuses: RegistrationStatusesRecord
@@ -293,6 +309,7 @@ export type CollectionResponses = {
 	form_groups: FormGroupsResponse
 	manual_payments: ManualPaymentsResponse
 	merch_sensing_data: MerchSensingDataResponse
+	participants: ParticipantsResponse
 	payments: PaymentsResponse
 	professional_profiles: ProfessionalProfilesResponse
 	registration_statuses: RegistrationStatusesResponse

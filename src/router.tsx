@@ -20,6 +20,8 @@ import MerchSensingAll from "./pages/admin/logistics/MerchSensingAll";
 import MerchSensingSummary from "./pages/admin/logistics/MerchSensingSummary";
 import AddonOrdersSummary from "./pages/admin/logistics/AddonOrdersSummary";
 import AddonOrdersAllPage from "./pages/admin/logistics/AddonOrdersAll";
+import Checkin from "./pages/admin/registrations/Checkin";
+import AddonOrdersClaim from "./pages/admin/logistics/AddonOrdersClaim";
 
 export const router = createBrowserRouter([
   {
@@ -84,6 +86,7 @@ export const router = createBrowserRouter([
             element: <AllRegistrations />,
           },
           { path: "summary", element: <RegistrationSummary /> },
+          { path: "check-in", element: <Checkin /> },
         ],
       },
       {
@@ -108,6 +111,10 @@ export const router = createBrowserRouter([
               {
                 path: "summary",
                 element: <AddonOrdersSummary />,
+              },
+              {
+                path: "claim",
+                element: <AddonOrdersClaim />,
               },
             ],
           },
