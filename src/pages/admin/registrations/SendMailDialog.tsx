@@ -27,7 +27,7 @@ export default function SendMailDialog({ filter = [], recipients: defaultRecipie
     const { data: emailTemplates, isLoading } = useQuery(['email_templates'], () => {
         return pb.send<{ name: string, id: string }[]>('/api/email_templates', { method: 'GET' });
     }, {
-        staleTime: 10 * (60 * 1000),
+        staleTime: 10 * (60 * 1000)
     });
 
     const form = useForm({
@@ -85,7 +85,7 @@ export default function SendMailDialog({ filter = [], recipients: defaultRecipie
 
     useEffect(() => {
         if (!currentTemplate && emailTemplates) {
-            form.setValue('template', emailTemplates[0].id);
+            form.resetField('template', { defaultValue: emailTemplates[0].id });
         }
     }, [currentTemplate, emailTemplates]);
 
@@ -94,20 +94,18 @@ export default function SendMailDialog({ filter = [], recipients: defaultRecipie
             return;
         }
 
-        form.setValue('template', template);
-        if (filter.length !== 0 || defaultRecipients.length !== 0) {
-            form.setValue("filterType", filter.length !== 0 ? "filter" : "email");
-            form.setValue("recipients", defaultRecipients ?? []);
-            form.setValue('filter', filter ?? []);
-        } else {
-            form.setValue("filterType", "filter");
-            form.setValue("recipients", []);
-            form.setValue('filter', []);
-        }
+        form.reset({
+            template,
+            filterType: defaultRecipients.length !== 0 ? "email" : "filter",
+            recipients: defaultRecipients ?? [],
+            filter: filter ?? [],
+        }, {
+            keepTouched: true
+        });
     }, [isOpen]);
 
     return (
-        <Dialog open={isOpen} onOpenChange={(state) => {
+        <Dialog open={isOpen && !!emailTemplates} onOpenChange={(state) => {
             setIsOpen(state);
             setTimeout(() => (document.body.style.pointerEvents = ""), 100);
         }}>
