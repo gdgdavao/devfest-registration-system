@@ -854,7 +854,7 @@ export function useImportCsvMutation() {
 // }
 
 export function useExportCsvMutation() {
-    return useMutation(async ({ collection, expand = [], filter }: { collection: Collections, expand?: string[], filter?: string }) => {
+    return useMutation(async ({ collection, expand = [], filter }: { collection: `${Collections}`, expand?: string[], filter?: string }) => {
         const params = (new URLSearchParams({
             collection,
             filter: filter ?? '',
@@ -879,4 +879,12 @@ export function useExportCsvMutation() {
         virtualDlBtn.click();
         return url;
     });
+}
+
+// Fields
+export function useFieldsQuery(collection: `${Collections}`, { hidden = [], expand = [] }: { hidden?: string[], expand?: string[] } = {}) {
+  return useQuery([collection, 'fields'], () => {
+      const params = new URLSearchParams({ hidden: hidden.join(','), expand: expand.join(',') });
+      return pb.send<RegistrationField[]>(`/api/admin/fields/${collection}?${params.toString()}`, { });
+  });
 }
