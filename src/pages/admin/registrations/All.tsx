@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import NewRegistrationDialog from "./NewRegistrationDialog";
 import RegistrationsPage from "./Registrations";
 import IconPlus from '~icons/material-symbols/add';
 import IconEmail from '~icons/material-symbols/stacked-email-rounded';
@@ -7,22 +6,29 @@ import { RegistrationRowActions } from "./RegistrationRowActions";
 import SendMailDialog from "./SendMailDialog";
 import IconDelete from '~icons/material-symbols/delete-outline';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Download, Upload } from "lucide-react";
+import useAdminFiltersState from "@/lib/admin_utils";
+import { DataFilterValue } from "@/components/data-filter/types";
 import { REGISTRATION_RESP_EXPAND, useExportCsvMutation } from "@/client";
 import { Collections } from "@/pocketbase-types";
-import ImportCsvDialog from "./ImportCsvDialog";
+import { Download } from "lucide-react";
 
 export default function AllRegistrations() {
     const { mutate: exportCsv } = useExportCsvMutation();
+    const { finalFilterList } = useAdminFiltersState();
 
-    return <RegistrationsPage
-        status="all"
-        actions={({ selected, onDelete }) => {
+    return <RegistrationsPage actions={({ selected, onDelete, onOpenEditor }) => {
             if (selected.length !== 0) {
                 return <div className="flex items-center justify-between bg-slate-100 p-2 w-full flex-row">
                     <p className="pl-4">{selected.length} selected</p>
 
                     <div className="flex space-x-2">
+                        <SendMailDialog template="confirm" recipients={selected.map(r => r.email)}>
+                            <Button>
+                                <IconEmail className="mr-2" />
+                                Send e-mail
+                            </Button>
+                        </SendMailDialog>
+
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <Button variant="destructive">
@@ -50,12 +56,12 @@ export default function AllRegistrations() {
             }
 
             return <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
-                <ImportCsvDialog>
+                {/* <ImportCsvDialog>
                     <Button>
                         <Upload className="mr-2" />
                         Import
                     </Button>
-                </ImportCsvDialog>
+                </ImportCsvDialog> */}
 
                 <Button onClick={() => {
                     exportCsv({
@@ -68,24 +74,18 @@ export default function AllRegistrations() {
                 </Button>
 
                 {/* TODO: change filter, add status */}
-                <SendMailDialog template="confirm" filter={`status.status != "pending"`}>
+                <SendMailDialog template="confirm" filter={finalFilterList as DataFilterValue[]}>
                     <Button>
                         <IconEmail className="mr-2" />
                         Send e-mail
                     </Button>
                 </SendMailDialog>
 
-                <NewRegistrationDialog>
-                    <Button>
-                        <IconPlus className="mr-2" />
-                        Add new registrant
-                    </Button>
-                </NewRegistrationDialog>
+                <Button onClick={() => onOpenEditor()} type="button">
+                    <IconPlus className="mr-2" />
+                    Add new registrant
+                </Button>
             </div>
         }}
-        rowActions={({ id, onDelete }) => (
-            <RegistrationRowActions
-                id={id}
-                onDelete={onDelete} />
-        )} />
+        rowActions={RegistrationRowActions} />
 }

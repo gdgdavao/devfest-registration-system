@@ -98,34 +98,66 @@ $app.rootCmd.addCommand(new Command({
 
 onAfterBootstrap((e) => {
     // Create CSV imports if not present
-    if (e.app.dao().isCollectionNameUnique("csv_imports")) {
-        const csvImportCollection = new Collection({
-            name: 'csv_imports',
+    // if (e.app.dao().isCollectionNameUnique("csv_imports")) {
+    //     const csvImportCollection = new Collection({
+    //         name: 'csv_imports',
+    //         type: 'base',
+    //         schema: [
+    //             {
+    //                 name: 'file',
+    //                 type: 'file',
+    //                 required: true,
+    //                 options: {
+    //                     "maxSelect": 1,
+    //                     "maxSize": 10000000,
+    //                     "mimeTypes": [],
+    //                     "thumbs": null,
+    //                     "protected": false // 10mb
+    //                 }
+    //             },
+    //             {
+    //                 name: 'columns',
+    //                 type: 'json',
+    //                 required: true,
+    //                 options: {}
+    //             }
+    //         ]
+    //     });
+
+    //     e.app.dao().saveCollection(csvImportCollection);
+    // }
+
+    // Initialize custom settings
+    if (e.app.dao().isCollectionNameUnique('custom_settings')) {
+        const collection = new Collection({
+            name: 'custom_settings',
             type: 'base',
             schema: [
                 {
-                    name: 'file',
-                    type: 'file',
-                    required: true,
-                    options: {
-                        "maxSelect": 1,
-                        "maxSize": 10000000,
-                        "mimeTypes": [],
-                        "thumbs": null,
-                        "protected": false // 10mb
-                    }
+                    name: 'key',
+                    type: 'text',
+                    required: true
                 },
                 {
-                    name: 'columns',
+                    name: 'value',
                     type: 'json',
-                    required: true,
-                    options: {}
+                    required: true
                 }
-            ]
+            ],
+            viewRule: ''
         });
 
-        e.app.dao().saveCollection(csvImportCollection);
+        e.app.dao().saveCollection(collection);
+
+        // Load default settings
+        e.app.dao().saveRecord(new Record(collection, {
+            key: 'registration_status',
+            value: 'open'
+        }));
     }
+
+    const utils = require(`${__hooks}/utils.js`);
+    utils.buildRegistrationFields();
 
     if ($os.getenv("PAYMENT_INTENT_API_URL").length === 0) {
         console.error("Warning: PAYMENT_INTENT_API_URL must be set. Some endpoints might not work properly.");
@@ -137,12 +169,48 @@ onAfterBootstrap((e) => {
 });
 
 routerAdd("GET", "/api/registration_fields", (c) => {
+    const settings = require(`${__hooks}/settings.js`);
+
+    // Check registration status
+    const requestInfo = $apis.requestInfo(c);
+
+    if (!requestInfo.admin) {
+        const registrationStatus = settings.getRegistrationStatus();
+        if (registrationStatus !== 'open') {
+            const registrationStatusTemplate = settings.getSetting('registration_status_templates', {
+                closed: {
+                    title: 'Registration is closed',
+                    subtitle: ''
+                }
+            });
+
+            return c.json(403, {
+                code: 403,
+                message: registrationStatusTemplate.closed.title,
+                data: Object.assign(registrationStatusTemplate.closed, {
+                    type: 'registration_status_' + registrationStatus
+                }),
+            });
+        }
+    }
+
     const utils = require(`${__hooks}/utils.js`);
     const registrationType = c.queryParamDefault("type", "student");
     const formGroup = c.queryParamDefault("group", "all");
     const fields = utils.getRegistrationFields(registrationType);
     return c.json(200, formGroup !== 'all' ? fields.filter(f => f.group === formGroup) : fields);
 });
+
+routerAdd("GET", "/api/admin/fields/:collectionId", (c) => {
+    const collectionId = c.pathParam("collectionId");
+    const collection = $app.dao().findCollectionByNameOrId(collectionId);
+    const utils = require(`${__hooks}/utils.js`);
+    const expand = c.queryParam("expand").split(",").filter(Boolean);
+    const hidden = c.queryParam("hidden").split(",").filter(Boolean);
+    const fieldsFromData = utils.extractCollectionSchema2(collection, { expand, hidden });
+
+    return c.json(200, fieldsFromData);
+}, $apis.requireAdminAuth());
 
 routerAdd("GET", "/api/slot_counter", (c) => {
     const TOTAL_SLOTS = 400;
@@ -204,6 +272,95 @@ routerAdd("POST", "/api/admin/send_emails", (c) => {
         console.error(e);
         throw e;
     }
+}, $apis.requireAdminAuth());
+
+routerAdd("GET", "/api/admin/screening/:registrantId", (c) => {
+    const registrantId = c.pathParam('registrantId');
+    const filter = c.queryParam('filter');
+    const registrationsCollection = 'registrations';
+
+    // get registrant record
+    const registrantRecord = $app.dao().findRecordById(registrationsCollection, registrantId);
+    $apis.enrichRecord(c, $app.dao(), registrantRecord, 'status', 'student_profile', 'professional_profile', 'payment', 'addons.addon', 'ticket', 'merch_sensing_data');
+
+    const isNotCurrentUser = `id != "${registrantRecord.id}"`;
+    const userRegistered = registrantRecord.created.string();
+
+    // get ids for pagination
+    const prevFilter = [isNotCurrentUser, `created >= "${userRegistered}"`, filter.length !== 0 ? `(${filter})` : null].filter(f => f !== null).join(' && ');
+    const nextFilter = [isNotCurrentUser, `created < "${userRegistered}"`, filter.length !== 0 ? `(${filter})` : null].filter(f => f !== null).join(' && ');
+    const prevRecords = $app.dao().findRecordsByFilter(registrationsCollection, prevFilter, 'created', 1);
+    const nextRecords = $app.dao().findRecordsByFilter(registrationsCollection, nextFilter, '-created', 1);
+
+    // NOTE: ids are sorted by ASC (oldest > newest)
+    const duplicateRecords = $app.dao().findRecordsByFilter('duplicate_registrations', `occurrences >= 2 && ids ?~ "${registrantRecord.id}"`);
+
+    const paymentRecord = registrantRecord.expandedOne('payment');
+
+    // calculate interest
+    let interestRating = 0;
+    const interests = JSON.parse(registrantRecord.getString('topic_interests'));
+    if (typeof interests === 'object') {
+        try {
+            const fields = $app.dao().findRecordsByFilter('form_details', 'key = "topic_interests"', '-created', 1);
+            if (fields.length >= 1) {
+                const fieldValues = JSON.parse(fields[0].getString('custom_options')).values;
+                const targetInterests = ['gcp', 'ml', 'android_dev'];
+
+                let total = 0;
+
+                for (const interest of targetInterests) {
+                    total += (fieldValues.length - fieldValues.indexOf(interests[interest]));
+                }
+
+                interestRating = total / targetInterests.length;
+            }
+        } catch (e) {}
+    }
+
+    // get criteria
+    const criteria = [
+        {
+            id: 'topic_interests',
+            label: `Topic interest rating: ${interestRating === Math.floor(interestRating) ? interestRating : interestRating.toFixed(2)}`,
+            description: 'How interested is the participant in the topics of the event (GCP, ML, and Android development). Must be greater than or equal to 3.',
+            value: interestRating > 3
+        },
+        {
+            id: 'has_duplicates',
+            label: 'Is registration unique?',
+            description: 'Ensures if there are no duplicate registrations. Ignore this if there are multiple different participants with same names.',
+            value: duplicateRecords.length === 0
+        },
+        {
+            id: 'payment',
+            label: 'Is payment verified?',
+            description: 'Checks if payment has been validated by the team.',
+            value: paymentRecord && paymentRecord.getBool('is_verified')
+        },
+        {
+            id: 'type',
+            label: 'Is a professional?',
+            value: registrantRecord.getString('type') === 'professional'
+        },
+        {
+            id: 'sex',
+            label: 'Is a woman (for diversity)?',
+            value: registrantRecord.getString('sex') === 'female',
+        },
+        {
+            id: 'addons',
+            label: 'Has availed an add-on?',
+            value: registrantRecord.getStringSlice('addons').length !== 0,
+        }
+    ].filter(Boolean);
+
+    return c.json(200, {
+        prev_id: prevRecords.length !== 0 ? prevRecords[0].id : null,
+        next_id: nextRecords.length !== 0 ? nextRecords[0].id : null,
+        record: registrantRecord,
+        criteria
+    });
 }, $apis.requireAdminAuth());
 
 routerAdd("GET", "/payments_redirect", (c) => {
@@ -345,53 +502,53 @@ routerAdd("GET", "/api/email_templates", (c) => {
     return c.json(200, templatesList);
 }, $apis.requireAdminAuth());
 
-routerAdd("POST", "/csv/import", (c) => {
-    const data = $apis.requestInfo(c).data;
-    const importId = data["import_id"];
-    if (!importId) {
-        throw new BadRequestError()
-    }
+// routerAdd("POST", "/csv/import", (c) => {
+//     const data = $apis.requestInfo(c).data;
+//     const importId = data["import_id"];
+//     if (!importId) {
+//         throw new BadRequestError()
+//     }
 
-    const mappings = data["mappings"];
-    if (typeof mappings !== 'object') {
-        throw new BadRequestError("Mappings should be an object of strings.")
-    }
+//     const mappings = data["mappings"];
+//     if (typeof mappings !== 'object') {
+//         throw new BadRequestError("Mappings should be an object of strings.")
+//     }
 
-    const importEntry = $app.dao().findRecordById('csv_imports', importId);
-    const collection = data["collection"];
-    if (!collection) {
-        throw new BadRequestError("Collection ID or name must be provided.");
-    }
+//     const importEntry = $app.dao().findRecordById('csv_imports', importId);
+//     const collection = data["collection"];
+//     if (!collection) {
+//         throw new BadRequestError("Collection ID or name must be provided.");
+//     }
 
-    const fileKey = importEntry.baseFilesPath() + "/" + importEntry.getString("file");
-    const csvFile = $filesystem.fileFromPath(fileKey);
-    const csvData = readerToString(csvFile.reader.open());
-    const n = utils.importCsv(collection, csvData, mappings);
+//     const fileKey = importEntry.baseFilesPath() + "/" + importEntry.getString("file");
+//     const csvFile = $filesystem.fileFromPath(fileKey);
+//     const csvData = readerToString(csvFile.reader.open());
+//     const n = utils.importCsv(collection, csvData, mappings);
 
-    return c.json(200, { message: `${n} records were imported successfully.` })
-});
+//     return c.json(200, { message: `${n} records were imported successfully.` })
+// });
 
-routerAdd("POST", "/csv/initial-import", (c) => {
-    const rawCsvFile = c.formFile("csv");
-    if (rawCsvFile.header.get("Content-Type") != "text/csv") {
-        throw new BadRequestError("Invalid file type. Must be a file with CSV format.");
-    }
+// routerAdd("POST", "/csv/initial-import", (c) => {
+//     const rawCsvFile = c.formFile("csv");
+//     if (rawCsvFile.header.get("Content-Type") != "text/csv") {
+//         throw new BadRequestError("Invalid file type. Must be a file with CSV format.");
+//     }
 
-    const csvFile = $filesystem.fileFromMultipart(rawCsvFile);
-    const csvData = readerToString(csvFile.reader.open());
-    const csv = require(`${__hooks}/csv_parser.js`);
-    const rows = csv.parseCSV(csvData);
-    const headers = rows[0];
+//     const csvFile = $filesystem.fileFromMultipart(rawCsvFile);
+//     const csvData = readerToString(csvFile.reader.open());
+//     const csv = require(`${__hooks}/csv_parser.js`);
+//     const rows = csv.parseCSV(csvData);
+//     const headers = rows[0];
 
-    const collection = $app.dao().findCollectionByNameOrId('csv_imports');
-    const record = new Record(collection);
-    const form = new RecordUpsertForm($app, record);
-    form.loadData({ columns: headers });
-    form.addFiles('file', csvFile);
-    form.submit();
+//     const collection = $app.dao().findCollectionByNameOrId('csv_imports');
+//     const record = new Record(collection);
+//     const form = new RecordUpsertForm($app, record);
+//     form.loadData({ columns: headers });
+//     form.addFiles('file', csvFile);
+//     form.submit();
 
-    return c.json(200, record);
-}, $apis.requireAdminAuth());
+//     return c.json(200, record);
+// }, $apis.requireAdminAuth());
 
 routerAdd("GET", "/csv/export", (c) => {
     try {
@@ -417,7 +574,132 @@ routerAdd("GET", "/csv/export", (c) => {
 
 routerAdd("GET", "/assets/*", $apis.staticDirectoryHandler(`${__hooks}/assets`, false));
 
+// Summary API
+routerAdd("GET", "/api/summary", (c) => {
+    let format = c.queryParam("format");
+    if (!format) {
+        format = 'json';
+    }
+
+    if (format !== 'json' && format !== 'csv') {
+        throw new BadRequestError('Format should be json or csv');
+    }
+
+    const collectionId = c.queryParam("collection");
+    if (!collectionId) {
+        throw new BadRequestError("Collection ID or name is required.");
+    }
+
+    const collection = $app.dao().findCollectionByNameOrId(collectionId);
+    const exceptColumns = c.queryParam("except").split(",").filter(Boolean);
+    const splittableColumns = c.queryParam("splittable").split(",").filter(Boolean);
+
+    const filter = c.queryParam("filter");
+    const expand = c.queryParam("expand").split(",").filter(Boolean);
+
+    const records = filter.length > 0 ?
+        $app.dao().findRecordsByFilter(collectionId, filter) :
+        $app.dao().findRecordsByExpr(collectionId);
+
+    if (expand.length > 0) {
+        $app.dao().expandRecords(records, expand, null);
+    }
+
+    const utils = require(`${__hooks}/utils.js`);
+    const results = utils.generateSummary(collection, records, {
+        filter,
+        exceptColumns,
+        splittableColumns,
+        expand
+    });
+
+    if (format === 'csv') {
+        const output = results.insights.map(i => {
+            const sorted = Object.entries(i.share)
+                .sort((a, b) => a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1);
+            return `
+    ${i.title},\n${sorted.map(([entry, count]) => `"${entry}",${count}`).join('\n')}
+    ,
+        `.trim();
+        }).join('\n');
+
+        c.response().header().set("Content-Type", "text/csv");
+        c.response().header().set("Content-Disposition", `attachment; filename=merch_sensing_data-${(new Date).getTime()}.csv`);
+        c.response().write(output);
+        return null;
+    }
+
+    // Generate csv export URL
+    c.queryParams().set('format', 'csv');
+    const exportCsvEndpoint = '/api/summary?' + c.queryParams().encode();
+
+    return c.json(200, Object.assign(
+        results,
+        {
+            csv_endpoint: exportCsvEndpoint
+        }
+    ));
+});
+
+/**
+ *
+ * @param {echo.HandlerFunc} next
+ * @returns {echo.HandlerFunc}
+ */
+function loadAdminContextViaQuery(next) {
+    return (c) => {
+        const token = c.queryParam("token")
+        if (token.length == 0) {
+            return next(c);
+        }
+
+        const admin = $app.dao().findAdminByToken(token, $app.settings().adminAuthToken.secret);
+        c.set("admin", admin)
+        return next(c);
+    }
+}
+
+routerAdd("GET", "/admin/addon_orders/export", (c) => {
+    const filter = c.queryParam("filter");
+    const records = $app.dao().findRecordsByFilter(
+        "registrations",
+        "addons:length >= 1" + (filter.length !== 0 ? ` && (${filter})` : ''),
+        "-last_name",
+        0
+    )
+
+    $apis.enrichRecords(c, $app.dao(), records, 'addons.addon');
+    let output = 'Last Name,First Name,Add-on,Add-on Preference\n';
+
+    for (const record of records) {
+        const orderRecords = record.expandedAll('addons')
+
+        for (const order of orderRecords) {
+            const addon = order.expandedOne('addon');
+            const rawPrefs = order.getString('preferences');
+            const preferences = rawPrefs.length != 0 ? JSON.parse(rawPrefs) : {};
+
+            output += [
+                record.getString('last_name'),
+                record.getString('first_name'),
+                addon.getString('title'),
+                Object.entries(preferences).map(p => `${p[0]}: ${p[1]}`).join(' | ')
+            ].join(',') + '\n';
+        }
+    }
+
+    c.response().header().set("Content-Type", "text/csv");
+    c.response().header().set("Content-Disposition", `attachment; filename=addon_orders-${(new Date).getTime()}.csv`);
+    c.response().write(output);
+    return null;
+}, loadAdminContextViaQuery, $apis.requireAdminAuth());
+
 onRecordBeforeCreateRequest((e) => {
+    const settings = require(`${__hooks}/settings.js`);
+    if (!$apis.requestInfo(e.httpContext).admin && settings.getRegistrationStatus() !== 'open') {
+        throw new ForbiddenError('Registration is closed.');
+    }
+
     const utils = require(`${__hooks}/utils.js`);
     const { profileCollectionKey, profileDataKey } = utils.getProfileKeys(e.record.getString('type'));
     const profile_data = utils.getJsonData(e.httpContext, profileDataKey);
@@ -546,10 +828,16 @@ onRecordAfterUpdateRequest((e) => {
             txDao.saveRecord(e.record);
         });
 
-        if (e.record.getString(profileKey).length != 0 && e.record.getString('payment').length != 0) {
-            const host = "http://" + e.httpContext.request().host;
-            // Send e-mail if it was not created from admin dashboard
-            utils.sendEmails('summary', `id = "${e.record.id}"`, host);
+        try {
+            console.error('ERROR SENDING E-MAIL');
+
+            if (e.record.getString(profileKey).length != 0 && e.record.getString('payment').length != 0) {
+                const host = "http://" + e.httpContext.request().host;
+                // Send e-mail if it was not created from admin dashboard
+                utils.sendEmails('summary', `id = "${e.record.id}"`, host);
+            }
+        } catch (e) {
+            console.error(e);
         }
     } catch (e) {
         console.error(e);
@@ -561,6 +849,8 @@ onCollectionAfterUpdateRequest((e) => {
     if (e.collection.name === "registrations") {
         const utils = require(`${__hooks}/utils.js`);
         utils.buildRegistrationFields();
+
+        $app.cache().remove(`fields_${e.collection.id}`)
     }
 });
 

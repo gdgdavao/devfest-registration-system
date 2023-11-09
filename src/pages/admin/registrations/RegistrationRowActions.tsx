@@ -6,20 +6,22 @@ import IconEdit from '~icons/material-symbols/edit-outline';
 import IconDelete from '~icons/material-symbols/delete-outline';
 import IconScreen from '~icons/material-symbols/thumbs-up-down-outline';
 import { RecordIdString } from "@/pocketbase-types";
-import EditRegistrationDialog from "./EditRegistrationDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import IconEmail from '~icons/material-symbols/stacked-email-rounded';
 import SendMailDialog from "./SendMailDialog";
+import { RegistrationsResponse } from "@/client";
 
-export function RegistrationRowActions({ id, onDelete }: {
-    id: RecordIdString,
+export function RegistrationRowActions({ record, refetch, onDelete, onOpenEditor }: {
+    record: RegistrationsResponse,
+    refetch: () => Promise<void>
     onDelete: (id: RecordIdString) => Promise<void>
+    onOpenEditor: (id?: string) => void
 }) {
     return <div className="flex flex-row space-x-2">
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger>
-                    <ScreenRegistrantDialog id={id}>
+                    <ScreenRegistrantDialog id={record.id} onClose={() => refetch()}>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                             <IconScreen />
                         </Button>
@@ -33,11 +35,13 @@ export function RegistrationRowActions({ id, onDelete }: {
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger>
-                    <EditRegistrationDialog id={id}>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <IconEdit />
-                        </Button>
-                    </EditRegistrationDialog>
+                    <Button
+                        variant="ghost"
+                        type="button"
+                        onClick={() => onOpenEditor(record.id)}
+                        className="h-8 w-8 p-0">
+                        <IconEdit />
+                    </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                     Edit
@@ -47,7 +51,7 @@ export function RegistrationRowActions({ id, onDelete }: {
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger>
-                    <SendMailDialog template="confirm" filter={`id = "${id}"`}>
+                    <SendMailDialog template="confirm" recipients={[record.email]}>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                             <IconEmail />
                         </Button>
@@ -77,7 +81,7 @@ export function RegistrationRowActions({ id, onDelete }: {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => onDelete(id)}>
+                                <AlertDialogAction onClick={() => onDelete(record.id)}>
                                     Continue
                                 </AlertDialogAction>
                             </AlertDialogFooter>

@@ -2,6 +2,202 @@
 /// <reference path="./hooks.d.ts" />
 
 module.exports = {
+    sortSummary(a, b) {
+        return a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1;
+    },
+
+    /**
+     * Returns a summary data of a given collection
+     * @param {models.Collection} collection Collection name or ID
+     * @param {(models.Record | undefined)[]} records List of records
+     * @param {Record<string, unknown>} options Summary generation options
+     * @param {string[]} options.parentCollectionIds Parent collection ID;
+     * @param {string[]} options.exceptColumns Columns to be excluded
+     * @param {string[]} options.splittableColumns String columns that can are separated by comma
+     * @param {string[]} options.expand Columns to be expanded
+     * @param {{total: number, insights: any[]}[]} options.insights Existing insights data from summary
+     * @returns {{total: number, insights: any[]}}
+     */
+    generateSummary(collection, records, options = { exceptColumns: [], splittableColumns: [], expand: [] }) {
+        /** @type {string[]} */
+        const exceptColumns = options.exceptColumns ? options.exceptColumns : [];
+        /** @type {string[]} */
+        const splittableColumns = options.splittableColumns ? options.splittableColumns : [];
+        /** @type {string[]} */
+        const expand = options.expand ? options.expand : [];
+
+        const fields = collection.schema.fields().filter(f => {
+            if (f.type !== 'relation') {
+                return true;
+            }
+
+            if (options.parentCollectionIds && options.parentCollectionIds.includes(f.options.collectionId)) {
+                return false;
+            }
+
+            return expand.includes(f.name);
+        }).map(f => ({
+            system: f.system,
+            name: f.name,
+            type: f.type,
+            options: f.options
+        }));
+
+        // include filtering system columns
+        const systemColumns = fields.filter(f => f.system).map(f => f.name);
+        for (const col of systemColumns) {
+            exceptColumns.push(col);
+        }
+
+        let total = 0;
+        /** @type {{id: string, title: string, total: number, insights: any[]}[]} */
+        let results = options.insights && options.insights.length !== 0 ? options.insights : fields
+            .filter(f => !exceptColumns.includes(f.name)).map(col => ({
+                id: col.name,
+                title: col.name,
+                type: col.type,
+                total: 0,
+                share: {}
+            }));
+
+        const expandableResults = {};
+        const expandedCollections = {};
+
+        const tallyValue = function(result, rawV) {
+            const value = typeof rawV === 'string' ? rawV.trim() : rawV;
+            if (!value) return 0;
+            if (!(value in result.share)) {
+                result.share[value] = 0;
+            }
+            result.share[value]++;
+            return 1;
+        }
+
+        for (const rawRecord of records) {
+            for (let i = 0; i < results.length; i++) {
+                const col = results[i].id;
+                const value = rawRecord.getString(col);
+                if (!value) {
+                    continue;
+                }
+
+                const schemaField = fields.find(f => f.name === col);
+                if (!schemaField) {
+                    continue;
+                }
+
+                let added = 0;
+                if (schemaField.type === 'relation' && expand.includes(col) && rawRecord.expandedOne(col)) {
+                    if (!(col in expandedCollections)) {
+                        expandedCollections[col] = $app.dao().findCollectionByNameOrId(schemaField.options.collectionId);
+                    }
+
+                    const prefix = `${schemaField.name}.`;
+                    const expanded = rawRecord.expandedOne(col);
+                    const expandedResults = this.generateSummary(
+                        expandedCollections[col],
+                        [expanded],
+                        {
+                            parentCollectionIds: !options.parentCollectionIds ? [collection.id] : options.parentCollectionIds.concat(collection.id),
+                            exceptColumns: exceptColumns
+                                .filter(c => c.indexOf(prefix) === 0)
+                                .map(c => c.substring(prefix.length)),
+                            splittableColumns: splittableColumns
+                                .filter(c => c.indexOf(prefix) === 0)
+                                .map(c => c.substring(prefix.length)),
+                            expand: expand
+                                .filter(c => c.indexOf(prefix) === 0)
+                                .map(c => c.substring(prefix.length)),
+                            insights: expandableResults[schemaField.name] ? expandableResults[schemaField.name] : []
+                        }
+                    );
+
+                    if (!(schemaField.name in expandableResults)) {
+                        expandableResults[schemaField.name] = expandedResults.insights;
+                    }
+                } else if (schemaField.type === 'json') {
+                    const value = JSON.parse(rawRecord.getString(col));
+                    if (Array.isArray(value)) {
+                        for (const v of value) {
+                            added += tallyValue(results[i], v);
+                        }
+                    } else if (typeof value === 'object') {
+                        for (const key in value) {
+                            if (!results[i].share[key]) {
+                                results[i].share[key] = { share: {} };
+                            }
+                            const v = value[key];
+                            added += tallyValue(results[i].share[key], v);
+                        }
+                    }
+                } else if (splittableColumns.includes(col) && typeof value === 'string') {
+                    const values = value.split(',');
+                    for (const v of values) {
+                        added += tallyValue(results[i], v.trim());
+                    }
+                } else {
+                    added += tallyValue(results[i], value);
+                }
+
+                if (added > 0) {
+                    results[i].total++;
+                }
+            }
+
+            total++;
+        }
+
+        // Insert the summary data of expanded fields
+        if (expand.length > 0) {
+            for (let i = 0; i < results.length; i++) {
+                const col = results[i].id;
+                if (!(col in expandableResults)) {
+                    continue;
+                }
+
+                const rightSide = results.slice(i + 1);
+                const final = expandableResults[col]
+                    .map(j => Object.assign(j, {
+                        id: `${col}.${j.id}`,
+                        title: `${col}.${j.title}`
+                    }));
+
+                results = results.slice(0, i).concat(final, rightSide);
+            }
+        }
+
+        // Convert the "share" dict to array
+        if (!options.insights || !options.insights.length === 0) {
+            for (let i = 0; i < results.length; i++) {
+                const entries = Object.entries(results[i].share);
+                if (entries.length === 0) {
+                    results[i].share = [];
+                    continue;
+                }
+
+                if (typeof entries[0][1] === 'number') {
+                    results[i].share = entries.sort(this.sortSummary)
+                        .map((e) => ({ value: e[0], count: e[1] }));;
+                } else if (typeof entries[0][1] === 'object') {
+                    // For nested data, it should go here
+                    results[i].share = entries.map((e) => {
+                        return {
+                            value: e[0],
+                            entries: Object.entries(e[1].share)
+                                .sort(this.sortSummary)
+                                .map(ee => ({ value: ee[0], count: ee[1] }))
+                        };
+                    });
+                }
+            }
+        }
+
+        return {
+            total,
+            insights: results
+        }
+    },
+
     /**
      *
      * @param {echo.Context} c
@@ -406,10 +602,16 @@ module.exports = {
     /**
     *
     * @param {models.Collection | undefined} collection
-    * @param {{parent?: string, parentKey?: string, registrationType: string, hidden?: string[]} | undefined} _options
+    * @param {{parent?: string, parentKey?: string, registrationType: string, hidden?: string[]} | undefined, showHidden: boolean} _options
     * @returns {RegistrationField[]}
     */
     extractCollectionSchema(collection, _options) {
+        if (!_options) {
+            _options = {
+                showHidden: false
+            };
+        }
+
         const fieldsFromSchema = collection.schema.fields();
 
         /**
@@ -461,7 +663,7 @@ module.exports = {
                 }
             } catch (e) {}
 
-            if (typeof options.hidden == "boolean" && options.hidden) {
+            if (!_options.showHidden && (typeof options.hidden == "boolean" && options.hidden)) {
                 continue;
             }
 
@@ -485,7 +687,8 @@ module.exports = {
                         parent: collection.id,
                         parentKey: field.name,
                         registrationType: _options.registrationType,
-                        hidden: hiddenFields
+                        hidden: hiddenFields,
+                        showHidden: _options.showHidden
                     });
 
                     fields.push({
@@ -537,6 +740,107 @@ module.exports = {
                 group,
                 title,
                 description,
+                options
+            });
+        }
+
+        return fields;
+    },
+
+    /**
+    *
+    * @param {models.Collection | undefined} collection
+    * @param {{parent?: string, parentKey?: string, hidden?: string[], expand?: string[]} | undefined,} _options
+    * @returns {RegistrationField[]}
+    */
+    extractCollectionSchema2(collection, _options) {
+        if (!_options) {
+            _options = {
+                hidden: [],
+                expand: []
+            };
+        }
+
+        const fieldsFromSchema = collection.schema.fields();
+
+        /**
+         * @type {RegistrationField[]}
+         */
+        const fields = [];
+
+        for (const field of fieldsFromSchema) {
+            if (_options.hidden && _options.hidden.indexOf(field.name) !== -1) {
+                continue;
+            }
+
+            let options = JSON.parse(JSON.stringify(field.options));
+            let title = field.name;
+            let shouldExpand = false;
+            if (field.type == "relation" && _options.expand && _options.expand.findIndex(f => f.indexOf(field.name) !== -1 || f.indexOf(field.name + ".")) !== -1) {
+                shouldExpand = true;
+            }
+
+            if (field.type === "relation") {
+                // Avoid loop!
+                if (typeof _options.parent !== "undefined" && field.options.collectionId === _options.parent) {
+                    continue;
+                }
+
+                if (shouldExpand) {
+                    const keyWithParent = _options.parentKey ? `${_options.parentKey}.${field.name}` : field.name;
+
+                    const hiddenFields = Array.isArray(_options.hidden) ? _options.hidden
+                        .filter(f => f.indexOf(keyWithParent) !== -1 && f.length > keyWithParent.length)
+                        .map(f => f.substring(keyWithParent.length + 1)) : [];
+
+                    const expandFields = Array.isArray(_options.expand) ? _options.expand
+                        .filter(f => f.indexOf(keyWithParent) !== -1 && f.length > keyWithParent.length)
+                        .map(f => f.substring(keyWithParent.length + 1)) : [];
+
+                    const relCollection = $app.dao().findCollectionByNameOrId(field.options.collectionId);
+
+                    const relFields = this.extractCollectionSchema2(relCollection, {
+                        parent: collection.id,
+                        parentKey: keyWithParent,
+                        hidden: hiddenFields,
+                        expand: expandFields,
+                    });
+
+                    options = { ...options, fields: relFields }
+                }
+                
+                fields.push({
+                    title,
+                    name: field.name,
+                    type: field.type,
+                    options
+                });
+
+                continue;
+            }
+
+            if (collection.name === "registrations" && field.name === "topic_interests") {
+                const topicRecords = arrayOf(new Record);
+
+                $app.dao().recordQuery("topic_interests")
+                    .all(topicRecords);
+
+                const topics = [];
+
+                for (const topic of topicRecords) {
+                    topics.push({
+                        name: topic.get("topic_name"),
+                        key: topic.get("key")
+                    });
+                }
+
+                options = { ...options, topics };
+            }
+
+            fields.push({
+                name: field.name,
+                type: field.type,
+                title,
                 options
             });
         }

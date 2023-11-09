@@ -4,11 +4,18 @@ Dear {{.first_name}},
 
 {{define "body"}}
     {{if eq .status "approved"}}
-        <p>You’ve been selected to attend {{.event_name}}! We want to make this event productive and fun while keeping everyone safe. Only fully vaccinated participants are allowed to be admitted to the venue. To confirm your slot & vaccination status kindly fill out the RSVP form.</p>
+        <p style="margin-bottom: 12px; line-height: 1.325;">Greetings from the {{.event_name}} team!</p>
+        <p style="margin-bottom: 12px; line-height: 1.325;">Congratulations! You have been accepted to participate in {{.event_name}}, taking place on November 11, 2023 at the Sedes Sapientiae Auditorium, Holy Cross of Davao College, Sta. Ana Ave., Davao City.</p>
+        <p style="margin-bottom: 12px; line-height: 1.325;">We are thrilled to have you join us for this exciting event, which will bring together over 100+ developers from the IT industry in Davao City and the surrounding areas. The conference will feature keynote speakers, lightning talks, and networking opportunities.</p>
+        <p style="margin-bottom: 12px; line-height: 1.325;">We will send you more closer to the event date for you to be prepared for the event.</p>
+        <p style="margin-bottom: 12px; line-height: 1.325;">In the meantime, please follow our Facebook page at <a href="https://www.facebook.com/gdgdavao">facebook.com/gdgdavao</a> for announcements.</p>
+        <p style="line-height: 1.325;">We look forward to seeing you at {{.event_name}}!</p>
     {{else}}
-        <p>Thank you for taking the time to register for our {{.event_name}}. However, we regret to inform you that you won't be able to participate for this year's event.</p>
+        <p style="margin-bottom: 12px; line-height: 1.325;">Thank you for taking the time to register in {{.event_name}}. Unfortunately, we were unable to accept your application due to the high volume of applications and limited space.</p>
+        <p style="margin-bottom: 12px; line-height: 1.325;">We will be issuing a full refund to your payment method within 5-7 business days. We apologize for any inconvenience this may cause.</p>
+        <p style="line-height: 1.325;">We encourage you to keep an eye on our <a href="https://www.facebook.com/gdgdavao">Facebook page</a> for future events. We wish you all the best.</p>
     {{end}}
 
-    <p style="margin-top: 28px;margin-bottom: 4px;">Best wishes,</p>
+    <p style="margin-top: 28px;margin-bottom: 4px;">Sincerely,</p>
     <p>{{.event_name}} Team</p>
 {{end}}
