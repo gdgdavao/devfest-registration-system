@@ -50,13 +50,23 @@ export default function ExportCsvDialog({ collection, filter = [], expand = [], 
         });
     }, [isOpen]);
 
+    useEffect(() => {
+        if (isOpen && !isLoading && fields) {
+            form.setValue('fields', fields.map(f => {
+                if (Array.isArray(f.options.field)) {
+                    return [`${f.name}.*`].concat(f.options.field.map(ff => `${f.name}.${ff.name}`));
+                }
+                return f.name;
+            }).flat());
+        }
+    }, [isOpen, fields, isLoading]);
+
     const FieldCheckbox = ({ parentKey, f }: {parentKey: string, f: RegistrationField}) => {
         const fieldName = parentKey ? `${parentKey}.${f.name}` : f.name;
         const isRel = f.options.type === 'relation' && !!f.options.fields;
 
         return (
             <FormField
-                key={fieldName}
                 control={form.control}
                 defaultValue={[]}
                 name="fields"
@@ -69,14 +79,15 @@ export default function ExportCsvDialog({ collection, filter = [], expand = [], 
                             <div className="space-x-3">
                                 <FormControl>
                                     <Checkbox
-                                        checked={isRel && field.value?.includes(`${fieldName}.*`) ? true :
+                                        checked={!isRel ? field.value.includes(fieldName) :
+                                            field.value.includes(`${fieldName}.*`) ? true : 
                                             field.value.some(fn => fn.startsWith(`${fieldName}.`)) ? 'indeterminate' : false}
                                         onCheckedChange={(checked) => {
                                             return checked
-                                                ? field.onChange([...field.value, `${fieldName}.*`])
+                                                ? field.onChange([...field.value, isRel ? `${fieldName}.*` : fieldName])
                                                 : field.onChange(
                                                     field.value?.filter(
-                                                        (value) => value !== `${fieldName}.*` && !value.startsWith(`${fieldName}.`)
+                                                        (value) => isRel ?  value !== `${fieldName}.*` && !value.startsWith(`${fieldName}.`) : value !== fieldName
                                                     )
                                                 )
                                         }}
@@ -91,7 +102,10 @@ export default function ExportCsvDialog({ collection, filter = [], expand = [], 
                             {isRel && (
                                 <div className="pl-4">
                                     {(f.options.fields as RegistrationField[]).map((sf) => (
-                                        <FieldCheckbox parentKey={f.name} f={sf} />
+                                        <FieldCheckbox 
+                                            key={fieldName} 
+                                            parentKey={f.name} 
+                                            f={sf} />
                                     ))}
                                 </div>
                             )}
@@ -103,9 +117,8 @@ export default function ExportCsvDialog({ collection, filter = [], expand = [], 
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={(state) => {
+        <Dialog open={isOpen && !isLoading} onOpenChange={(state) => {
             setIsOpen(state);
-            setTimeout(() => (document.body.style.pointerEvents = ""), 100);
         }}>
             <DialogTrigger asChild>
                 {children}
@@ -145,7 +158,10 @@ export default function ExportCsvDialog({ collection, filter = [], expand = [], 
                                         <FormLabel>Fields to export</FormLabel>
                                         <ScrollArea className="h-[300px]">
                                             {fields?.map(f => (
-                                                <FieldCheckbox parentKey="" f={f} />
+                                                <FieldCheckbox 
+                                                    key={f.name}
+                                                    parentKey="" 
+                                                    f={f} />
                                             ))}
                                         </ScrollArea>
                                     <FormMessage />

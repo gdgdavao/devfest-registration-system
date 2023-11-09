@@ -854,11 +854,13 @@ export function useImportCsvMutation() {
 // }
 
 export function useExportCsvMutation() {
-    return useMutation(async ({ collection, expand = [], filter }: { collection: `${Collections}`, expand?: string[], filter?: string }) => {
+    return useMutation(async ({ collection, fields = [], expand = [], filter }: { collection: `${Collections}`, fields?: string[], expand?: string[], filter?: string }) => {
         const params = (new URLSearchParams({
             collection,
+            fields: fields.join(','),
             filter: filter ?? '',
-            expand: expand.join(',')
+            expand: expand.join(','),
+
         })).toString();
 
         const resp = await fetch(pb.buildUrl(`/csv/export?${params}`));
@@ -883,7 +885,7 @@ export function useExportCsvMutation() {
 
 // Fields
 export function useFieldsQuery(collection: `${Collections}`, { hidden = [], expand = [] }: { hidden?: string[], expand?: string[] } = {}) {
-  return useQuery([collection, 'fields'], () => {
+  return useQuery([collection, 'fields', expand], () => {
       const params = new URLSearchParams({ hidden: hidden.join(','), expand: expand.join(',') });
       return pb.send<RegistrationField[]>(`/api/admin/fields/${collection}?${params.toString()}`, { });
   });
