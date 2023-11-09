@@ -33,6 +33,8 @@ import {
   MerchSensingDataResponse,
   CustomSettingsResponse,
   RegistrationStatusesReasonOptions,
+  ParticipantsResponse,
+  ParticipantsRecord,
 } from "./pocketbase-types";
 import { ErrorOption } from "react-hook-form";
 import {
@@ -888,5 +890,39 @@ export function useFieldsQuery(collection: `${Collections}`, { hidden = [], expa
   return useQuery([collection, 'fields', expand], () => {
       const params = new URLSearchParams({ hidden: hidden.join(','), expand: expand.join(',') });
       return pb.send<RegistrationField[]>(`/api/admin/fields/${collection}?${params.toString()}`, { });
+  });
+}
+
+// Participants
+export type ParticipantResponse = ParticipantsResponse<{
+  registrant: RegistrationsResponse
+}>
+
+export function useParticipantsSearchQuery(filterQuery: pbf.Filter | null) {
+  return useQuery([Collections.Participants, filterQuery], () => {
+    return pb.collection(Collections.Participants).getFullList<ParticipantResponse>(undefined, {
+      filter: pbf.stringify(filterQuery),
+      expand: ['registrant'].concat(REGISTRATION_RESP_EXPAND.split(',').map(ex => 'registrant.' + ex)).join(','),
+    });
+  }, {
+    enabled: filterQuery !== null
+  });
+}
+
+export function useParticipantQuery(id: string) {
+  return useQuery([Collections.Participants, id], () => {
+    return pb.collection(Collections.Participants).getFirstListItem<ParticipantResponse>(
+      pbf.stringify(pbf.eq('pId', id)),
+      {
+        expand: ['registrant'].concat(REGISTRATION_RESP_EXPAND.split(',').map(ex => 'registrant.' + ex)).join(','),
+      });
+  }, {
+    enabled: id.length !== 0
+  });
+}
+
+export function useParticipantMutation() {
+  return useMutation((record: Partial<ParticipantsRecord> & { id: RecordIdString }) => {
+    return pb.collection(Collections.Participants).update(record.id, record);
   });
 }

@@ -9,6 +9,7 @@ import IconPending from "~icons/material-symbols/pending-outline";
 import IconApprove from "~icons/material-symbols/check-circle-outline";
 import IconReject from "~icons/material-symbols/cancel-outline";
 import IconSummary from "~icons/material-symbols/browse-activity-outline-rounded";
+import IconCheckbox from "~icons/material-symbols/check-box-outline";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { pb } from "@/client";
@@ -64,6 +65,11 @@ const navSections: NavSection[] = [
         icon: IconSummary,
         label: "Summary",
       },
+      {
+        path: "/registrations/check-in",
+        icon: IconCheckbox,
+        label: "Check-in",
+      },
     ],
   },
   {
@@ -79,6 +85,11 @@ const navSections: NavSection[] = [
   {
     name: "Logistics",
     entries: [
+      {
+        path: "/logistics/addon_orders/claim",
+        icon: IconCheckbox,
+        label: "Claim Add-on Order",
+      },
       {
         path: "/logistics/addon_orders",
         icon: IconAll,
