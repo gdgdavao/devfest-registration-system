@@ -334,10 +334,11 @@ module.exports = {
      *
      * @param {string} collectionId
      * @param {string[]} expand
+     * @param {string[]} fields
      * @param {string | undefined} filter
      * @returns
      */
-    exportToCsv(collectionId, expand = [], filter) {
+    exportToCsv(collectionId, expand = [], included = [], filter) {
         const records = filter && filter.length !== 0 ?
             $app.dao().findRecordsByFilter(collectionId, filter, 'created', 0) :
             $app.dao().findRecordsByExpr(collectionId);
@@ -357,11 +358,21 @@ module.exports = {
             const fields = Object.assign(raw, {});
 
             for (const name in fields) {
-                if (excludeFieldNames.indexOf(name) !== -1) {
+                if (excludeFieldNames.indexOf(name) !== -1 || (included.length !== 0 && included.indexOf(name) === -1)) {
                     delete fields[name];
                 } else if (Array.isArray(fields[name])) {
+                    if (included.length !== 0 && included.indexOf(name + ".*") === -1) {
+                        delete fields[name];
+                        continue;
+                    }
+
                     for (let i = 0; i < fields[name].length; i++) {
                         for (const nname in fields[name][i]) {
+                            if (included.length !== 0 && included.indexOf(name + "." + nname) === -1) {
+                                delete fields[name][i][nname];
+                                continue;
+                            }
+
                             if (excludeFieldNames.indexOf(nname) !== -1) {
                                 delete fields[name][i][nname];
                             }
@@ -369,6 +380,11 @@ module.exports = {
                     }
                 } else if (typeof fields[name] === 'object') {
                     for (const nname in fields[name]) {
+                        if (included.length !== 0 && included.indexOf(name + "." + nname) === -1) {
+                            delete fields[name][nname];
+                            continue;
+                        }
+
                         if (excludeFieldNames.indexOf(nname) !== -1) {
                             delete fields[name][nname];
                         }

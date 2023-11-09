@@ -560,7 +560,8 @@ routerAdd("GET", "/csv/export", (c) => {
         const utils = require(`${__hooks}/utils.js`);
         const filter = c.queryParam("filter");
         const expand = c.queryParam("expand").split(",").filter(Boolean);
-        const output = utils.exportToCsv(collection, expand, filter);
+        const fields = c.queryParam("fields").split(",").filter(Boolean);
+        const output = utils.exportToCsv(collection, expand, fields, filter);
 
         c.response().header().set("Content-Type", "text/csv");
         c.response().header().set("Content-Disposition", `attachment; filename=${collection}-${(new Date).getTime()}.csv`);

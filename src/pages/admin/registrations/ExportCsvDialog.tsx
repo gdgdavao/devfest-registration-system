@@ -13,6 +13,7 @@ import * as pbf from "@nedpals/pbf";
 import { Collections } from "@/pocketbase-types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
+import toast from "react-hot-toast";
 
 export default function ExportCsvDialog({ collection, filter = [], expand = [], children }: {
     collection: `${Collections}`
@@ -127,8 +128,13 @@ export default function ExportCsvDialog({ collection, filter = [], expand = [], 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(({ filter, ...payload }) => {
                         exportCsv({
-                            ...payload,
+                            collection: payload.collection,
                             filter: pbf.stringify(filter.length > 1 ? pbf.and(...filter) : filter[0]),
+                        }, {
+                            onSuccess() {
+                                toast.success("CSV exported successfully");
+                                setIsOpen(false)
+                            },
                         });
                     })}>
                         <DialogHeader>
