@@ -158,7 +158,7 @@ export type RegistrationsResponse = PBRegistrationsResponse<
   }
 >;
 
-const REGISTRATION_RESP_EXPAND =
+export const REGISTRATION_RESP_EXPAND =
   "status,student_profile,professional_profile,payment,addons.addon,ticket,merch_sensing_data";
 
 export interface RegistrationRecord extends RegistrationsRecord {
@@ -821,5 +821,72 @@ export function useScreeningDetailsQuery(registrantId: string, { enabled = true,
       `/api/admin/screening/${registrantId}${filter ? '?' + (new URLSearchParams({filter}).toString()) : '' }`, {});
   }, {
     enabled,
+  });
+}
+
+// Import / export CSV
+export function useImportCsvMutation() {
+    return useMutation((payload: {
+        import_id: string
+        collection: Collections
+        mappings?: Record<string, string>
+    }) => {
+        return pb.send<{ message: string }>('/csv/import', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+    });
+}
+
+// export function useInitialImportCsvMutation() {
+//     return useMutation((csv: File) => {
+//         const fd = new FormData();
+//         fd.set('csv', csv);
+
+//         return pb.send<CsvImportsResponse<string[]>>('/csv/initial-import', {
+//             method: 'POST',
+//             body: fd
+//         });
+//     });
+// }
+
+export function useExportCsvMutation() {
+    return useMutation(async ({ collection, fields = [], expand = [], filter }: { collection: `${Collections}`, fields?: string[], expand?: string[], filter?: string }) => {
+        const params = (new URLSearchParams({
+            collection,
+            fields: fields.join(','),
+            filter: filter ?? '',
+            expand: expand.join(','),
+
+        })).toString();
+
+        const resp = await fetch(pb.buildUrl(`/csv/export?${params}`));
+        if (!resp.ok) {
+            const json = await resp.json();
+            throw new ClientResponseError(json);
+        }
+
+        const contentDisposition = resp.headers.get('Content-Disposition') ?? `attachment; filename=${collection}-${(new Date).getTime()}.csv`;
+        const filenamePortion = 'filename=';
+        const filenameIdx = contentDisposition.indexOf(filenamePortion);
+        const filename =  contentDisposition.substring(filenameIdx + filenamePortion.length);
+        const blob = await resp.blob();
+        const url = window.URL.createObjectURL(blob);
+        const virtualDlBtn = document.createElement('a');
+        virtualDlBtn.href = url;
+        virtualDlBtn.download = filename;
+        virtualDlBtn.click();
+        return url;
+    });
+}
+
+// Fields
+export function useFieldsQuery(collection: `${Collections}`, { hidden = [], expand = [] }: { hidden?: string[], expand?: string[] } = {}) {
+  return useQuery([collection, 'fields', expand], () => {
+      const params = new URLSearchParams({ hidden: hidden.join(','), expand: expand.join(',') });
+      return pb.send<RegistrationField[]>(`/api/admin/fields/${collection}?${params.toString()}`, { });
   });
 }

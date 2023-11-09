@@ -212,6 +212,193 @@ module.exports = {
         }
         return defaultValue;
     },
+
+    /**
+     *
+     * @param {object | array} obj
+     * @param {string[]} keys
+     * @param {any} value
+     * @param {number} index
+     * @returns {void}
+     */
+    insertValueToObj(obj, keys, value, index) {
+        const key = isNaN(keys[index]) ? parseInt(keys[index]) : keys[index];
+        if (index + 1 < keys.length) {
+            if (!(key in obj)) {
+                obj[key] = !isNaN(keys[index + 1]) ? [] : {};
+            }
+            return this.insertValueToObj(obj[key], keys, value, index + 1);
+        }
+        obj[key] = value;
+    },
+
+    /**
+     *
+     * @param {string} collectionId
+     * @param {string} csvData
+     * @param {Record<string, string>} mappings
+     * @returns {number}
+     */
+    importCsv(collectionId, csvData, mappings) {
+        const csvParser = require(`${__hooks}/csv_parser.js`);
+        const lines = csvParser.parseCSV(csvData);
+        const headers = lines[0];
+        const mappedHeaders = [];
+        const jsonArray = [];
+
+        for (let i = 0; i < headers.length; i++) {
+            mappedHeaders.push(headers[i]);
+            if (mappings && headers[i] in mappings) {
+                const keys = mappings[headers[i]].split('.');
+                mappedHeaders[i] = keys.length === 1 ? keys[0] : keys;
+            }
+        }
+
+        for (let i = 1; i < lines.length; i++) {
+            const currentLine = lines[i];
+            if (currentLine.length !== headers.length) {
+                // Skip lines with mismatched columns
+                continue;
+            }
+
+            const jsonObj = {};
+
+            for (let j = 0; j < mappedHeaders.length; j++) {
+                const header = mappedHeaders[j];
+                if (Array.isArray(header)) {
+                    this.insertValueToObj(jsonObj, header, currentLine[j], 0);
+                } else {
+                    jsonObj[header] = currentLine[j];
+                }
+            }
+
+            jsonArray.push(jsonObj);
+        }
+
+        let count = 0;
+
+        $app.dao().runInTransaction((txDao) => {
+            const collection = txDao.findCollectionByNameOrId(collectionId)
+
+            for (const jsonObj of jsonArray) {
+                const record = new Record(collection, jsonObj);
+                txDao.saveRecord(record);
+                count++;
+            }
+        });
+
+        return count;
+    },
+
+    /**
+     *
+     * @param {object | array} obj
+     * @param {string | undefined} parentKey
+     * @returns {object}
+     */
+    flattenJson(obj, parentKey) {
+        let result = {};
+        if (Array.isArray(obj)) {
+            for (let i = 0; i < obj.length; i++) {
+                const finalKey = parentKey ? `${parentKey}.${i}` : i;
+                const value = obj[i];
+                if (typeof value === 'object' || Array.isArray(value)) {
+                    result = Object.assign(result, this.flattenJson(value, finalKey));
+                } else if (value === null || typeof value === 'undefined') {
+                    result[finalKey] = '';
+                } else if (typeof value === 'string' && value.indexOf(',') !== -1) {
+                    result[finalKey] = `"${value}"`;
+                } else {
+                    result[finalKey] = value;
+                }
+            }
+        } else {
+            for (const key in obj) {
+                const finalKey = parentKey ? `${parentKey}.${key}` : key;
+                const value = obj[key];
+                if (typeof value === 'object' || Array.isArray(value)) {
+                    result = Object.assign(result, this.flattenJson(value, finalKey));
+                } else if (value === null || typeof value === 'undefined') {
+                    result[finalKey] = '';
+                } else if (typeof value === 'string' && value.indexOf(',') !== -1) {
+                    result[finalKey] = `"${value}"`;
+                } else {
+                    result[finalKey] = value;
+                }
+            }
+        }
+        return result;
+    },
+
+    /**
+     *
+     * @param {string} collectionId
+     * @param {string[]} expand
+     * @param {string | undefined} filter
+     * @returns
+     */
+    exportToCsv(collectionId, expand = [], filter) {
+        const records = filter && filter.length !== 0 ?
+            $app.dao().findRecordsByFilter(collectionId, filter, 'created', 0) :
+            $app.dao().findRecordsByExpr(collectionId);
+
+        if (expand.length !== 0) {
+            const errors = $app.dao().expandRecords(records, expand, null);
+            if (Object.keys(errors).length !== 0) {
+                throw new BadRequestError('Something went wrong.', errors);
+            }
+        }
+
+        const excludeFieldNames = ['expand', 'collectionId', 'collectionName', 'id'];
+
+        const flattened = records.map((r) => {
+            const raw = JSON.parse(JSON.stringify(r));
+            const rExpand = raw.expand ? raw.expand : {};
+            const fields = Object.assign(raw, {});
+
+            for (const name in fields) {
+                if (excludeFieldNames.indexOf(name) !== -1) {
+                    delete fields[name];
+                } else if (Array.isArray(fields[name])) {
+                    for (let i = 0; i < fields[name].length; i++) {
+                        for (const nname in fields[name][i]) {
+                            if (excludeFieldNames.indexOf(nname) !== -1) {
+                                delete fields[name][i][nname];
+                            }
+                        }
+                    }
+                } else if (typeof fields[name] === 'object') {
+                    for (const nname in fields[name]) {
+                        if (excludeFieldNames.indexOf(nname) !== -1) {
+                            delete fields[name][nname];
+                        }
+                    }
+                }
+            }
+
+            return this.flattenJson(Object.assign(fields, rExpand));
+        });
+
+        const headersSet = new Set();
+
+        for (const record of flattened) {
+            for (const rKey in record) {
+                headersSet.add(rKey);
+            }
+        }
+
+        const headers = Array.from(headersSet).sort();
+        const csvRows = [];
+        csvRows.push(headers.join(','));
+
+        for (const record of flattened) {
+            const values = headers.map((header) => record[header] ? record[header] : '');
+            csvRows.push(values.join(','));
+        }
+
+        return csvRows.join('\n');
+    },
+
     /**
      * @param {string} type
      * @param {string} filter

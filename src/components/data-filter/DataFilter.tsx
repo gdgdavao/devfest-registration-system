@@ -5,8 +5,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { CommandLoading } from "cmdk";
 import { LoaderIcon } from "lucide-react";
 import { Collections } from "@/pocketbase-types";
-import { useQuery } from "@tanstack/react-query";
-import { RegistrationField, pb } from "@/client";
+import { RegistrationField, useFieldsQuery } from "@/client";
 import { useMemo, useState } from "react";
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "../ui/select";
 import { DataFilterValue } from "./types";
@@ -35,11 +34,7 @@ export default function DataFilter({ collection, expand = [], hidden = [], value
     onChange: (v: DataFilterValue[]) => void
 }) {
     const [openedFilter, setOpenedFilter] = useState(-2);
-
-    const { data, isLoading } = useQuery([collection, 'fields'], () => {
-        const params = new URLSearchParams({ hidden: hidden.join(','), expand: expand.join(',') });
-        return pb.send<RegistrationField[]>(`/api/admin/fields/${collection}?${params.toString()}`, { });
-    });
+    const { data, isLoading } = useFieldsQuery(collection, { expand, hidden });
 
     const fields = useMemo(() => {
         if (!data) {

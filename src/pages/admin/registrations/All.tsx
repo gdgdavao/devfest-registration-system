@@ -8,10 +8,13 @@ import IconDelete from '~icons/material-symbols/delete-outline';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import useAdminFiltersState from "@/lib/admin_utils";
 import { DataFilterValue } from "@/components/data-filter/types";
+import { Download } from "lucide-react";
+import ExportCsvDialog from "./ExportCsvDialog";
+import { REGISTRATION_RESP_EXPAND } from "@/client";
 
 export default function AllRegistrations() {
     const { finalFilterList } = useAdminFiltersState();
-    
+
     return <RegistrationsPage actions={({ selected, onDelete, onOpenEditor }) => {
             if (selected.length !== 0) {
                 return <div className="flex items-center justify-between bg-slate-100 p-2 w-full flex-row">
@@ -51,7 +54,24 @@ export default function AllRegistrations() {
                 </div>
             }
 
-            return <div className="flex flex-row space-x-2">
+            return <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
+                {/* <ImportCsvDialog>
+                    <Button>
+                        <Upload className="mr-2" />
+                        Import
+                    </Button>
+                </ImportCsvDialog> */}
+
+                <ExportCsvDialog
+                    collection="registrations"
+                    filter={finalFilterList as DataFilterValue[]}
+                    expand={REGISTRATION_RESP_EXPAND.split(",")}>
+                    <Button>
+                        <Download className="mr-2" />
+                        Export
+                    </Button>
+                </ExportCsvDialog>
+
                 {/* TODO: change filter, add status */}
                 <SendMailDialog template="confirm" filter={finalFilterList as DataFilterValue[]}>
                     <Button>

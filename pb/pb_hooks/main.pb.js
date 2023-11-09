@@ -97,6 +97,36 @@ $app.rootCmd.addCommand(new Command({
 }));
 
 onAfterBootstrap((e) => {
+    // Create CSV imports if not present
+    // if (e.app.dao().isCollectionNameUnique("csv_imports")) {
+    //     const csvImportCollection = new Collection({
+    //         name: 'csv_imports',
+    //         type: 'base',
+    //         schema: [
+    //             {
+    //                 name: 'file',
+    //                 type: 'file',
+    //                 required: true,
+    //                 options: {
+    //                     "maxSelect": 1,
+    //                     "maxSize": 10000000,
+    //                     "mimeTypes": [],
+    //                     "thumbs": null,
+    //                     "protected": false // 10mb
+    //                 }
+    //             },
+    //             {
+    //                 name: 'columns',
+    //                 type: 'json',
+    //                 required: true,
+    //                 options: {}
+    //             }
+    //         ]
+    //     });
+
+    //     e.app.dao().saveCollection(csvImportCollection);
+    // }
+
     // Initialize custom settings
     if (e.app.dao().isCollectionNameUnique('custom_settings')) {
         const collection = new Collection({
@@ -472,6 +502,76 @@ routerAdd("GET", "/api/email_templates", (c) => {
     return c.json(200, templatesList);
 }, $apis.requireAdminAuth());
 
+// routerAdd("POST", "/csv/import", (c) => {
+//     const data = $apis.requestInfo(c).data;
+//     const importId = data["import_id"];
+//     if (!importId) {
+//         throw new BadRequestError()
+//     }
+
+//     const mappings = data["mappings"];
+//     if (typeof mappings !== 'object') {
+//         throw new BadRequestError("Mappings should be an object of strings.")
+//     }
+
+//     const importEntry = $app.dao().findRecordById('csv_imports', importId);
+//     const collection = data["collection"];
+//     if (!collection) {
+//         throw new BadRequestError("Collection ID or name must be provided.");
+//     }
+
+//     const fileKey = importEntry.baseFilesPath() + "/" + importEntry.getString("file");
+//     const csvFile = $filesystem.fileFromPath(fileKey);
+//     const csvData = readerToString(csvFile.reader.open());
+//     const n = utils.importCsv(collection, csvData, mappings);
+
+//     return c.json(200, { message: `${n} records were imported successfully.` })
+// });
+
+// routerAdd("POST", "/csv/initial-import", (c) => {
+//     const rawCsvFile = c.formFile("csv");
+//     if (rawCsvFile.header.get("Content-Type") != "text/csv") {
+//         throw new BadRequestError("Invalid file type. Must be a file with CSV format.");
+//     }
+
+//     const csvFile = $filesystem.fileFromMultipart(rawCsvFile);
+//     const csvData = readerToString(csvFile.reader.open());
+//     const csv = require(`${__hooks}/csv_parser.js`);
+//     const rows = csv.parseCSV(csvData);
+//     const headers = rows[0];
+
+//     const collection = $app.dao().findCollectionByNameOrId('csv_imports');
+//     const record = new Record(collection);
+//     const form = new RecordUpsertForm($app, record);
+//     form.loadData({ columns: headers });
+//     form.addFiles('file', csvFile);
+//     form.submit();
+
+//     return c.json(200, record);
+// }, $apis.requireAdminAuth());
+
+routerAdd("GET", "/csv/export", (c) => {
+    try {
+        const collection = c.queryParam("collection");
+        if (!collection) {
+            throw new BadRequestError('Collection name or ID must be provided.');
+        }
+
+        const utils = require(`${__hooks}/utils.js`);
+        const filter = c.queryParam("filter");
+        const expand = c.queryParam("expand").split(",").filter(Boolean);
+        const output = utils.exportToCsv(collection, expand, filter);
+
+        c.response().header().set("Content-Type", "text/csv");
+        c.response().header().set("Content-Disposition", `attachment; filename=${collection}-${(new Date).getTime()}.csv`);
+        c.response().write(output);
+        return null;
+    } catch(e) {
+        console.error(e);
+        throw e;
+    }
+});
+
 routerAdd("GET", "/assets/*", $apis.staticDirectoryHandler(`${__hooks}/assets`, false));
 
 // Summary API
@@ -542,8 +642,8 @@ routerAdd("GET", "/api/summary", (c) => {
 });
 
 /**
- * 
- * @param {echo.HandlerFunc} next 
+ *
+ * @param {echo.HandlerFunc} next
  * @returns {echo.HandlerFunc}
  */
 function loadAdminContextViaQuery(next) {
@@ -570,7 +670,7 @@ routerAdd("GET", "/admin/addon_orders/export", (c) => {
 
     $apis.enrichRecords(c, $app.dao(), records, 'addons.addon');
     let output = 'Last Name,First Name,Add-on,Add-on Preference\n';
-    
+
     for (const record of records) {
         const orderRecords = record.expandedAll('addons')
 
@@ -578,7 +678,7 @@ routerAdd("GET", "/admin/addon_orders/export", (c) => {
             const addon = order.expandedOne('addon');
             const rawPrefs = order.getString('preferences');
             const preferences = rawPrefs.length != 0 ? JSON.parse(rawPrefs) : {};
-            
+
             output += [
                 record.getString('last_name'),
                 record.getString('first_name'),
