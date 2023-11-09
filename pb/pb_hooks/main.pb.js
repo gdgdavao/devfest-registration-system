@@ -77,6 +77,50 @@ $app.rootCmd.addCommand(new Command({
 }));
 
 $app.rootCmd.addCommand(new Command({
+    use: "generate-participants",
+    run: function() {
+        const collection = $app.dao().findCollectionByNameOrId('participants');
+        const records = $app.dao().findRecordsByFilter('registrations', 'status.status = "approved"', '+created', -1);
+        const idTypeCounter = {
+            'TENSOR': 0,
+            'VERTEX': 0,
+            'JETPACK': 0
+        };
+
+        let i = 0;
+        const nonAddonTypeIds = ['VERTEX', 'JETPACK'];
+        let nonAddonTypeIdx = 0;
+
+        for (const registrantRecord of records) {
+            console.log(registrantRecord.email());
+
+            i++;
+
+            let idType = 'VERTEX';
+            if (registrantRecord.getStringSlice('addons').length !== 0) {
+                idType = 'TENSOR';
+            } else {
+                idType = nonAddonTypeIds[nonAddonTypeIdx];
+                nonAddonTypeIdx = (nonAddonTypeIdx + 1) % nonAddonTypeIds.length;
+            }
+
+            idTypeCounter[idType]++;
+
+            const id = `${idType}-${"000".substring(0, 3 - i.toString().length) + i}`;
+            const record = new Record(collection, {
+                registrant: registrantRecord.id,
+                status: 'unchecked',
+                pId: id,
+                is_addon_claimed: false,
+                remarks: ''
+            });
+
+            $app.dao().saveRecord(record);
+        }
+    }
+}));
+
+$app.rootCmd.addCommand(new Command({
     use: "send-emails",
     run: function(cmd, args) {
         const filter = args[0];
