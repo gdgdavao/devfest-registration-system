@@ -154,5 +154,25 @@ module.exports = {
             }
             return 'Should not be sent.';
         }
+    },
+    'participant-id': {
+        name: 'Participant ID',
+        path: `${__hooks}/views/emails/participant-id.html`,
+        /**
+        *
+        * @param {models.Record} record
+        * @param {Record<string, any>} existingParams
+        */
+        buildParams(record, existingParams) {
+            const participantRecord = $app.dao().findFirstRecordByData('participants', 'registrant', record.id);
+
+            return Object.assign(existingParams, {
+                first_name: record.getString('first_name'),
+                participant_id: participantRecord.getString('pId')
+            });
+        },
+        subject(params) {
+            return `[IMPORTANT] Your Participant ID for ${params.event_name}`;
+        }
     }
 }

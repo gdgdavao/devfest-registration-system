@@ -1,0 +1,20 @@
+{{define "title"}}
+Hey {{.first_name}},
+{{end}}
+
+{{define "body"}}
+    <p style="text-align: center; margin-bottom: 12px; margin-top: 12px;">Here's your assigned participant ID:</p>
+    <div style="margin-bottom: 24px; background-color: #f3f4f6; padding: 6px 10px; width: 100%; text-align: center;">
+        <p style="font-size: 48px; font-family: 'Courier New', Courier, monospace;">{{.participant_id}}</p>
+    </div>
+    <p style="margin-bottom: 8px; font-weight: bold;">Reminders:</p>
+    <ul style="margin-bottom: 12px; line-height: 1.325;">
+        <li>Save or screenshot this email.</li>
+        <li>Check-in will begin at <b>11:00am</b>. We recommend that you should arrive early at the venue.</li>
+        <li>Upon check-in, present this <b>participant ID</b> to our volunteers.</li>
+        <li>Have fun!</li>
+    </ul>
+    <p style="line-height: 1.325;">We look forward to seeing you at {{.event_name}}!</p>
+    <p style="margin-top: 28px;margin-bottom: 4px;">Sincerely,</p>
+    <p>{{.event_name}} Team</p>
+{{end}}
