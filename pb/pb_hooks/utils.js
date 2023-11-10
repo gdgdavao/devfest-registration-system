@@ -430,7 +430,7 @@ module.exports = {
             mailTemplate.path
         );
         const records = filter.length !== 0
-            ? $app.dao().findRecordsByFilter("registrations", filter, "-created", -1)
+            ? $app.dao().findRecordsByFilter("registrations", filter, "+created", -1)
             : arrayOf(new Record);
 
         if (filter.length === 0) {
@@ -465,9 +465,28 @@ module.exports = {
 
         const mailClient = $app.newMailClient();
         for (const message of messages) {
-            mailClient.send(message);
-        }
+            let retries = 0;
 
+            while (retries < 3) {
+                try {
+                    mailClient.send(message);
+                    break;
+                } catch (e) {
+                    console.error(`Failed to send e-mail to ${message.to[0].address}. Retrying...`);
+
+                    // Add 5-second delay
+                    const start = Date.now();
+                    while (Date.now() - start < 5000);
+
+                    retries++;
+                    continue;
+                }
+            }
+
+            if (retries === 3) {
+                console.error(`Reached maximum retries. Failed to send e-mail to ${message.to[0].address}`);
+            }
+        }
         return messages.length;
     },
 
@@ -824,7 +843,7 @@ module.exports = {
 
                     options = { ...options, fields: relFields }
                 }
-                
+
                 fields.push({
                     title,
                     name: field.name,
