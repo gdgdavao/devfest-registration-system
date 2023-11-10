@@ -117,9 +117,9 @@ export default function CheckinHeader({ value: selectedParticipantId, onChange: 
                         onClick={() => setParticipantIdType(v => v === 'tensor' ? '' : 'tensor')}
                         className="flex-1 text-2xl py-8 px-12">Tensor</Button>
                     <Button
-                        disabled={participantIdType.length !== 0 && participantIdType !== 'vortex'}
-                        onClick={() => setParticipantIdType(v => v === 'vortex' ? '' : 'vortex')}
-                        className="flex-1 text-2xl py-8 px-12" variant="destructive">Vortex</Button>
+                        disabled={participantIdType.length !== 0 && participantIdType !== 'vertex'}
+                        onClick={() => setParticipantIdType(v => v === 'vertex' ? '' : 'vertex')}
+                        className="flex-1 text-2xl py-8 px-12" variant="destructive">Vertex</Button>
                     <Button
                         disabled={participantIdType.length !== 0 && participantIdType !== 'jetpack'}
                         onClick={() => setParticipantIdType(v => v === 'jetpack' ? '' : 'jetpack')}
