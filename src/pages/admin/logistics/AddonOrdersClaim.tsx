@@ -164,12 +164,12 @@ export default function AddonOrdersClaim() {
                             </AlertDialogContent>
                         </AlertDialog>
 
-                        <Button disabled={participant?.is_addon_claimed || !canClaimMerch || isUpdating} onClick={() => updateAddonOrderClaim(false)} variant="secondary">
+                        <Button disabled={!canClaimMerch || isUpdating} onClick={() => updateAddonOrderClaim(false)} variant="secondary">
                             <X className="mr-2" />
                             Mark as Unclaimed
                         </Button>
 
-                        <Button disabled={!participant?.is_addon_claimed || !canClaimMerch || isUpdating} onClick={() => updateAddonOrderClaim(true)}>
+                        <Button disabled={!canClaimMerch || isUpdating} onClick={() => updateAddonOrderClaim(true)}>
                             <Check className="mr-2" />
                             Mark as Claimed
                         </Button>

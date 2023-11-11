@@ -116,16 +116,13 @@ export default function CheckinHeader({ value: selectedParticipantId, onChange: 
             <TabsContent value="id" className="flex flex-col items-stretch w-full space-y-4">
                 <div className="flex space-x-2 justify-center pt-8">
                     <Button
-                        disabled={participantIdType.length !== 0 && participantIdType !== 'tensor'}
-                        onClick={() => setParticipantIdType(v => v === 'tensor' ? '' : 'tensor')}
+                        onClick={() => setParticipantIdType('tensor')}
                         className="flex-1 text-2xl py-8 px-12">Tensor</Button>
                     <Button
-                        disabled={participantIdType.length !== 0 && participantIdType !== 'vertex'}
-                        onClick={() => setParticipantIdType(v => v === 'vertex' ? '' : 'vertex')}
+                        onClick={() => setParticipantIdType('vertex')}
                         className="flex-1 text-2xl py-8 px-12" variant="destructive">Vertex</Button>
                     <Button
-                        disabled={participantIdType.length !== 0 && participantIdType !== 'jetpack'}
-                        onClick={() => setParticipantIdType(v => v === 'jetpack' ? '' : 'jetpack')}
+                        onClick={() => setParticipantIdType('jetpack')}
                         className="flex-1 text-2xl py-8 px-12" variant="success">Jetpack</Button>
                 </div>
 
@@ -145,13 +142,12 @@ export default function CheckinHeader({ value: selectedParticipantId, onChange: 
                         maxLength={3}
                         value={participantId}
                         ref={pIdTextBox}
-                        disabled={searchMode !== 'id' || participantIdType.length === 0}
+                        disabled={searchMode !== 'id'}
                         onChange={(evt) => setParticipantId(evt.currentTarget.value)}
                         onKeyDown={(evt) => {
                             if (evt.key === 'Backspace' && selectedParticipantId.length > 3 && selectedParticipantId.endsWith("-" + evt.currentTarget.value)) {
                                 setParticipantId('');
                                 setSelectedParticipantId('');
-                                setParticipantIdType('');
                             }
                         }}
                         className="text-center text-2xl px-10 py-8" />
