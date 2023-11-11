@@ -146,7 +146,6 @@ export default function CheckinHeader({ value: selectedParticipantId, onChange: 
                         onChange={(evt) => setParticipantId(evt.currentTarget.value)}
                         onKeyDown={(evt) => {
                             if (evt.key === 'Backspace' && selectedParticipantId.length > 3 && selectedParticipantId.endsWith("-" + evt.currentTarget.value)) {
-                                setParticipantId('');
                                 setSelectedParticipantId('');
                             }
                         }}
