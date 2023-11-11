@@ -35,12 +35,15 @@ function ParticipantsListAutocomplete({ filter, onSelect, children }: {
             <PopoverContent align="center" className="max-w-2xl w-[1000px] mx-4 md:mx-0 p-0" onOpenAutoFocus={(evt) => { evt.preventDefault(); }}>
                 <Command>
                     <CommandList>
-                        <CommandEmpty>No results found.</CommandEmpty>
-                        {isLoading && <CommandLoading>
-                            <div className="w-full flex py-8 justify-center">
-                                <LoaderIcon className="text-gray-500 animate-spin" />
-                            </div>
-                        </CommandLoading>}
+                        {isLoading ? (
+                            <CommandLoading>
+                                <div className="w-full flex py-8 justify-center">
+                                    <LoaderIcon className="text-gray-500 animate-spin" />
+                                </div>
+                            </CommandLoading>
+                        ) : (
+                            <CommandEmpty>No results found.</CommandEmpty>
+                        )}
                         <CommandGroup>
                             {results?.map(r => (
                                 <CommandItem
@@ -87,7 +90,7 @@ export default function CheckinHeader({ value: selectedParticipantId, onChange: 
                 pbf.like('registrant.last_name', participantName),
             );
         } else if (searchMode === 'id' && participantId.length > 0 && participantIdType.length > 0) {
-            return pbf.eq('pId', `${participantIdType.toUpperCase()}-${participantId}`);
+            return pbf.like('pId', `${participantIdType.toUpperCase()}-%${participantId}%`,);
         }
         return null;
     }, [searchMode, participantId, participantIdType, participantName]);
