@@ -1,7 +1,7 @@
 import { useParticipantMutation, useParticipantQuery } from "@/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, MessageSquarePlus, X } from "lucide-react";
+import { Check, MessageSquarePlus, RefreshCcw, X } from "lucide-react";
 import { useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Loading from "@/components/Loading";
@@ -10,12 +10,13 @@ import toast from "react-hot-toast";
 import { ClientResponseError } from "pocketbase";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import CheckinHeader from "@/components/CheckinHeader";
+import { cn } from "@/lib/utils";
 
 
 export default function Checkin() {
     const [participantRemarks, setParticipantRemarks] = useState('');
     const [selectedParticipantId, setSelectedParticipantId] = useState('');
-    const { data: participant, isLoading, refetch } = useParticipantQuery(selectedParticipantId.toUpperCase());
+    const { data: participant, isLoading, refetch, isRefetching } = useParticipantQuery(selectedParticipantId.toUpperCase());
     const { mutate: updateParticipant, isLoading: isUpdating } = useParticipantMutation();
 
     const updateParticipantStatus = (status: ParticipantsStatusOptions) => {
@@ -53,11 +54,20 @@ export default function Checkin() {
 
             {selectedParticipantId && (
                 <Card className="relative w-full">
-                    <CardHeader>
+                    <CardHeader className="justify-between flex md:flex-row items-center flex-row md:space-y-0">
                         <CardTitle>Participant Details</CardTitle>
+
+                        <Button disabled={isUpdating} onClick={() => refetch()} variant="secondary">
+                            <RefreshCcw className={cn('mr-2', {'animate-spin': isLoading || isRefetching})} />
+                            Refresh
+                        </Button>
                     </CardHeader>
 
-                    <CardContent>
+                    <CardContent className="relative">
+                        {(isUpdating || isLoading || isRefetching) && <div className="bg-white/40 h-full w-full absolute inset-0 flex flex-col py-24">
+                            <Loading className="w-48 mx-auto" />
+                        </div>}
+
                         {participant && <div className="flex flex-col">
                             <h3 className="font-mono font-light text-gray-400">{participant.pId}</h3>
 

@@ -1,21 +1,23 @@
 import { useParticipantMutation, useParticipantQuery } from "@/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, MessageSquarePlus, X } from "lucide-react";
-import { useState } from "react";
+import { Check, MessageSquarePlus, RefreshCcw, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Loading from "@/components/Loading";
 import toast from "react-hot-toast";
 import { ClientResponseError } from "pocketbase";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import CheckinHeader from "@/components/CheckinHeader";
+import { cn } from "@/lib/utils";
 
 
 export default function AddonOrdersClaim() {
     const [participantRemarks, setParticipantRemarks] = useState('');
     const [selectedParticipantId, setSelectedParticipantId] = useState('');
-    const { data: participant, isLoading, refetch } = useParticipantQuery(selectedParticipantId.toUpperCase());
+    const { data: participant, isLoading, isRefetching, refetch } = useParticipantQuery(selectedParticipantId.toUpperCase());
     const { mutate: updateParticipant, isLoading: isUpdating } = useParticipantMutation();
+    const canClaimMerch = useMemo(() => participant?.expand?.registrant.addons.length !== 0 ?? false, [participant]);
 
     const updateAddonOrderClaim = (claimed: boolean) => {
         if (!participant) {
@@ -52,11 +54,20 @@ export default function AddonOrdersClaim() {
 
             {selectedParticipantId && (
                 <Card className="relative w-full">
-                    <CardHeader>
+                    <CardHeader className="justify-between flex md:flex-row items-center flex-row md:space-y-0">
                         <CardTitle>Participant Details</CardTitle>
+
+                        <Button disabled={isUpdating} onClick={() => refetch()} variant="secondary">
+                            <RefreshCcw className={cn('mr-2', {'animate-spin': isLoading || isRefetching})} />
+                            Refresh
+                        </Button>
                     </CardHeader>
 
-                    <CardContent>
+                    <CardContent className="relative">
+                        {(isUpdating || isLoading || isRefetching) && <div className="bg-white/40 h-full w-full absolute inset-0 flex flex-col py-24">
+                            <Loading className="w-48 mx-auto" />
+                        </div>}
+
                         {participant && <div className="flex flex-col">
                             <h3 className="font-mono font-light text-gray-400">{participant.pId}</h3>
 
@@ -76,17 +87,17 @@ export default function AddonOrdersClaim() {
 
                             <div className="mt-4 space-y-4">
                                 <div className="text-lg flex items-center">
-                                    {(participant.is_addon_claimed || participant.expand!.registrant.addons.length !== 0) ?
+                                    {(participant.is_addon_claimed || canClaimMerch) ?
                                         <Check className="text-green-500 mr-2" /> :
                                         <X className="text-red-500 mr-2" />}
                                     <h4>
                                     {participant.is_addon_claimed ?
                                         `Add-on order already claimed` :
-                                        `${participant.expand!.registrant.addons.length !== 0 ? 'Can' : 'Cannot'} claim add-on`}
+                                        `${canClaimMerch ? 'Can' : 'Cannot'} claim add-on`}
                                     </h4>
                                 </div>
 
-                                {participant.expand!.registrant.addons.length !== 0 &&
+                                {canClaimMerch &&
                                     <div>
                                         <h4 className="mb-1">Addons to claim</h4>
 
@@ -107,11 +118,7 @@ export default function AddonOrdersClaim() {
                         </div>}
                     </CardContent>
 
-                    <CardFooter className="justify-end space-x-2">
-                        {(isUpdating || isLoading) && <div className="bg-white/40 h-full w-full absolute inset-0 flex flex-col py-24">
-                            <Loading className="w-48 mx-auto" />
-                        </div>}
-
+                    <CardFooter className="justify-end space-<x-2">
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <Button disabled={isUpdating} variant="secondary">
@@ -157,12 +164,12 @@ export default function AddonOrdersClaim() {
                             </AlertDialogContent>
                         </AlertDialog>
 
-                        <Button disabled={isUpdating} onClick={() => updateAddonOrderClaim(false)} variant="secondary">
+                        <Button disabled={participant?.is_addon_claimed || !canClaimMerch || isUpdating} onClick={() => updateAddonOrderClaim(false)} variant="secondary">
                             <X className="mr-2" />
                             Mark as Unclaimed
                         </Button>
 
-                        <Button disabled={isUpdating} onClick={() => updateAddonOrderClaim(true)}>
+                        <Button disabled={!participant?.is_addon_claimed || !canClaimMerch || isUpdating} onClick={() => updateAddonOrderClaim(true)}>
                             <Check className="mr-2" />
                             Mark as Claimed
                         </Button>
